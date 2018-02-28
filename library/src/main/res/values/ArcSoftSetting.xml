@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <bool name="ArcSoft_useFaceTracking">true</bool>
+    <bool name="ArcSoft_useFaceDetection">true</bool>
+    <bool name="ArcSoft_useFaceRecognition">true</bool>
+    <bool name="ArcSoft_allowRegister">true</bool>
+    <string name="ArcSoft_faceDirectory">/data/faces</string>
+</resources>
