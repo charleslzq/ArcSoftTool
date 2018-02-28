@@ -2,8 +2,6 @@ package com.github.charleslzq.arcsofttools.kotlin.support
 
 import android.content.res.Resources
 import com.github.charleslzq.arcsofttools.R
-import com.github.charleslzq.arcsofttools.kotlin.support.BooleanXMLResource
-import com.github.charleslzq.arcsofttools.kotlin.support.StringXMLResource
 
 /**
  * Created by charleslzq on 18-2-28.

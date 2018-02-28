@@ -9,17 +9,17 @@ import kotlin.reflect.KProperty
 abstract class XMLResourceDelegate<out T>(
     private val resources: Resources,
     private val resourceId: Int,
-    private val getter: (Resources, Int) -> T)
-{
+    private val getter: (Resources, Int) -> T
+) {
     operator fun getValue(thisRef: Any, property: KProperty<*>) = getter(resources, resourceId)
 }
 
 class BooleanXMLResource(
     resources: Resources,
     resourceId: Int
-): XMLResourceDelegate<Boolean>(resources, resourceId, Resources::getBoolean)
+) : XMLResourceDelegate<Boolean>(resources, resourceId, Resources::getBoolean)
 
 class StringXMLResource(
     resources: Resources,
     resourceId: Int
-): XMLResourceDelegate<String>(resources, resourceId, Resources::getString)
+) : XMLResourceDelegate<String>(resources, resourceId, Resources::getString)
