@@ -40,7 +40,11 @@ dependencies {
     implementation 'com.guo.android_extend:android-extend:1.0.1'
 
     testImplementation 'junit:junit:4.12'
-    compile "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
+
+    implementation 'com.google.code.gson:gson:2.8.2'
+    implementation 'joda-time:joda-time:2.9.9'
+    implementation 'com.fatboyindustrial.gson-jodatime-serialisers:gson-jodatime-serialisers:1.6.0'
 }
 repositories {
     mavenCentral()
