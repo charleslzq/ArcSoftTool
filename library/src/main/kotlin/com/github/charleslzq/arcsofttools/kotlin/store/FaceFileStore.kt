@@ -9,10 +9,11 @@ import java.util.*
 /**
  * Created by charleslzq on 18-3-1.
  */
-class FaceFileStore(
+class FaceFileStore<P : Meta, F : Meta>(
     private val directory: String,
-    private val listeners: MutableList<FaceStoreChangeListener> = mutableListOf()
-) : ReadWriteFaceStore {
+    private val faceDataType: FaceDataType<P, F>,
+    private val listeners: MutableList<FaceStoreChangeListener<P, F>> = mutableListOf()
+) : ReadWriteFaceStore<P, F> {
     private val gson = Converters.registerLocalDateTime(GsonBuilder()).create()
 
     override fun getPersonIds() = listValidSubDirs(directory)
@@ -21,14 +22,15 @@ class FaceFileStore(
         FaceData(this, getFaceIdList(personId).mapNotNull { getFace(personId, it) })
     }
 
-    override fun getPerson(personId: String) = loadDataFile(Person::class.java, directory, personId)
+    override fun getPerson(personId: String) =
+        loadDataFile(faceDataType.personClass, directory, personId)
 
     override fun getFaceIdList(personId: String) = listValidSubDirs(directory, personId)
 
     override fun getFace(personId: String, faceId: String) =
-        loadDataFile(Face::class.java, directory, personId, faceId)
+        loadDataFile(faceDataType.faceClass, directory, personId, faceId)
 
-    override fun savePerson(person: Person) {
+    override fun savePerson(person: P) {
         val oldData = getPerson(person.id)
         if (oldData == null || oldData.updateTime.isBefore(person.updateTime)) {
             saveDataFile(person, directory, person.id)
@@ -36,7 +38,7 @@ class FaceFileStore(
         }
     }
 
-    override fun saveFace(personId: String, face: Face) {
+    override fun saveFace(personId: String, face: F) {
         val oldData = getFace(personId, face.id)
         if (oldData == null || oldData.updateTime.isBefore(face.updateTime)) {
             saveDataFile(face, directory, personId, face.id)
@@ -45,7 +47,7 @@ class FaceFileStore(
     }
 
 
-    override fun saveFaceData(faceData: FaceData) {
+    override fun saveFaceData(faceData: FaceData<P, F>) {
         savePerson(faceData.person)
         faceData.faces.forEach { saveFace(faceData.person.id, it) }
     }

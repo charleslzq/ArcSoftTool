@@ -1,7 +1,7 @@
 package com.github.charleslzq.sample
 
-import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
+import android.support.v7.app.AppCompatActivity
 import android.util.Log
 import com.github.charleslzq.arcsofttools.kotlin.support.ArcSoftSdkKey
 import com.github.charleslzq.arcsofttools.kotlin.support.ArcSoftSetting
@@ -24,7 +24,7 @@ class MainActivity : AppCompatActivity() {
             Log.d("test", "fd $useFaceDetection")
             Log.d("test", "fr $useFaceRecognition")
             Log.d("test", "ft $useFaceTracking")
-            Log.d("test", "al $allowRegister")
+            Log.d("test", "al $useAgeDetection")
             Log.d("test", faceDirectory)
         }
 

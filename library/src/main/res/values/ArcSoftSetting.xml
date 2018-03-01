@@ -3,6 +3,9 @@
     <bool name="ArcSoft_useFaceTracking">true</bool>
     <bool name="ArcSoft_useFaceDetection">true</bool>
     <bool name="ArcSoft_useFaceRecognition">true</bool>
-    <bool name="ArcSoft_allowRegister">true</bool>
+    <bool name="ArcSoft_useAgeDetection">true</bool>
+    <bool name="ArcSoft_useGenderDetection">true</bool>
     <string name="ArcSoft_faceDirectory">/data/faces</string>
+    <integer name="ArcSoft_scale">16</integer>
+    <integer name="ArcSoft_maxFaceNum">25</integer>
 </resources>

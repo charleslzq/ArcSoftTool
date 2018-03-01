@@ -19,6 +19,11 @@ class BooleanXMLResource(
     resourceId: Int
 ) : XMLResourceDelegate<Boolean>(resources, resourceId, Resources::getBoolean)
 
+class IntXMLResource(
+    resources: Resources,
+    resourceId: Int
+) : XMLResourceDelegate<Int>(resources, resourceId, Resources::getInteger)
+
 class StringXMLResource(
     resources: Resources,
     resourceId: Int
