@@ -7,6 +7,7 @@ import com.arcsoft.facedetection.AFD_FSDKEngine
 import com.arcsoft.facedetection.AFD_FSDKError
 import com.arcsoft.facerecognition.AFR_FSDKEngine
 import com.arcsoft.facerecognition.AFR_FSDKError
+import com.arcsoft.facerecognition.AFR_FSDKVersion
 import com.arcsoft.facetracking.AFT_FSDKEngine
 import com.arcsoft.facetracking.AFT_FSDKError
 import com.arcsoft.genderestimation.ASGE_FSDKEngine
@@ -31,6 +32,9 @@ class ArcSoftEngine(keys: ArcSoftSdkKey, val setting: ArcSoftSetting) : AutoClos
         }
     } else {
         null
+    }
+    val recognitionEngineVersion = AFR_FSDKVersion().apply {
+        faceRecognitionEngine?.AFR_FSDK_GetVersion(this)
     }
     private val faceDetectEngine = if (setting.useFaceDetection) {
         AFD_FSDKEngine().let {
