@@ -3,14 +3,22 @@ package com.github.charleslzq.sample
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
 import android.util.Log
-import com.github.charleslzq.arcsofttools.kotlin.ArcSoftEngineBinder
+import com.github.charleslzq.arcsofttools.kotlin.ArcSoftEngineAdapter
+import com.github.charleslzq.arcsofttools.kotlin.ArcSoftFaceDataType
 import com.github.charleslzq.arcsofttools.kotlin.ArcSoftSdkKey
 import com.github.charleslzq.arcsofttools.kotlin.ArcSoftSetting
 import com.github.charleslzq.faceengine.core.kotlin.FaceEngine
+import com.github.charleslzq.faceengine.core.kotlin.store.FaceFileStore
 
 class MainActivity : AppCompatActivity() {
 
-    val engine = FaceEngine(ArcSoftEngineBinder(ArcSoftSdkKey(), ArcSoftSetting(resources)))
+    val engine by lazy {
+        val keys = ArcSoftSdkKey()
+        val setting = ArcSoftSetting(resources)
+        val store = FaceFileStore(setting.faceDirectory, ArcSoftFaceDataType())
+        val adapter = ArcSoftEngineAdapter(keys, setting)
+        FaceEngine(store, adapter, adapter)
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -29,6 +37,5 @@ class MainActivity : AppCompatActivity() {
             Log.d("test", "al $useAgeDetection")
             Log.d("test", faceDirectory)
         }
-
     }
 }

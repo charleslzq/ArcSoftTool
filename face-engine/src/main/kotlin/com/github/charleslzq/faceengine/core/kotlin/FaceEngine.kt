@@ -24,15 +24,9 @@ interface FaceDetectionEngine<out F : Meta> {
     fun detect(image: Bitmap): List<F>
 }
 
-interface FaceEngineBinder<P : Meta, F : Meta, R : Comparable<R>> {
-    fun createStore(): ReadWriteFaceStore<P, F>
-    fun createFaceRecognitionEngine(): FaceRecognitionEngine<P, F, R>
-    fun createFaceDetectionEngine(): FaceDetectionEngine<F>
-}
-
 class FaceEngine<P : Meta, F : Meta, R : Comparable<R>>(
-    faceEngineBinder: FaceEngineBinder<P, F, R>
-) : FaceDetectionEngine<F> by faceEngineBinder.createFaceDetectionEngine(),
-    FaceRecognitionEngine<P, F, R> by faceEngineBinder.createFaceRecognitionEngine() {
-    val store = faceEngineBinder.createStore()
-}
+    val store: ReadWriteFaceStore<P, F>,
+    val detectEngine: FaceDetectionEngine<F>,
+    val recognitionEngine: FaceRecognitionEngine<P, F, R>
+) : FaceDetectionEngine<F> by detectEngine,
+    FaceRecognitionEngine<P, F, R> by recognitionEngine
