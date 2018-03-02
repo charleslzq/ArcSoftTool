@@ -5,16 +5,14 @@ import com.arcsoft.facerecognition.AFR_FSDKEngine
 import com.arcsoft.facerecognition.AFR_FSDKError
 import com.arcsoft.facerecognition.AFR_FSDKVersion
 import com.github.charleslzq.arcsofttools.kotlin.ArcSoftSdkKey
-import com.github.charleslzq.arcsofttools.kotlin.ArcSoftSetting
 
 /**
  * Created by charleslzq on 18-3-2.
  */
 class ArcSoftFaceRecognitionEngine(
-    private val keys: ArcSoftSdkKey,
-    private val setting: ArcSoftSetting
+    private val keys: ArcSoftSdkKey
 ) : ArcSoftEngineWrapper<AFR_FSDKEngine, AFR_FSDKVersion>() {
-    override fun init() = if (setting.useFaceRecognition) {
+    override fun init() =
         AFR_FSDKEngine().let {
             it.AFR_FSDK_InitialEngine(keys.appId, keys.faceRecognitionKey).run {
                 if (code == AFR_FSDKError.MOK) {
@@ -25,9 +23,6 @@ class ArcSoftFaceRecognitionEngine(
                 }
             }
         }
-    } else {
-        null
-    }
 
     override fun determineVersion(internalEngine: AFR_FSDKEngine) = AFR_FSDKVersion().run {
         if (internalEngine.AFR_FSDK_GetVersion(this).code == AFR_FSDKError.MOK) {

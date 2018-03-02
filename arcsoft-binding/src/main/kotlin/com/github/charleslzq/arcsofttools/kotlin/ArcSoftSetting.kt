@@ -14,14 +14,6 @@ class ArcSoftSetting(resources: Resources) {
         resources,
         R.bool.ArcSoft_useFaceTracking
     )
-    val useFaceDetection by BooleanXMLResource(
-        resources,
-        R.bool.ArcSoft_useFaceDetection
-    )
-    val useFaceRecognition by BooleanXMLResource(
-        resources,
-        R.bool.ArcSoft_useFaceRecognition
-    )
     val useAgeDetection by BooleanXMLResource(
         resources,
         R.bool.ArcSoft_useAgeDetection

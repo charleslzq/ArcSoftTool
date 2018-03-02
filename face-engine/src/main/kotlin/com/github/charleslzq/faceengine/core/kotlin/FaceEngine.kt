@@ -4,7 +4,6 @@ import android.graphics.Bitmap
 import com.github.charleslzq.faceengine.core.kotlin.store.Meta
 import com.github.charleslzq.faceengine.core.kotlin.store.ReadOnlyFaceStore
 import com.github.charleslzq.faceengine.core.kotlin.store.ReadWriteFaceStore
-import com.github.charleslzq.faceengine.core.kotlin.support.TypeHolder
 
 /**
  * Created by charleslzq on 18-3-1.
@@ -31,11 +30,9 @@ interface FaceEngineBinder<P : Meta, F : Meta, R : Comparable<R>> {
     fun createFaceDetectionEngine(): FaceDetectionEngine<F>
 }
 
-class FaceEngine<S, P : Meta, F : Meta, R : Comparable<R>>(
+class FaceEngine<P : Meta, F : Meta, R : Comparable<R>>(
     faceEngineBinder: FaceEngineBinder<P, F, R>
-) : TypeHolder<S>,
-    FaceDetectionEngine<F> by faceEngineBinder.createFaceDetectionEngine(),
-    FaceRecognitionEngine<P, F, R> by faceEngineBinder.createFaceRecognitionEngine()
-        where S : TypeHolder<S> {
+) : FaceDetectionEngine<F> by faceEngineBinder.createFaceDetectionEngine(),
+    FaceRecognitionEngine<P, F, R> by faceEngineBinder.createFaceRecognitionEngine() {
     val store = faceEngineBinder.createStore()
 }
