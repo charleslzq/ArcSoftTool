@@ -3,10 +3,14 @@ package com.github.charleslzq.sample
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
 import android.util.Log
+import com.github.charleslzq.arcsofttools.kotlin.ArcSoftEngineBinder
 import com.github.charleslzq.arcsofttools.kotlin.ArcSoftSdkKey
 import com.github.charleslzq.arcsofttools.kotlin.ArcSoftSetting
+import com.github.charleslzq.faceengine.core.kotlin.FaceEngine
 
 class MainActivity : AppCompatActivity() {
+
+    val engine = FaceEngine(ArcSoftEngineBinder(ArcSoftSdkKey(), ArcSoftSetting(resources)))
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -21,8 +25,6 @@ class MainActivity : AppCompatActivity() {
             Log.d("test", genderKey)
         }
         ArcSoftSetting(resources).apply {
-            Log.d("test", "fd $useFaceDetection")
-            Log.d("test", "fr $useFaceRecognition")
             Log.d("test", "ft $useFaceTracking")
             Log.d("test", "al $useAgeDetection")
             Log.d("test", faceDirectory)
