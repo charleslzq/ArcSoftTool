@@ -8,16 +8,18 @@ import com.arcsoft.facedetection.AFD_FSDKFace
 import com.arcsoft.facerecognition.AFR_FSDKEngine
 import com.arcsoft.facerecognition.AFR_FSDKError
 import com.arcsoft.facerecognition.AFR_FSDKFace
+import com.arcsoft.facerecognition.AFR_FSDKMatching
 import com.github.charleslzq.arcsofttools.kotlin.engine.*
 import com.github.charleslzq.faceengine.core.kotlin.FaceDetectionEngine
+import com.github.charleslzq.faceengine.core.kotlin.FaceRecognitionEngine
 import com.guo.android_extend.image.ImageConverter
 import java.util.*
 
 /**
  * Created by charleslzq on 18-3-1.
  */
-class ArcSoftEngine(keys: ArcSoftSdkKey, setting: ArcSoftSetting) : AutoCloseable,
-    FaceDetectionEngine<Face> {
+class ArcSoftEngineAdapter(keys: ArcSoftSdkKey, setting: ArcSoftSetting) : AutoCloseable,
+    FaceDetectionEngine<Face>, FaceRecognitionEngine<Person, Face, Float> {
     val faceRecognitionEngine = ArcSoftFaceRecognitionEngine(keys)
     val faceDetectEngine = ArcSoftFaceDetectionEngine(keys, setting)
     val faceTrackEngine = ArcSoftFaceTrackingEngine(keys, setting)
@@ -63,6 +65,25 @@ class ArcSoftEngine(keys: ArcSoftSdkKey, setting: ArcSoftSetting) : AutoCloseabl
             }
         } else {
             emptyList()
+        }
+    }
+
+    override fun calculateSimilarity(savedFace: Face, newFace: Face): Float {
+        return if (faceRecognitionEngine.getEngine() != null) {
+            AFR_FSDKMatching().let {
+                val compareCode = faceRecognitionEngine.getEngine()!!.AFR_FSDK_FacePairMatching(
+                    newFace.data,
+                    savedFace.data,
+                    it
+                )
+                if (compareCode.code == AFR_FSDKError.MOK) {
+                    it.score
+                } else {
+                    -1.0f
+                }
+            }
+        } else {
+            -1.0f
         }
     }
 
