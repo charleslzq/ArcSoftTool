@@ -31,7 +31,7 @@ interface FaceEngineBinder<P : Meta, F : Meta, R : Comparable<R>> {
     fun createFaceDetectionEngine(): FaceDetectionEngine<F>
 }
 
-abstract class FaceEngine<S, P : Meta, F : Meta, R : Comparable<R>>(
+class FaceEngine<S, P : Meta, F : Meta, R : Comparable<R>>(
     faceEngineBinder: FaceEngineBinder<P, F, R>
 ) : TypeHolder<S>,
     FaceDetectionEngine<F> by faceEngineBinder.createFaceDetectionEngine(),
