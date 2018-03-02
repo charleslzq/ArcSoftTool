@@ -8,7 +8,7 @@ import java.util.*
 /**
  * Created by charleslzq on 18-3-1.
  */
-class FaceFileStore<P : Meta, F : Meta>(
+open class FaceFileStore<P : Meta, F : Meta>(
     private val directory: String,
     private val faceDataType: FaceDataType<P, F>,
     private val listeners: MutableList<FaceStoreChangeListener<P, F>> = mutableListOf()
