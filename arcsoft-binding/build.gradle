@@ -1,0 +1,50 @@
+apply plugin: 'com.android.library'
+apply plugin: 'kotlin-android'
+
+android {
+    compileSdkVersion 24
+    buildToolsVersion "26.0.2"
+
+    defaultConfig {
+        minSdkVersion 19
+        targetSdkVersion 24
+        versionCode 1
+        versionName "1.0"
+        sourceSets.main {
+            jniLibs.srcDirs = ['libs']
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+
+    sourceSets{
+        main.java.srcDirs += 'src/main/kotlin'
+    }
+
+}
+
+apply from: 'readLocalProperties.gradle'
+
+dependencies {
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    implementation project(':face-engine')
+    implementation files('libs/facedetection.jar')
+    implementation files('libs/facerecognition.jar')
+    implementation files('libs/facetracking.jar')
+    implementation files('libs/ageestimation.jar')
+    implementation files('libs/genderestimation.jar')
+    implementation 'com.guo.android_extend:android-extend:1.0.1'
+
+    testImplementation 'junit:junit:4.12'
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
+
+    implementation 'com.google.code.gson:gson:2.8.2'
+}
+repositories {
+    mavenCentral()
+}

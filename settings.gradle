@@ -1,1 +1,1 @@
-include ':library', ':sample'
+include ':face-engine', ':arcsoft-binding', ':sample'

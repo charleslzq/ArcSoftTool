@@ -3,8 +3,8 @@ package com.github.charleslzq.sample
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
 import android.util.Log
-import com.github.charleslzq.arcsofttools.kotlin.support.ArcSoftSdkKey
-import com.github.charleslzq.arcsofttools.kotlin.support.ArcSoftSetting
+import com.github.charleslzq.arcsofttools.kotlin.ArcSoftSdkKey
+import com.github.charleslzq.arcsofttools.kotlin.ArcSoftSetting
 
 class MainActivity : AppCompatActivity() {
 
