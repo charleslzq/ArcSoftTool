@@ -98,6 +98,7 @@ class ArcSoftEngineAdapter(keys: ArcSoftSdkKey, setting: ArcSoftSetting) : AutoC
     }
 
     companion object {
+        @JvmStatic
         fun createEngine(resources: Resources): FaceEngine<Person, Face, Float> {
             val keys = ArcSoftSdkKey()
             val setting = ArcSoftSetting(resources)
