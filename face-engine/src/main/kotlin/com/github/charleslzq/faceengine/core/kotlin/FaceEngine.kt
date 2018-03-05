@@ -15,11 +15,11 @@ interface FaceRecognitionEngine<P : Meta, in F : Meta, R : Comparable<R>> {
     fun search(newFace: F, store: ReadOnlyFaceStore<P, F>) = store.getPersonIds()
         .mapNotNull { store.getPerson(it) }
         .filter { store.getFaceIdList(it.id).isNotEmpty() }
-        .maxBy {
+        .mapNotNull {
             store.getFaceIdList(it.id).mapNotNull { faceId ->
                 store.getFace(it.id, faceId)?.let { calculateSimilarity(it, newFace) }
-            }.max()!!
-        }
+            }.max()?.run { it to this }
+        }.maxBy { it.second }
 }
 
 class FaceRecognitionEngineRxDelegate<P : Meta, in F : Meta, R : Comparable<R>>(

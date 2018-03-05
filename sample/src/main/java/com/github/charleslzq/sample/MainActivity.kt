@@ -7,6 +7,7 @@ import android.os.Bundle
 import android.provider.MediaStore
 import android.support.v7.app.AppCompatActivity
 import com.github.charleslzq.arcsofttools.kotlin.ArcSoftEngineAdapter
+import com.github.charleslzq.arcsofttools.kotlin.Person
 import kotlinx.android.synthetic.main.activity_main.*
 
 class MainActivity : AppCompatActivity() {
@@ -27,7 +28,14 @@ class MainActivity : AppCompatActivity() {
         super.onActivityResult(requestCode, resultCode, data)
 
         if (requestCode == REQUEST_CODE_IMAGE_CAMERA && resultCode == Activity.RESULT_OK) {
-            capturedIamge.setImageBitmap(data.extras["data"] as Bitmap)
+            engine.detect(data.extras["data"] as Bitmap).run {
+                if (isNotEmpty()) {
+                    engine.store.savePerson(Person("test", "test_name"))
+                    forEach {
+                        engine.store.saveFace("test", it)
+                    }
+                }
+            }
         }
     }
 
