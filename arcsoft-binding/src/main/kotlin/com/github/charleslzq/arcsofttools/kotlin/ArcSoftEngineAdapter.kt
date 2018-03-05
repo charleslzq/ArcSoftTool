@@ -1,5 +1,6 @@
 package com.github.charleslzq.arcsofttools.kotlin
 
+import android.content.res.Resources
 import android.graphics.Bitmap
 import android.graphics.Rect
 import com.arcsoft.facedetection.AFD_FSDKEngine
@@ -10,8 +11,9 @@ import com.arcsoft.facerecognition.AFR_FSDKError
 import com.arcsoft.facerecognition.AFR_FSDKFace
 import com.arcsoft.facerecognition.AFR_FSDKMatching
 import com.github.charleslzq.arcsofttools.kotlin.engine.*
-import com.github.charleslzq.faceengine.core.kotlin.FaceDetectionEngine
-import com.github.charleslzq.faceengine.core.kotlin.FaceRecognitionEngine
+import com.github.charleslzq.faceengine.core.kotlin.*
+import com.github.charleslzq.faceengine.core.kotlin.store.FaceFileStore
+import com.github.charleslzq.faceengine.core.kotlin.store.ReadWriteFaceStoreRxDelegate
 import com.guo.android_extend.image.ImageConverter
 import java.util.*
 
@@ -93,5 +95,19 @@ class ArcSoftEngineAdapter(keys: ArcSoftSdkKey, setting: ArcSoftSetting) : AutoC
         faceTrackEngine.close()
         ageDetectEngine.close()
         genderDetectEngine.close()
+    }
+
+    companion object {
+        fun createEngine(resources: Resources): FaceEngine<Person, Face, Float> {
+            val keys = ArcSoftSdkKey()
+            val setting = ArcSoftSetting(resources)
+            val store = FaceFileStore(setting.faceDirectory, ArcSoftFaceDataType())
+            val adapter = ArcSoftEngineAdapter(keys, setting)
+            return FaceEngine(
+                ReadWriteFaceStoreRxDelegate(store),
+                FaceDetectionEngineRxDelegate(adapter),
+                FaceRecognitionEngineRxDelegate(adapter)
+            )
+        }
     }
 }

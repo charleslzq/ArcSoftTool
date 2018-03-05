@@ -1,48 +1,39 @@
 package com.github.charleslzq.sample
 
+import android.app.Activity
+import android.content.Intent
+import android.graphics.Bitmap
 import android.os.Bundle
+import android.provider.MediaStore
 import android.support.v7.app.AppCompatActivity
-import android.util.Log
 import com.github.charleslzq.arcsofttools.kotlin.ArcSoftEngineAdapter
-import com.github.charleslzq.arcsofttools.kotlin.ArcSoftFaceDataType
-import com.github.charleslzq.arcsofttools.kotlin.ArcSoftSdkKey
-import com.github.charleslzq.arcsofttools.kotlin.ArcSoftSetting
-import com.github.charleslzq.faceengine.core.kotlin.FaceDetectionEngineRxDelegate
-import com.github.charleslzq.faceengine.core.kotlin.FaceEngine
-import com.github.charleslzq.faceengine.core.kotlin.FaceRecognitionEngineRxDelegate
-import com.github.charleslzq.faceengine.core.kotlin.store.FaceFileStore
-import com.github.charleslzq.faceengine.core.kotlin.store.ReadWriteFaceStoreRxDelegate
+import kotlinx.android.synthetic.main.activity_main.*
 
 class MainActivity : AppCompatActivity() {
-
-    val engine by lazy {
-        val keys = ArcSoftSdkKey()
-        val setting = ArcSoftSetting(resources)
-        val store = FaceFileStore(setting.faceDirectory, ArcSoftFaceDataType())
-        val adapter = ArcSoftEngineAdapter(keys, setting)
-        FaceEngine(
-            ReadWriteFaceStoreRxDelegate(store),
-            FaceDetectionEngineRxDelegate(adapter),
-            FaceRecognitionEngineRxDelegate(adapter)
-        )
-    }
+    val engine = ArcSoftEngineAdapter.createEngine(resources)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+        captureImageButton.setOnClickListener {
+            startActivityForResult(
+                Intent(MediaStore.ACTION_IMAGE_CAPTURE),
+                REQUEST_CODE_IMAGE_CAMERA
+            )
+        }
+    }
 
-        ArcSoftSdkKey().apply {
-            Log.d("test", appId)
-            Log.d("test", faceDetectionKey)
-            Log.d("test", faceRecognitionKey)
-            Log.d("test", faceTrackingKey)
-            Log.d("test", ageKey)
-            Log.d("test", genderKey)
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent) {
+        super.onActivityResult(requestCode, resultCode, data)
+
+        if (requestCode == REQUEST_CODE_IMAGE_CAMERA && resultCode == Activity.RESULT_OK) {
+            capturedIamge.setImageBitmap(data.extras["data"] as Bitmap)
         }
-        ArcSoftSetting(resources).apply {
-            Log.d("test", "ft $useFaceTracking")
-            Log.d("test", "al $useAgeDetection")
-            Log.d("test", faceDirectory)
-        }
+    }
+
+    companion object {
+        private const val REQUEST_CODE_IMAGE_CAMERA = 1
+        private const val REQUEST_CODE_IMAGE_OP = 2
+        private const val REQUEST_CODE_OP = 3
     }
 }
