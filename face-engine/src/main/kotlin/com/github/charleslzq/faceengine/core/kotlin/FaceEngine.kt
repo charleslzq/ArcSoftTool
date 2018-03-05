@@ -4,6 +4,8 @@ import android.graphics.Bitmap
 import com.github.charleslzq.faceengine.core.kotlin.store.Meta
 import com.github.charleslzq.faceengine.core.kotlin.store.ReadOnlyFaceStore
 import com.github.charleslzq.faceengine.core.kotlin.store.ReadWriteFaceStore
+import com.github.charleslzq.faceengine.core.kotlin.support.callNullableOnCompute
+import com.github.charleslzq.faceengine.core.kotlin.support.callOnCompute
 
 /**
  * Created by charleslzq on 18-3-1.
@@ -20,8 +22,24 @@ interface FaceRecognitionEngine<P : Meta, in F : Meta, R : Comparable<R>> {
         }
 }
 
+class FaceRecognitionEngineRxDelegate<P : Meta, in F : Meta, R : Comparable<R>>(
+    private val delegate: FaceRecognitionEngine<P, F, R>
+) : FaceRecognitionEngine<P, F, R> {
+    override fun calculateSimilarity(savedFace: F, newFace: F) =
+        callOnCompute { delegate.calculateSimilarity(savedFace, newFace) }
+
+    override fun search(newFace: F, store: ReadOnlyFaceStore<P, F>) =
+        callNullableOnCompute { delegate.search(newFace, store) }
+}
+
 interface FaceDetectionEngine<out F : Meta> {
-    fun detect(image: Bitmap): List<F>
+    fun detect(image: Bitmap): List<F> = emptyList()
+}
+
+class FaceDetectionEngineRxDelegate<out F : Meta>(
+    private val delegate: FaceDetectionEngine<F>
+) : FaceDetectionEngine<F> {
+    override fun detect(image: Bitmap) = callOnCompute { delegate.detect(image) }
 }
 
 class FaceEngine<P : Meta, F : Meta, R : Comparable<R>>(

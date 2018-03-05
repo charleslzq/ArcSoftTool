@@ -7,8 +7,11 @@ import com.github.charleslzq.arcsofttools.kotlin.ArcSoftEngineAdapter
 import com.github.charleslzq.arcsofttools.kotlin.ArcSoftFaceDataType
 import com.github.charleslzq.arcsofttools.kotlin.ArcSoftSdkKey
 import com.github.charleslzq.arcsofttools.kotlin.ArcSoftSetting
+import com.github.charleslzq.faceengine.core.kotlin.FaceDetectionEngineRxDelegate
 import com.github.charleslzq.faceengine.core.kotlin.FaceEngine
+import com.github.charleslzq.faceengine.core.kotlin.FaceRecognitionEngineRxDelegate
 import com.github.charleslzq.faceengine.core.kotlin.store.FaceFileStore
+import com.github.charleslzq.faceengine.core.kotlin.store.ReadWriteFaceStoreRxDelegate
 
 class MainActivity : AppCompatActivity() {
 
@@ -17,7 +20,11 @@ class MainActivity : AppCompatActivity() {
         val setting = ArcSoftSetting(resources)
         val store = FaceFileStore(setting.faceDirectory, ArcSoftFaceDataType())
         val adapter = ArcSoftEngineAdapter(keys, setting)
-        FaceEngine(store, adapter, adapter)
+        FaceEngine(
+            ReadWriteFaceStoreRxDelegate(store),
+            FaceDetectionEngineRxDelegate(adapter),
+            FaceRecognitionEngineRxDelegate(adapter)
+        )
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {

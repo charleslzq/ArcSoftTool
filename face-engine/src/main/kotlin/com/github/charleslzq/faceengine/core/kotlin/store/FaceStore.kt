@@ -1,5 +1,8 @@
 package com.github.charleslzq.faceengine.core.kotlin.store
 
+import com.github.charleslzq.faceengine.core.kotlin.support.callNullableOnIo
+import com.github.charleslzq.faceengine.core.kotlin.support.callOnIo
+import com.github.charleslzq.faceengine.core.kotlin.support.runOnIo
 import org.joda.time.LocalDateTime
 
 /**
@@ -19,26 +22,76 @@ interface FaceDataType<P : Meta, F : Meta> {
 }
 
 interface ReadOnlyFaceStore<out P : Meta, out F : Meta> {
-    fun getPersonIds(): List<String>
-    fun getFaceData(personId: String): FaceData<P, F>?
-    fun getPerson(personId: String): P?
-    fun getFaceIdList(personId: String): List<String>
-    fun getFace(personId: String, faceId: String): F?
+    fun getPersonIds(): List<String> = emptyList()
+    fun getFaceData(personId: String): FaceData<P, F>? = null
+    fun getPerson(personId: String): P? = null
+    fun getFaceIdList(personId: String): List<String> = emptyList()
+    fun getFace(personId: String, faceId: String): F? = null
+}
+
+class ReadOnlyFaceStoreRxDelegate<out P : Meta, out F : Meta>(
+    private val delegate: ReadOnlyFaceStore<P, F>
+) : ReadOnlyFaceStore<P, F> {
+    override fun getPersonIds() = callOnIo { delegate.getPersonIds() }
+    override fun getFaceData(personId: String) = callNullableOnIo { delegate.getFaceData(personId) }
+    override fun getPerson(personId: String) = callNullableOnIo { delegate.getPerson(personId) }
+    override fun getFaceIdList(personId: String) = callOnIo { delegate.getFaceIdList(personId) }
+    override fun getFace(personId: String, faceId: String) =
+        callNullableOnIo { delegate.getFace(personId, faceId) }
 }
 
 interface ReadWriteFaceStore<P : Meta, F : Meta> : ReadOnlyFaceStore<P, F> {
-    fun savePerson(person: P)
-    fun saveFace(personId: String, face: F)
-    fun saveFaceData(faceData: FaceData<P, F>)
-    fun deleteFaceData(personId: String)
-    fun deleteFace(personId: String, faceId: String)
-    fun clearFace(personId: String)
+    fun savePerson(person: P) {}
+    fun saveFace(personId: String, face: F) {}
+    fun saveFaceData(faceData: FaceData<P, F>) {}
+    fun deleteFaceData(personId: String) {}
+    fun deleteFace(personId: String, faceId: String) {}
+    fun clearFace(personId: String) {}
+}
+
+class ReadWriteFaceStoreRxDelegate<P : Meta, F : Meta>(
+    private val delegate: ReadWriteFaceStore<P, F>
+) : ReadWriteFaceStore<P, F> {
+    override fun getPersonIds() = callOnIo { delegate.getPersonIds() }
+    override fun getFaceData(personId: String) = callNullableOnIo { delegate.getFaceData(personId) }
+    override fun getPerson(personId: String) = callNullableOnIo { delegate.getPerson(personId) }
+    override fun getFaceIdList(personId: String) = callOnIo { delegate.getFaceIdList(personId) }
+    override fun getFace(personId: String, faceId: String) =
+        callNullableOnIo { delegate.getFace(personId, faceId) }
+
+    override fun savePerson(person: P) = runOnIo { delegate.savePerson(person) }
+    override fun saveFace(personId: String, face: F) = runOnIo { delegate.saveFace(personId, face) }
+    override fun saveFaceData(faceData: FaceData<P, F>) =
+        runOnIo { delegate.saveFaceData(faceData) }
+
+    override fun deleteFaceData(personId: String) = runOnIo { delegate.deleteFaceData(personId) }
+    override fun deleteFace(personId: String, faceId: String) =
+        runOnIo { delegate.deleteFace(personId, faceId) }
+
+    override fun clearFace(personId: String) = runOnIo { delegate.clearFace(personId) }
 }
 
 interface FaceStoreChangeListener<in P : Meta, in F : Meta> {
-    fun onPersonUpdate(person: P)
-    fun onFaceUpdate(personId: String, face: F)
-    fun onFaceDataDelete(personId: String)
-    fun onFaceDelete(personId: String, faceId: String)
-    fun onPersonFaceClear(personId: String)
+    fun onPersonUpdate(person: P) {}
+    fun onFaceUpdate(personId: String, face: F) {}
+    fun onFaceDataDelete(personId: String) {}
+    fun onFaceDelete(personId: String, faceId: String) {}
+    fun onPersonFaceClear(personId: String) {}
+}
+
+class FaceStoreChangeListenerRxDelegate<in P : Meta, in F : Meta>(
+    private val delegate: FaceStoreChangeListener<P, F>
+) : FaceStoreChangeListener<P, F> {
+    override fun onPersonUpdate(person: P) = runOnIo { delegate.onPersonUpdate(person) }
+    override fun onFaceUpdate(personId: String, face: F) =
+        runOnIo { delegate.onFaceUpdate(personId, face) }
+
+    override fun onFaceDataDelete(personId: String) =
+        runOnIo { delegate.onFaceDataDelete(personId) }
+
+    override fun onFaceDelete(personId: String, faceId: String) =
+        runOnIo { delegate.onFaceDelete(personId, faceId) }
+
+    override fun onPersonFaceClear(personId: String) =
+        runOnIo { delegate.onPersonFaceClear(personId) }
 }
