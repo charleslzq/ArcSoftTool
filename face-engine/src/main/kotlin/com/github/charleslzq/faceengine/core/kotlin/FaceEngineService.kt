@@ -18,8 +18,11 @@ class FaceEngineServiceImpl<P : Meta, F : Meta, R : Comparable<R>>(
     fun search(face: F) = search(face, store)
 }
 
-open class FaceEngineServiceBackground<P : Meta, F : Meta, R : Comparable<R>>(
-    private val engine: FaceEngine<P, F, R>
-) : Service() {
+abstract class FaceEngineServiceBackground<P : Meta, F : Meta, R : Comparable<R>> : Service() {
+    private val engine by lazy {
+        createEngine()
+    }
+
     override fun onBind(p0: Intent?) = FaceEngineServiceImpl(engine)
+    abstract fun createEngine(): FaceEngine<P, F, R>
 }

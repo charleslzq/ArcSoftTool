@@ -32,7 +32,7 @@ apply from: 'readLocalProperties.gradle'
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
-    implementation project(':face-engine')
+    api project(':face-engine')
     implementation files('libs/facedetection.jar')
     implementation files('libs/facerecognition.jar')
     implementation files('libs/facetracking.jar')
@@ -42,8 +42,6 @@ dependencies {
 
     testImplementation 'junit:junit:4.12'
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
-
-    implementation 'joda-time:joda-time:2.9.9'
 }
 repositories {
     mavenCentral()
