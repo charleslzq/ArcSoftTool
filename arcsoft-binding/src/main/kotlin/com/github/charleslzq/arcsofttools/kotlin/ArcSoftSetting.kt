@@ -9,7 +9,7 @@ import com.github.charleslzq.faceengine.core.kotlin.support.StringXMLResource
 /**
  * Created by charleslzq on 18-2-28.
  */
-class ArcSoftSetting(resources: Resources) {
+class ArcSoftSetting(resources: Resources = Resources.getSystem()) {
     val useFaceTracking by BooleanXMLResource(
         resources,
         R.bool.ArcSoft_useFaceTracking

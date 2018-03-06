@@ -78,9 +78,7 @@ class FaceCaptureView(context: Context, attributeSet: AttributeSet? = null, defS
 
         override fun onPictureTaken(cameraView: CameraView, data: ByteArray) {
             super.onPictureTaken(cameraView, data)
-            if (cameraView is FaceCaptureView) {
-                publisher.onNext(BitmapFactory.decodeByteArray(data, 0, data.size))
-            }
+            publisher.onNext(BitmapFactory.decodeByteArray(data, 0, data.size))
         }
     }
 

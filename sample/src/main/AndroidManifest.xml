@@ -25,7 +25,11 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".FaceDetectActivity"></activity>
+        <activity android:name=".FaceDetectActivity" />
+
+        <service
+            android:name="com.github.charleslzq.arcsofttools.kotlin.ArcSoftEngineService"
+            android:enabled="true" />
     </application>
 
 </manifest>

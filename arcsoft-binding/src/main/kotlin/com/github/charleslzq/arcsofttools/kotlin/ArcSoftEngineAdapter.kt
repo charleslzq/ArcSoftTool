@@ -99,7 +99,7 @@ class ArcSoftEngineAdapter(keys: ArcSoftSdkKey, setting: ArcSoftSetting) : AutoC
 
     companion object {
         @JvmStatic
-        fun createEngine(resources: Resources): FaceEngine<Person, Face, Float> {
+        fun createEngine(resources: Resources = Resources.getSystem()): FaceEngine<Person, Face, Float> {
             val keys = ArcSoftSdkKey()
             val setting = ArcSoftSetting(resources)
             val store = FaceFileStore(setting.faceDirectory, ArcSoftFaceDataType())
@@ -112,3 +112,6 @@ class ArcSoftEngineAdapter(keys: ArcSoftSdkKey, setting: ArcSoftSetting) : AutoC
         }
     }
 }
+
+class ArcSoftEngineService :
+    FaceEngineServiceBackground<Person, Face, Float>(ArcSoftEngineAdapter.createEngine())

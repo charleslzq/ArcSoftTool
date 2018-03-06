@@ -1,17 +1,34 @@
 package com.github.charleslzq.sample
 
 import android.app.Activity
+import android.content.ComponentName
+import android.content.Context
 import android.content.Intent
+import android.content.ServiceConnection
 import android.graphics.Bitmap
 import android.os.Bundle
+import android.os.IBinder
 import android.provider.MediaStore
 import android.support.v7.app.AppCompatActivity
-import com.github.charleslzq.arcsofttools.kotlin.ArcSoftEngineAdapter
+import com.github.charleslzq.arcsofttools.kotlin.ArcSoftEngineService
+import com.github.charleslzq.arcsofttools.kotlin.Face
 import com.github.charleslzq.arcsofttools.kotlin.Person
+import com.github.charleslzq.faceengine.core.kotlin.FaceEngineServiceImpl
 import kotlinx.android.synthetic.main.activity_main.*
 
 class MainActivity : AppCompatActivity() {
-    val engine = ArcSoftEngineAdapter.createEngine(resources)
+    private val serviceConnection = object : ServiceConnection {
+        override fun onServiceDisconnected(name: ComponentName) {
+            faceEngineService = null
+        }
+
+        override fun onServiceConnected(name: ComponentName, service: IBinder) {
+            @Suppress("UNCHECKED_CAST")
+            faceEngineService = service as FaceEngineServiceImpl<Person, Face, Float>
+        }
+
+    }
+    private var faceEngineService: FaceEngineServiceImpl<Person, Face, Float>? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -25,17 +42,22 @@ class MainActivity : AppCompatActivity() {
         checkFaceButton.setOnClickListener {
             startActivity(Intent(this, FaceDetectActivity::class.java))
         }
+        bindService(
+            Intent(this, ArcSoftEngineService::class.java),
+            serviceConnection,
+            Context.BIND_AUTO_CREATE
+        )
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent) {
         super.onActivityResult(requestCode, resultCode, data)
 
         if (requestCode == REQUEST_CODE_IMAGE_CAMERA && resultCode == Activity.RESULT_OK) {
-            engine.detect(data.extras["data"] as Bitmap).run {
+            faceEngineService?.detect(data.extras["data"] as Bitmap)?.run {
                 if (isNotEmpty()) {
-                    engine.store.savePerson(Person("test", "test_name"))
+                    faceEngineService!!.store.savePerson(Person("test", "test_name"))
                     forEach {
-                        engine.store.saveFace("test", it)
+                        faceEngineService!!.store.saveFace("test", it)
                     }
                 }
             }
