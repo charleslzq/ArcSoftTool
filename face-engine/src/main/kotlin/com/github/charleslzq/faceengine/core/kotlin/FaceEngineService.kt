@@ -9,7 +9,7 @@ import com.github.charleslzq.faceengine.core.kotlin.store.ReadWriteFaceStore
 /**
  * Created by charleslzq on 18-3-6.
  */
-class FaceEngineServiceImpl<P : Meta, F : Meta, R : Comparable<R>>(
+class FaceEngineService<P : Meta, F : Meta, R : Comparable<R>>(
     private val engine: FaceEngine<P, F, R>
 ) : Binder(), FaceDetectionEngine<F> by engine, FaceRecognitionEngine<P, F, R> by engine {
     val store: ReadWriteFaceStore<P, F>
@@ -19,10 +19,15 @@ class FaceEngineServiceImpl<P : Meta, F : Meta, R : Comparable<R>>(
 }
 
 abstract class FaceEngineServiceBackground<P : Meta, F : Meta, R : Comparable<R>> : Service() {
-    private val engine by lazy {
+    protected val engine by lazy {
         createEngine()
     }
 
-    override fun onBind(p0: Intent?) = FaceEngineServiceImpl(engine)
+    override fun onBind(p0: Intent?) = FaceEngineService(engine)
+    override fun onDestroy() {
+        (engine as? AutoCloseable)?.close()
+        super.onDestroy()
+    }
+
     abstract fun createEngine(): FaceEngine<P, F, R>
 }

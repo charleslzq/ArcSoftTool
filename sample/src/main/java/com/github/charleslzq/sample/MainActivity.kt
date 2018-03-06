@@ -14,7 +14,7 @@ import android.widget.Toast
 import com.github.charleslzq.arcsofttools.kotlin.ArcSoftEngineService
 import com.github.charleslzq.arcsofttools.kotlin.Face
 import com.github.charleslzq.arcsofttools.kotlin.Person
-import com.github.charleslzq.faceengine.core.kotlin.FaceEngineServiceImpl
+import com.github.charleslzq.faceengine.core.kotlin.FaceEngineService
 import kotlinx.android.synthetic.main.activity_main.*
 
 fun Context.toast(message: CharSequence, duration: Int = Toast.LENGTH_SHORT) =
@@ -28,11 +28,11 @@ class MainActivity : AppCompatActivity() {
 
         override fun onServiceConnected(name: ComponentName, service: IBinder) {
             @Suppress("UNCHECKED_CAST")
-            faceEngineService = service as FaceEngineServiceImpl<Person, Face, Float>
+            faceEngineService = service as FaceEngineService<Person, Face, Float>
         }
 
     }
-    private var faceEngineService: FaceEngineServiceImpl<Person, Face, Float>? = null
+    private var faceEngineService: FaceEngineService<Person, Face, Float>? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

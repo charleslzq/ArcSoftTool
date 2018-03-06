@@ -7,6 +7,8 @@ import android.graphics.BitmapFactory
 import android.util.AttributeSet
 import com.github.charleslzq.faceengine.core.R
 import com.google.android.cameraview.CameraView
+import io.reactivex.Scheduler
+import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.Disposable
 import io.reactivex.subjects.PublishSubject
 import java.util.concurrent.atomic.AtomicBoolean
@@ -22,8 +24,8 @@ fun TypedArray.use(process: TypedArray.() -> Unit) = apply {
 class FaceCaptureView(context: Context, attributeSet: AttributeSet? = null, defStyle: Int = 0) :
     CameraView(context, attributeSet, defStyle) {
     private var count = 0
+    private var pause = AtomicBoolean(false)
     var interval: Int = DEFAULT_INTERVAL.toInt()
-    var pause = AtomicBoolean(false)
     val autoTakePictureCallback = AutoTakePictureCallback()
 
     constructor(context: Context, attributeSet: AttributeSet? = null) : this(
@@ -47,6 +49,14 @@ class FaceCaptureView(context: Context, attributeSet: AttributeSet? = null, defS
                     }
                 }
         }
+    }
+
+    fun pauseCapture() = pause.set(true)
+
+    fun resumeCapture() = pause.set(false)
+
+    fun resetCount() {
+        count = 0
     }
 
     override fun stop() {
@@ -78,14 +88,21 @@ class FaceCaptureView(context: Context, attributeSet: AttributeSet? = null, defS
             super.onPictureTaken(cameraView, data)
             if (cameraView is FaceCaptureView) {
                 cameraView.count++
-                publisher.onNext(
+                callOnCompute {
                     cameraView.count to BitmapFactory.decodeByteArray(
                         data,
                         0,
                         data.size
                     )
-                )
+                }.let { publisher.onNext(it) }
             }
+        }
+
+        fun onNewPicture(
+            scheduler: Scheduler = AndroidSchedulers.mainThread(),
+            processor: (Pair<Int, Bitmap>) -> Unit
+        ): Disposable {
+            return publisher.observeOn(scheduler).subscribe(processor)
         }
     }
 

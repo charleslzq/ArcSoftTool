@@ -12,8 +12,7 @@ import android.util.Log
 import com.github.charleslzq.arcsofttools.kotlin.ArcSoftEngineService
 import com.github.charleslzq.arcsofttools.kotlin.Face
 import com.github.charleslzq.arcsofttools.kotlin.Person
-import com.github.charleslzq.faceengine.core.kotlin.FaceEngineServiceImpl
-import io.reactivex.android.schedulers.AndroidSchedulers
+import com.github.charleslzq.faceengine.core.kotlin.FaceEngineService
 import kotlinx.android.synthetic.main.activity_face_detect.*
 
 class FaceDetectActivity : AppCompatActivity() {
@@ -24,37 +23,36 @@ class FaceDetectActivity : AppCompatActivity() {
 
         override fun onServiceConnected(name: ComponentName, service: IBinder) {
             @Suppress("UNCHECKED_CAST")
-            faceEngineService = service as FaceEngineServiceImpl<Person, Face, Float>
+            faceEngineService = service as FaceEngineService<Person, Face, Float>
         }
 
     }
-    private var faceEngineService: FaceEngineServiceImpl<Person, Face, Float>? = null
+    private var faceEngineService: FaceEngineService<Person, Face, Float>? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_face_detect)
-        faceDetectCamera.autoTakePictureCallback.publisher.observeOn(AndroidSchedulers.mainThread())
-            .subscribe {
-                counter.text = it.first.toString()
-                resultDisplay.setImageBitmap(it.second)
-                val result =
-                    faceEngineService?.detect(it.second)?.mapNotNull { faceEngineService!!.search(it) }
-                            ?: emptyList()
-                if (result.isNotEmpty()) {
-                    val person = result.maxBy { it.second }!!.first
-                    Log.i("test", "match result : $person")
-                    setResult(Activity.RESULT_OK, Intent().apply {
-                        putExtra("personName", person.name)
-                    })
+        faceDetectCamera.autoTakePictureCallback.onNewPicture {
+            counter.text = it.first.toString()
+            resultDisplay.setImageBitmap(it.second)
+            val result =
+                faceEngineService?.detect(it.second)?.mapNotNull { faceEngineService!!.search(it) }
+                        ?: emptyList()
+            if (result.isNotEmpty()) {
+                val person = result.maxBy { it.second }!!.first
+                Log.i("test", "match result : $person")
+                setResult(Activity.RESULT_OK, Intent().apply {
+                    putExtra("personName", person.name)
+                })
+                finish()
+            } else {
+                Log.i("test", "match result not found ${it.first}")
+                if (it.first >= CHECK_LIMIT) {
+                    setResult(Activity.RESULT_CANCELED)
                     finish()
-                } else {
-                    Log.i("test", "match result not found ${it.first}")
-                    if (it.first >= CHECK_LIMIT) {
-                        setResult(Activity.RESULT_CANCELED)
-                        finish()
-                    }
                 }
             }
+        }
         bindService(
             Intent(this, ArcSoftEngineService::class.java),
             serviceConnection,

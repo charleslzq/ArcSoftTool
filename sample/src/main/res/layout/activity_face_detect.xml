@@ -11,6 +11,7 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:adjustViewBounds="true"
+        app:autoFocus="true"
         app:autoTakePicture="true"
         app:facing="front"
         app:interval="500"
