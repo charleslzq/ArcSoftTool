@@ -22,6 +22,9 @@ class MainActivity : AppCompatActivity() {
                 REQUEST_CODE_IMAGE_CAMERA
             )
         }
+        checkFaceButton.setOnClickListener {
+            startActivity(Intent(this, FaceDetectActivity::class.java))
+        }
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent) {

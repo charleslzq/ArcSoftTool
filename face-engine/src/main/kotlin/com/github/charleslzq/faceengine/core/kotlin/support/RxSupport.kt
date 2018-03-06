@@ -2,6 +2,7 @@ package com.github.charleslzq.faceengine.core.kotlin.support
 
 import io.reactivex.Observable
 import io.reactivex.Scheduler
+import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.Disposable
 import io.reactivex.schedulers.Schedulers
 import java.util.concurrent.TimeUnit
@@ -30,6 +31,9 @@ fun runOnCompute(runnable: () -> Unit) = runOn(Schedulers.computation(), runnabl
 
 fun runOnComputeWithInterval(period: Long, runnable: () -> Unit) =
     runWithInterval(period, Schedulers.computation(), runnable)
+
+fun runOnUIWithInterval(period: Long, runnable: () -> Unit) =
+    runWithInterval(period, AndroidSchedulers.mainThread(), runnable)
 
 fun <T> callOn(scheduler: Scheduler = Schedulers.trampoline(), callable: () -> T): T {
     return Observable.just(1).observeOn(scheduler).map { callable() }.blockingSingle()
