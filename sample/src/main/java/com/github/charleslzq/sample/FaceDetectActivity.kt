@@ -42,6 +42,8 @@ class FaceDetectActivity : AppCompatActivity() {
                 if (result.isNotEmpty()) {
                     val person = result.maxBy { it.second }!!.first
                     Log.i("test", "match result : $person")
+                } else {
+                    Log.i("test", "match result not found")
                 }
             }
         bindService(
@@ -59,5 +61,10 @@ class FaceDetectActivity : AppCompatActivity() {
     override fun onPause() {
         faceDetectCamera.stop()
         super.onPause()
+    }
+
+    override fun onDestroy() {
+        unbindService(serviceConnection)
+        super.onDestroy()
     }
 }
