@@ -10,11 +10,15 @@ import android.os.Bundle
 import android.os.IBinder
 import android.provider.MediaStore
 import android.support.v7.app.AppCompatActivity
+import android.widget.Toast
 import com.github.charleslzq.arcsofttools.kotlin.ArcSoftEngineService
 import com.github.charleslzq.arcsofttools.kotlin.Face
 import com.github.charleslzq.arcsofttools.kotlin.Person
 import com.github.charleslzq.faceengine.core.kotlin.FaceEngineServiceImpl
 import kotlinx.android.synthetic.main.activity_main.*
+
+fun Context.toast(message: CharSequence, duration: Int = Toast.LENGTH_SHORT) =
+    Toast.makeText(this, message, duration).show()
 
 class MainActivity : AppCompatActivity() {
     private val serviceConnection = object : ServiceConnection {
@@ -36,11 +40,14 @@ class MainActivity : AppCompatActivity() {
         captureImageButton.setOnClickListener {
             startActivityForResult(
                 Intent(MediaStore.ACTION_IMAGE_CAPTURE),
-                REQUEST_CODE_IMAGE_CAMERA
+                RequestCodes.IMAGE_CAMERA.code
             )
         }
         checkFaceButton.setOnClickListener {
-            startActivity(Intent(this, FaceDetectActivity::class.java))
+            startActivityForResult(
+                Intent(this, FaceDetectActivity::class.java),
+                RequestCodes.FACE_CHECK.code
+            )
         }
         bindService(
             Intent(this, ArcSoftEngineService::class.java),
@@ -54,24 +61,42 @@ class MainActivity : AppCompatActivity() {
         super.onDestroy()
     }
 
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent) {
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
 
-        if (requestCode == REQUEST_CODE_IMAGE_CAMERA && resultCode == Activity.RESULT_OK) {
-            faceEngineService?.detect(data.extras["data"] as Bitmap)?.run {
-                if (isNotEmpty()) {
-                    faceEngineService!!.store.savePerson(Person("test", "test_name"))
-                    forEach {
-                        faceEngineService!!.store.saveFace("test", it)
+        when (RequestCodes.fromCode(requestCode)) {
+            RequestCodes.IMAGE_CAMERA -> if (resultCode == Activity.RESULT_OK && data != null) {
+                faceEngineService?.detect(data.extras["data"] as Bitmap)?.run {
+                    if (isNotEmpty()) {
+                        faceEngineService!!.store.savePerson(Person("test", "test_name"))
+                        forEach {
+                            faceEngineService!!.store.saveFace("test", it)
+                        }
                     }
                 }
+            }
+            RequestCodes.FACE_CHECK -> if (resultCode == Activity.RESULT_OK && data != null) {
+                val personName = data.extras["personName"] as String
+                toast("Found Person $personName")
+            } else if (resultCode == Activity.RESULT_CANCELED) {
+                toast("Fail to identify face")
+            }
+            else -> {
             }
         }
     }
 
-    companion object {
-        private const val REQUEST_CODE_IMAGE_CAMERA = 1
-        private const val REQUEST_CODE_IMAGE_OP = 2
-        private const val REQUEST_CODE_OP = 3
+    enum class RequestCodes {
+        IMAGE_CAMERA,
+        IMAGE_OP,
+        FACE_CHECK;
+
+        val code
+            get() = ordinal + 1
+
+        companion object {
+            @JvmStatic
+            fun fromCode(requestCode: Int) = RequestCodes.values()[requestCode - 1]
+        }
     }
 }

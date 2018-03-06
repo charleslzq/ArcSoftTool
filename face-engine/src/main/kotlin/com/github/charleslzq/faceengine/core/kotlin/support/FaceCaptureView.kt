@@ -21,10 +21,9 @@ fun TypedArray.use(process: TypedArray.() -> Unit) = apply {
 
 class FaceCaptureView(context: Context, attributeSet: AttributeSet? = null, defStyle: Int = 0) :
     CameraView(context, attributeSet, defStyle) {
+    private var count = 0
     var interval: Int = DEFAULT_INTERVAL.toInt()
     var pause = AtomicBoolean(false)
-    var count = 0
-        private set
     val autoTakePictureCallback = AutoTakePictureCallback()
 
     constructor(context: Context, attributeSet: AttributeSet? = null) : this(
@@ -57,14 +56,13 @@ class FaceCaptureView(context: Context, attributeSet: AttributeSet? = null, defS
 
     class AutoTakePictureCallback : CameraView.Callback() {
         private var disposable: Disposable? = null
-        val publisher = PublishSubject.create<Bitmap>()
+        val publisher = PublishSubject.create<Pair<Int, Bitmap>>()
 
         override fun onCameraOpened(cameraView: CameraView) {
             super.onCameraOpened(cameraView)
             if (cameraView is FaceCaptureView) {
                 disposable = runOnUIWithInterval(cameraView.interval.toLong()) {
                     if (!cameraView.pause.get()) {
-                        cameraView.count++
                         cameraView.takePicture()
                     }
                 }
@@ -78,7 +76,16 @@ class FaceCaptureView(context: Context, attributeSet: AttributeSet? = null, defS
 
         override fun onPictureTaken(cameraView: CameraView, data: ByteArray) {
             super.onPictureTaken(cameraView, data)
-            publisher.onNext(BitmapFactory.decodeByteArray(data, 0, data.size))
+            if (cameraView is FaceCaptureView) {
+                cameraView.count++
+                publisher.onNext(
+                    cameraView.count to BitmapFactory.decodeByteArray(
+                        data,
+                        0,
+                        data.size
+                    )
+                )
+            }
         }
     }
 

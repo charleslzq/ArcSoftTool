@@ -1,5 +1,6 @@
 package com.github.charleslzq.sample
 
+import android.app.Activity
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
@@ -34,16 +35,24 @@ class FaceDetectActivity : AppCompatActivity() {
         setContentView(R.layout.activity_face_detect)
         faceDetectCamera.autoTakePictureCallback.publisher.observeOn(AndroidSchedulers.mainThread())
             .subscribe {
-                counter.text = faceDetectCamera.count.toString()
-                resultDisplay.setImageBitmap(it)
+                counter.text = it.first.toString()
+                resultDisplay.setImageBitmap(it.second)
                 val result =
-                    faceEngineService?.detect(it)?.mapNotNull { faceEngineService!!.search(it) }
+                    faceEngineService?.detect(it.second)?.mapNotNull { faceEngineService!!.search(it) }
                             ?: emptyList()
                 if (result.isNotEmpty()) {
                     val person = result.maxBy { it.second }!!.first
                     Log.i("test", "match result : $person")
+                    setResult(Activity.RESULT_OK, Intent().apply {
+                        putExtra("personName", person.name)
+                    })
+                    finish()
                 } else {
-                    Log.i("test", "match result not found")
+                    Log.i("test", "match result not found ${it.first}")
+                    if (it.first >= CHECK_LIMIT) {
+                        setResult(Activity.RESULT_CANCELED)
+                        finish()
+                    }
                 }
             }
         bindService(
@@ -66,5 +75,9 @@ class FaceDetectActivity : AppCompatActivity() {
     override fun onDestroy() {
         unbindService(serviceConnection)
         super.onDestroy()
+    }
+
+    companion object {
+        private const val CHECK_LIMIT = 8
     }
 }
