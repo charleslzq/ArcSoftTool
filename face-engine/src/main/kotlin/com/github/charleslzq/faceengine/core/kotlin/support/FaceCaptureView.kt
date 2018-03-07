@@ -51,9 +51,11 @@ class FaceCaptureView(context: Context, attributeSet: AttributeSet? = null, defS
         }
     }
 
-    fun pauseCapture() = pause.set(true)
+    fun isCapturing() = !pause.get()
 
-    fun resumeCapture() = pause.set(false)
+    fun pauseCapture() = pause.compareAndSet(false, true)
+
+    fun resumeCapture() = pause.compareAndSet(true, false)
 
     fun resetCount() {
         count = 0

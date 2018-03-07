@@ -10,7 +10,9 @@ import com.github.charleslzq.faceengine.core.kotlin.support.callOnCompute
 /**
  * Created by charleslzq on 18-3-1.
  */
-interface FaceRecognitionEngine<P : Meta, in F : Meta, R : Comparable<R>> {
+interface FaceEngine<P : Meta, F : Meta, R : Comparable<R>, out S : ReadWriteFaceStore<P, F>> {
+    val store: S
+    fun detect(image: Bitmap): List<F> = emptyList()
     fun calculateSimilarity(savedFace: F, newFace: F): R
     fun search(newFace: F, store: ReadOnlyFaceStore<P, F>) = store.getPersonIds()
         .mapNotNull { store.getPerson(it) }
@@ -20,31 +22,20 @@ interface FaceRecognitionEngine<P : Meta, in F : Meta, R : Comparable<R>> {
                 store.getFace(it.id, faceId)?.let { calculateSimilarity(it, newFace) }
             }.max()?.run { it to this }
         }.maxBy { it.second }
+
+    fun search(face: F) = search(face, store)
 }
 
-class FaceRecognitionEngineRxDelegate<P : Meta, in F : Meta, R : Comparable<R>>(
-    private val delegate: FaceRecognitionEngine<P, F, R>
-) : FaceRecognitionEngine<P, F, R> {
+class FaceEngineRxDelegate<P : Meta, F : Meta, R : Comparable<R>, out S : ReadWriteFaceStore<P, F>>(
+    private val delegate: FaceEngine<P, F, R, S>
+) : FaceEngine<P, F, R, S> {
+    override val store: S
+        get() = delegate.store
+
+    override fun detect(image: Bitmap) = callOnCompute { delegate.detect(image) }
     override fun calculateSimilarity(savedFace: F, newFace: F) =
         callOnCompute { delegate.calculateSimilarity(savedFace, newFace) }
 
     override fun search(newFace: F, store: ReadOnlyFaceStore<P, F>) =
         callNullableOnCompute { delegate.search(newFace, store) }
 }
-
-interface FaceDetectionEngine<out F : Meta> {
-    fun detect(image: Bitmap): List<F> = emptyList()
-}
-
-class FaceDetectionEngineRxDelegate<out F : Meta>(
-    private val delegate: FaceDetectionEngine<F>
-) : FaceDetectionEngine<F> {
-    override fun detect(image: Bitmap) = callOnCompute { delegate.detect(image) }
-}
-
-class FaceEngine<P : Meta, F : Meta, R : Comparable<R>>(
-    val store: ReadWriteFaceStore<P, F>,
-    val detectEngine: FaceDetectionEngine<F>,
-    val recognitionEngine: FaceRecognitionEngine<P, F, R>
-) : FaceDetectionEngine<F> by detectEngine,
-    FaceRecognitionEngine<P, F, R> by recognitionEngine

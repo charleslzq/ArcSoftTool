@@ -13,6 +13,7 @@ import com.github.charleslzq.arcsofttools.kotlin.ArcSoftEngineService
 import com.github.charleslzq.arcsofttools.kotlin.Face
 import com.github.charleslzq.arcsofttools.kotlin.Person
 import com.github.charleslzq.faceengine.core.kotlin.FaceEngineService
+import com.github.charleslzq.faceengine.core.kotlin.store.ReadWriteFaceStore
 import kotlinx.android.synthetic.main.activity_face_detect.*
 
 class FaceDetectActivity : AppCompatActivity() {
@@ -23,11 +24,13 @@ class FaceDetectActivity : AppCompatActivity() {
 
         override fun onServiceConnected(name: ComponentName, service: IBinder) {
             @Suppress("UNCHECKED_CAST")
-            faceEngineService = service as FaceEngineService<Person, Face, Float>
+            faceEngineService =
+                    service as FaceEngineService<Person, Face, Float, ReadWriteFaceStore<Person, Face>>
         }
 
     }
-    private var faceEngineService: FaceEngineService<Person, Face, Float>? = null
+    private var faceEngineService: FaceEngineService<Person, Face, Float, ReadWriteFaceStore<Person, Face>>? =
+        null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

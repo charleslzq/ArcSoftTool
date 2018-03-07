@@ -11,8 +11,11 @@ import com.arcsoft.facerecognition.AFR_FSDKError
 import com.arcsoft.facerecognition.AFR_FSDKFace
 import com.arcsoft.facerecognition.AFR_FSDKMatching
 import com.github.charleslzq.arcsofttools.kotlin.engine.*
-import com.github.charleslzq.faceengine.core.kotlin.*
+import com.github.charleslzq.faceengine.core.kotlin.FaceEngine
+import com.github.charleslzq.faceengine.core.kotlin.FaceEngineRxDelegate
+import com.github.charleslzq.faceengine.core.kotlin.FaceEngineServiceBackground
 import com.github.charleslzq.faceengine.core.kotlin.store.FaceFileStore
+import com.github.charleslzq.faceengine.core.kotlin.store.ReadWriteFaceStore
 import com.github.charleslzq.faceengine.core.kotlin.store.ReadWriteFaceStoreRxDelegate
 import com.guo.android_extend.image.ImageConverter
 import java.util.*
@@ -21,7 +24,9 @@ import java.util.*
  * Created by charleslzq on 18-3-1.
  */
 class ArcSoftEngineAdapter(keys: ArcSoftSdkKey, setting: ArcSoftSetting) : AutoCloseable,
-    FaceDetectionEngine<Face>, FaceRecognitionEngine<Person, Face, Float> {
+    FaceEngine<Person, Face, Float, ReadWriteFaceStore<Person, Face>> {
+    override val store: ReadWriteFaceStoreRxDelegate<Person, Face> =
+        ReadWriteFaceStoreRxDelegate(FaceFileStore(setting.faceDirectory, ArcSoftFaceDataType()))
     val faceRecognitionEngine = ArcSoftFaceRecognitionEngine(keys)
     val faceDetectEngine = ArcSoftFaceDetectionEngine(keys, setting)
     val faceTrackEngine = ArcSoftFaceTrackingEngine(keys, setting)
@@ -99,20 +104,15 @@ class ArcSoftEngineAdapter(keys: ArcSoftSdkKey, setting: ArcSoftSetting) : AutoC
 
     companion object {
         @JvmStatic
-        fun createEngine(resources: Resources): FaceEngine<Person, Face, Float> {
+        fun createEngine(resources: Resources): FaceEngine<Person, Face, Float, ReadWriteFaceStore<Person, Face>> {
             val keys = ArcSoftSdkKey()
             val setting = ArcSoftSetting(resources)
-            val store = FaceFileStore(setting.faceDirectory, ArcSoftFaceDataType())
-            val adapter = ArcSoftEngineAdapter(keys, setting)
-            return FaceEngine(
-                ReadWriteFaceStoreRxDelegate(store),
-                FaceDetectionEngineRxDelegate(adapter),
-                FaceRecognitionEngineRxDelegate(adapter)
-            )
+            return FaceEngineRxDelegate(ArcSoftEngineAdapter(keys, setting))
         }
     }
 }
 
-class ArcSoftEngineService : FaceEngineServiceBackground<Person, Face, Float>() {
+class ArcSoftEngineService :
+    FaceEngineServiceBackground<Person, Face, Float, ReadWriteFaceStore<Person, Face>>() {
     override fun createEngine() = ArcSoftEngineAdapter.createEngine(resources)
 }
