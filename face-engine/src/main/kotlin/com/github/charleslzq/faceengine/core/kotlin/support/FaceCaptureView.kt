@@ -105,7 +105,6 @@ class FaceCaptureView(context: Context, attributeSet: AttributeSet? = null, defS
         override fun onCameraOpened(cameraView: CameraView?) {
             super.onCameraOpened(cameraView)
             (cameraView as? FaceCaptureView)?.apply {
-                resumeCapture()
                 if (autoStart) {
                     period(interval.toLong()) {
                         takePicture()
@@ -114,22 +113,16 @@ class FaceCaptureView(context: Context, attributeSet: AttributeSet? = null, defS
             }
         }
 
-        override fun onCameraClosed(cameraView: CameraView?) {
-            super.onCameraClosed(cameraView)
-            (cameraView as? FaceCaptureView)?.pauseCapture()
-        }
-
         override fun onPictureTaken(cameraView: CameraView, data: ByteArray) {
             super.onPictureTaken(cameraView, data)
             if (cameraView is FaceCaptureView) {
-                count++
-                callOnCompute {
-                    count to BitmapFactory.decodeByteArray(
+                publisher.onNext(callOnCompute {
+                    ++count to BitmapFactory.decodeByteArray(
                         data,
                         0,
                         data.size
                     )
-                }.let { publisher.onNext(it) }
+                })
             }
         }
     }

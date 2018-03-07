@@ -1,1 +1,1 @@
-include ':face-engine', ':arcsoft-binding', ':sample'
+include ':face-engine', ':arcsoft-binding', ':sample', ':cameraview'

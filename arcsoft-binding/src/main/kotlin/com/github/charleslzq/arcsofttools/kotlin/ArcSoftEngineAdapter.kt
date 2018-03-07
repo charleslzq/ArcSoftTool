@@ -1,6 +1,5 @@
 package com.github.charleslzq.arcsofttools.kotlin
 
-import android.content.res.Resources
 import android.graphics.Bitmap
 import android.graphics.Rect
 import android.os.Environment
@@ -26,13 +25,12 @@ import java.util.*
  */
 class ArcSoftEngineAdapter(keys: ArcSoftSdkKey, setting: ArcSoftSetting) : AutoCloseable,
     FaceEngine<Person, Face, Float, ReadWriteFaceStore<Person, Face>> {
-    override val store: ReadWriteFaceStoreRxDelegate<Person, Face, ReadWriteFaceStore<Person, Face>> =
-        ReadWriteFaceStoreRxDelegate(
-            FaceFileStore(
-                Environment.getExternalStorageDirectory().absolutePath + setting.faceDirectory,
-                ArcSoftFaceDataType()
-            )
+    override val store = ReadWriteFaceStoreRxDelegate(
+        FaceFileStore(
+            Environment.getExternalStorageDirectory().absolutePath + setting.faceDirectory,
+            ArcSoftFaceDataType()
         )
+    )
     val faceRecognitionEngine = ArcSoftFaceRecognitionEngine(keys)
     val faceDetectEngine = ArcSoftFaceDetectionEngine(keys, setting)
     val faceTrackEngine = ArcSoftFaceTrackingEngine(keys, setting)
@@ -107,15 +105,10 @@ class ArcSoftEngineAdapter(keys: ArcSoftSdkKey, setting: ArcSoftSetting) : AutoC
         ageDetectEngine.close()
         genderDetectEngine.close()
     }
-
-    companion object {
-        @JvmStatic
-        fun createEngine(resources: Resources) =
-            FaceEngineRxDelegate(ArcSoftEngineAdapter(ArcSoftSdkKey(), ArcSoftSetting(resources)))
-    }
 }
 
 class ArcSoftEngineService :
     FaceEngineServiceBackground<Person, Face, Float, ReadWriteFaceStore<Person, Face>>() {
-    override fun createEngine() = ArcSoftEngineAdapter.createEngine(resources)
+    override fun createEngine() =
+        FaceEngineRxDelegate(ArcSoftEngineAdapter(ArcSoftSdkKey(), ArcSoftSetting(resources)))
 }
