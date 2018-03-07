@@ -32,6 +32,8 @@ fun runOnCompute(runnable: () -> Unit) = runOn(Schedulers.computation(), runnabl
 fun runOnComputeWithInterval(period: Long, runnable: () -> Unit) =
     runWithInterval(period, Schedulers.computation(), runnable)
 
+fun runOnUI(runnable: () -> Unit) = runOn(AndroidSchedulers.mainThread(), runnable)
+
 fun runOnUIWithInterval(period: Long, runnable: () -> Unit) =
     runWithInterval(period, AndroidSchedulers.mainThread(), runnable)
 
@@ -55,8 +57,8 @@ fun <T> callWithInterval(
     return Observable.interval(period, TimeUnit.MILLISECONDS, scheduler).map { callable() }
 }
 
-fun runOn(scheduler: Scheduler = Schedulers.trampoline(), runnable: () -> Unit) {
-    Observable.just(1).observeOn(scheduler).subscribe { runnable() }
+fun runOn(scheduler: Scheduler = Schedulers.trampoline(), runnable: () -> Unit): Disposable {
+    return Observable.just(1).observeOn(scheduler).subscribe { runnable() }
 }
 
 fun runWithInterval(

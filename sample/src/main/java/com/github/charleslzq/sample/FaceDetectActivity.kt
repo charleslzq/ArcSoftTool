@@ -35,7 +35,7 @@ class FaceDetectActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_face_detect)
-        faceDetectCamera.autoTakePictureCallback.onNewPicture {
+        faceDetectCamera.onNewPicture {
             counter.text = it.first.toString()
             resultDisplay.setImageBitmap(it.second)
             val result =
@@ -53,6 +53,10 @@ class FaceDetectActivity : AppCompatActivity() {
                 if (it.first >= CHECK_LIMIT) {
                     setResult(Activity.RESULT_CANCELED)
                     finish()
+                } else if (it.first >= CHECK_LIMIT / 2) {
+                    faceDetectCamera.period(faceDetectCamera.interval.toLong() * 2) {
+                        it.takePicture()
+                    }
                 }
             }
         }

@@ -59,16 +59,29 @@ class ReadWriteFaceStoreRxDelegate<P : Meta, F : Meta>(
     override fun getFace(personId: String, faceId: String) =
         callNullableOnIo { delegate.getFace(personId, faceId) }
 
-    override fun savePerson(person: P) = runOnIo { delegate.savePerson(person) }
-    override fun saveFace(personId: String, face: F) = runOnIo { delegate.saveFace(personId, face) }
-    override fun saveFaceData(faceData: FaceData<P, F>) =
+    override fun savePerson(person: P) {
+        runOnIo { delegate.savePerson(person) }
+    }
+
+    override fun saveFace(personId: String, face: F) {
+        runOnIo { delegate.saveFace(personId, face) }
+    }
+
+    override fun saveFaceData(faceData: FaceData<P, F>) {
         runOnIo { delegate.saveFaceData(faceData) }
+    }
 
-    override fun deleteFaceData(personId: String) = runOnIo { delegate.deleteFaceData(personId) }
-    override fun deleteFace(personId: String, faceId: String) =
+    override fun deleteFaceData(personId: String) {
+        runOnIo { delegate.deleteFaceData(personId) }
+    }
+
+    override fun deleteFace(personId: String, faceId: String) {
         runOnIo { delegate.deleteFace(personId, faceId) }
+    }
 
-    override fun clearFace(personId: String) = runOnIo { delegate.clearFace(personId) }
+    override fun clearFace(personId: String) {
+        runOnIo { delegate.clearFace(personId) }
+    }
 }
 
 interface FaceStoreChangeListener<in P : Meta, in F : Meta> {
@@ -82,16 +95,23 @@ interface FaceStoreChangeListener<in P : Meta, in F : Meta> {
 class FaceStoreChangeListenerRxDelegate<in P : Meta, in F : Meta>(
     private val delegate: FaceStoreChangeListener<P, F>
 ) : FaceStoreChangeListener<P, F> {
-    override fun onPersonUpdate(person: P) = runOnIo { delegate.onPersonUpdate(person) }
-    override fun onFaceUpdate(personId: String, face: F) =
+    override fun onPersonUpdate(person: P) {
+        runOnIo { delegate.onPersonUpdate(person) }
+    }
+
+    override fun onFaceUpdate(personId: String, face: F) {
         runOnIo { delegate.onFaceUpdate(personId, face) }
+    }
 
-    override fun onFaceDataDelete(personId: String) =
+    override fun onFaceDataDelete(personId: String) {
         runOnIo { delegate.onFaceDataDelete(personId) }
+    }
 
-    override fun onFaceDelete(personId: String, faceId: String) =
+    override fun onFaceDelete(personId: String, faceId: String) {
         runOnIo { delegate.onFaceDelete(personId, faceId) }
+    }
 
-    override fun onPersonFaceClear(personId: String) =
+    override fun onPersonFaceClear(personId: String) {
         runOnIo { delegate.onPersonFaceClear(personId) }
+    }
 }

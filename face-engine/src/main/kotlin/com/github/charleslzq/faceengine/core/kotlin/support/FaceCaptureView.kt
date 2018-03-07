@@ -23,10 +23,10 @@ fun TypedArray.use(process: TypedArray.() -> Unit) = apply {
 
 class FaceCaptureView(context: Context, attributeSet: AttributeSet? = null, defStyle: Int = 0) :
     CameraView(context, attributeSet, defStyle) {
-    private var count = 0
     private var pause = AtomicBoolean(false)
+    private var disposable: Disposable? = null
+    private val observablePictureCallback = ObservablePictureCallback()
     var interval: Int = DEFAULT_INTERVAL.toInt()
-    val autoTakePictureCallback = AutoTakePictureCallback()
 
     constructor(context: Context, attributeSet: AttributeSet? = null) : this(
         context,
@@ -37,6 +37,7 @@ class FaceCaptureView(context: Context, attributeSet: AttributeSet? = null, defS
     constructor(context: Context) : this(context, null, 0)
 
     init {
+        addCallback(observablePictureCallback)
         if (attributeSet != null) {
             context.obtainStyledAttributes(attributeSet, R.styleable.FaceCaptureView, defStyle, 0)
                 .use {
@@ -44,11 +45,37 @@ class FaceCaptureView(context: Context, attributeSet: AttributeSet? = null, defS
                         R.styleable.FaceCaptureView_interval,
                         DEFAULT_INTERVAL.toInt()
                     )
-                    if (getBoolean(R.styleable.FaceCaptureView_autoTakePicture, true)) {
-                        addCallback(autoTakePictureCallback)
+                    if (getBoolean(
+                            R.styleable.FaceCaptureView_autoTakePicture,
+                            true
+                        ) && interval > 0) {
+                        period(interval.toLong()) {
+                            takePicture()
+                        }
                     }
                 }
         }
+    }
+
+    fun schedule(runner: (FaceCaptureView) -> Unit) {
+        disposable?.dispose()
+        pauseCapture()
+        disposable = runOnUI { runner.invoke(this) }
+        resumeCapture()
+    }
+
+    fun period(newInterval: Long, runner: (FaceCaptureView) -> Unit) {
+        disposable?.dispose()
+        pauseCapture()
+        disposable = runOnUIWithInterval(newInterval) { runner.invoke(this) }
+        resumeCapture()
+    }
+
+    fun onNewPicture(
+        scheduler: Scheduler = AndroidSchedulers.mainThread(),
+        processor: (Pair<Int, Bitmap>) -> Unit
+    ): Disposable {
+        return observablePictureCallback.publisher.observeOn(scheduler).subscribe(processor)
     }
 
     fun isCapturing() = !pause.get()
@@ -58,53 +85,37 @@ class FaceCaptureView(context: Context, attributeSet: AttributeSet? = null, defS
     fun resumeCapture() = pause.compareAndSet(true, false)
 
     fun resetCount() {
-        count = 0
+        observablePictureCallback.count = 0
+    }
+
+    override fun takePicture() {
+        if (isCapturing()) {
+            super.takePicture()
+        }
     }
 
     override fun stop() {
+        disposable?.dispose()
         pause.set(true)
         super.stop()
     }
 
-    class AutoTakePictureCallback : CameraView.Callback() {
-        private var disposable: Disposable? = null
+    class ObservablePictureCallback : CameraView.Callback() {
         val publisher = PublishSubject.create<Pair<Int, Bitmap>>()
-
-        override fun onCameraOpened(cameraView: CameraView) {
-            super.onCameraOpened(cameraView)
-            if (cameraView is FaceCaptureView) {
-                disposable = runOnUIWithInterval(cameraView.interval.toLong()) {
-                    if (!cameraView.pause.get()) {
-                        cameraView.takePicture()
-                    }
-                }
-            }
-        }
-
-        override fun onCameraClosed(cameraView: CameraView) {
-            super.onCameraClosed(cameraView)
-            disposable?.dispose()
-        }
+        var count = 0
 
         override fun onPictureTaken(cameraView: CameraView, data: ByteArray) {
             super.onPictureTaken(cameraView, data)
             if (cameraView is FaceCaptureView) {
-                cameraView.count++
+                count++
                 callOnCompute {
-                    cameraView.count to BitmapFactory.decodeByteArray(
+                    count to BitmapFactory.decodeByteArray(
                         data,
                         0,
                         data.size
                     )
                 }.let { publisher.onNext(it) }
             }
-        }
-
-        fun onNewPicture(
-            scheduler: Scheduler = AndroidSchedulers.mainThread(),
-            processor: (Pair<Int, Bitmap>) -> Unit
-        ): Disposable {
-            return publisher.observeOn(scheduler).subscribe(processor)
         }
     }
 
