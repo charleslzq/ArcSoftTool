@@ -3,6 +3,7 @@ package com.github.charleslzq.arcsofttools.kotlin
 import android.content.res.Resources
 import android.graphics.Bitmap
 import android.graphics.Rect
+import android.os.Environment
 import com.arcsoft.facedetection.AFD_FSDKEngine
 import com.arcsoft.facedetection.AFD_FSDKError
 import com.arcsoft.facedetection.AFD_FSDKFace
@@ -26,7 +27,12 @@ import java.util.*
 class ArcSoftEngineAdapter(keys: ArcSoftSdkKey, setting: ArcSoftSetting) : AutoCloseable,
     FaceEngine<Person, Face, Float, ReadWriteFaceStore<Person, Face>> {
     override val store: ReadWriteFaceStoreRxDelegate<Person, Face, ReadWriteFaceStore<Person, Face>> =
-        ReadWriteFaceStoreRxDelegate(FaceFileStore(setting.faceDirectory, ArcSoftFaceDataType()))
+        ReadWriteFaceStoreRxDelegate(
+            FaceFileStore(
+                Environment.getExternalStorageDirectory().absolutePath + setting.faceDirectory,
+                ArcSoftFaceDataType()
+            )
+        )
     val faceRecognitionEngine = ArcSoftFaceRecognitionEngine(keys)
     val faceDetectEngine = ArcSoftFaceDetectionEngine(keys, setting)
     val faceTrackEngine = ArcSoftFaceTrackingEngine(keys, setting)

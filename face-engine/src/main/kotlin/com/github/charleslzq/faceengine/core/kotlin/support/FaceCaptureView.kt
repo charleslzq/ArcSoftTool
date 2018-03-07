@@ -23,9 +23,10 @@ fun TypedArray.use(process: TypedArray.() -> Unit) = apply {
 
 class FaceCaptureView(context: Context, attributeSet: AttributeSet? = null, defStyle: Int = 0) :
     CameraView(context, attributeSet, defStyle) {
-    private var pause = AtomicBoolean(false)
+    private var pause = AtomicBoolean(true)
     private var disposable: Disposable? = null
     private val observablePictureCallback = ObservablePictureCallback()
+    private var autoStart = true
     var interval: Int = DEFAULT_INTERVAL.toInt()
 
     constructor(context: Context, attributeSet: AttributeSet? = null) : this(
@@ -45,14 +46,10 @@ class FaceCaptureView(context: Context, attributeSet: AttributeSet? = null, defS
                         R.styleable.FaceCaptureView_interval,
                         DEFAULT_INTERVAL.toInt()
                     )
-                    if (getBoolean(
-                            R.styleable.FaceCaptureView_autoTakePicture,
-                            true
-                        ) && interval > 0) {
-                        period(interval.toLong()) {
-                            takePicture()
-                        }
-                    }
+                    autoStart = getBoolean(
+                        R.styleable.FaceCaptureView_autoTakePicture,
+                        true
+                    ) && interval > 0
                 }
         }
     }
@@ -89,20 +86,38 @@ class FaceCaptureView(context: Context, attributeSet: AttributeSet? = null, defS
     }
 
     override fun takePicture() {
-        if (isCapturing()) {
+        if (isCapturing() && isCameraOpened) {
             super.takePicture()
         }
     }
 
     override fun stop() {
         disposable?.dispose()
-        pause.set(true)
+        pauseCapture()
+        Thread.sleep(200)
         super.stop()
     }
 
     class ObservablePictureCallback : CameraView.Callback() {
         val publisher = PublishSubject.create<Pair<Int, Bitmap>>()
         var count = 0
+
+        override fun onCameraOpened(cameraView: CameraView?) {
+            super.onCameraOpened(cameraView)
+            (cameraView as? FaceCaptureView)?.apply {
+                resumeCapture()
+                if (autoStart) {
+                    period(interval.toLong()) {
+                        takePicture()
+                    }
+                }
+            }
+        }
+
+        override fun onCameraClosed(cameraView: CameraView?) {
+            super.onCameraClosed(cameraView)
+            (cameraView as? FaceCaptureView)?.pauseCapture()
+        }
 
         override fun onPictureTaken(cameraView: CameraView, data: ByteArray) {
             super.onPictureTaken(cameraView, data)

@@ -15,6 +15,10 @@ open class FaceFileStore<P : Meta, F : Meta>(
 ) : ReadWriteFaceStore<P, F> {
     private val gson = Converters.registerLocalDateTime(GsonBuilder()).create()
 
+    init {
+        File(directory).mkdirs()
+    }
+
     override fun getPersonIds() = listValidSubDirs(directory)
 
     override fun getFaceData(personId: String) = getPerson(personId)?.run {
