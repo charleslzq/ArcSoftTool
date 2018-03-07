@@ -1,0 +1,26 @@
+ext {
+    bintrayRepo = 'maven'  // this is the same as whatever you called your repository in Bintray
+    bintrayName = 'kotlin-react' // your bintray package name. I am calling it the same as my library name.
+    bintrayOrg = 'ericcharleslzq'
+
+    publishedGroupId = 'com.github.charleslzq'
+    libraryName = 'face-engine'
+    artifact = 'face-engine' // I'm calling it the same as my library name
+
+    libraryDescription = 'Some simple class to help writing react-like native android code'
+
+    siteUrl = 'https://github.com/charleslzq/kotlin-react'
+    gitUrl = 'https://github.com/charleslzq/kotlin-react.git'
+    gitScm = 'git@github.com:scharleslzq/kotlin-react.git'
+
+    libraryVersion = '1.0.0-RC1'
+
+    developerId = 'charleslzq' // Maven plugin uses this. I don't know if it needs to be anything special.
+    developerName = 'Eric Charles'
+    developerEmail = 'github@ericcharleslzq.com'
+
+    licenseName = 'The MIT License (MIT)'
+    licenseUrl = 'https://opensource.org/licenses/MIT'
+    allLicenses = ["MIT"]
+}
+

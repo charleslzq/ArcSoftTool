@@ -44,3 +44,6 @@ dependencies {
 repositories {
     mavenCentral()
 }
+
+apply from: 'pom.gradle'
+apply from: '../maven-publish.gradle'
