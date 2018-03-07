@@ -71,9 +71,10 @@ class MainActivity : AppCompatActivity() {
             RequestCodes.IMAGE_CAMERA -> if (resultCode == Activity.RESULT_OK && data != null) {
                 faceEngineService?.detect(data.extras["data"] as Bitmap)?.run {
                     if (isNotEmpty()) {
-                        faceEngineService!!.store.savePerson(Person("test", "test_name"))
+                        val testPersonId = "test"
+                        faceEngineService!!.store.savePerson(Person(testPersonId, "test_name"))
                         forEach {
-                            faceEngineService!!.store.saveFace("test", it)
+                            faceEngineService!!.store.saveFace(testPersonId, it)
                         }
                     }
                 }

@@ -25,7 +25,7 @@ import java.util.*
  */
 class ArcSoftEngineAdapter(keys: ArcSoftSdkKey, setting: ArcSoftSetting) : AutoCloseable,
     FaceEngine<Person, Face, Float, ReadWriteFaceStore<Person, Face>> {
-    override val store: ReadWriteFaceStoreRxDelegate<Person, Face> =
+    override val store: ReadWriteFaceStoreRxDelegate<Person, Face, ReadWriteFaceStore<Person, Face>> =
         ReadWriteFaceStoreRxDelegate(FaceFileStore(setting.faceDirectory, ArcSoftFaceDataType()))
     val faceRecognitionEngine = ArcSoftFaceRecognitionEngine(keys)
     val faceDetectEngine = ArcSoftFaceDetectionEngine(keys, setting)
@@ -104,11 +104,8 @@ class ArcSoftEngineAdapter(keys: ArcSoftSdkKey, setting: ArcSoftSetting) : AutoC
 
     companion object {
         @JvmStatic
-        fun createEngine(resources: Resources): FaceEngine<Person, Face, Float, ReadWriteFaceStore<Person, Face>> {
-            val keys = ArcSoftSdkKey()
-            val setting = ArcSoftSetting(resources)
-            return FaceEngineRxDelegate(ArcSoftEngineAdapter(keys, setting))
-        }
+        fun createEngine(resources: Resources) =
+            FaceEngineRxDelegate(ArcSoftEngineAdapter(ArcSoftSdkKey(), ArcSoftSetting(resources)))
     }
 }
 
