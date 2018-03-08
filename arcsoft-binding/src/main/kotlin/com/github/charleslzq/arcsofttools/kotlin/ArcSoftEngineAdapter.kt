@@ -23,14 +23,13 @@ import java.util.*
 /**
  * Created by charleslzq on 18-3-1.
  */
-class ArcSoftEngineAdapter(keys: ArcSoftSdkKey, setting: ArcSoftSetting) : AutoCloseable,
+class ArcSoftEngineAdapter<S : ArcSoftSetting, out D : ReadWriteFaceStore<Person, Face>>(
+    keys: ArcSoftSdkKey,
+    setting: S,
+    createStore: (S) -> D
+) : AutoCloseable,
     FaceEngine<Person, Face, Float, ReadWriteFaceStore<Person, Face>> {
-    override val store = ReadWriteFaceStoreRxDelegate(
-        FaceFileStore(
-            Environment.getExternalStorageDirectory().absolutePath + setting.faceDirectory,
-            ArcSoftFaceDataType()
-        )
-    )
+    override val store = createStore(setting)
     val faceRecognitionEngine = ArcSoftFaceRecognitionEngine(keys)
     val faceDetectEngine = ArcSoftFaceDetectionEngine(keys, setting)
     val faceTrackEngine = ArcSoftFaceTrackingEngine(keys, setting)
@@ -107,8 +106,15 @@ class ArcSoftEngineAdapter(keys: ArcSoftSdkKey, setting: ArcSoftSetting) : AutoC
     }
 }
 
-class ArcSoftEngineService :
+class DefaultArcSoftEngineService :
     FaceEngineServiceBackground<Person, Face, Float, ReadWriteFaceStore<Person, Face>>() {
     override fun createEngine() =
-        FaceEngineRxDelegate(ArcSoftEngineAdapter(ArcSoftSdkKey(), ArcSoftSetting(resources)))
+        FaceEngineRxDelegate(ArcSoftEngineAdapter(ArcSoftSdkKey(), ArcSoftSetting(resources)) {
+            ReadWriteFaceStoreRxDelegate(
+                FaceFileStore(
+                    Environment.getExternalStorageDirectory().absolutePath + it.faceDirectory,
+                    ArcSoftFaceDataType()
+                )
+            )
+        })
 }

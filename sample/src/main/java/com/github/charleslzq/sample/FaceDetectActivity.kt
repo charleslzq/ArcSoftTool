@@ -9,7 +9,7 @@ import android.os.Bundle
 import android.os.IBinder
 import android.support.v7.app.AppCompatActivity
 import android.util.Log
-import com.github.charleslzq.arcsofttools.kotlin.ArcSoftEngineService
+import com.github.charleslzq.arcsofttools.kotlin.DefaultArcSoftEngineService
 import com.github.charleslzq.arcsofttools.kotlin.Face
 import com.github.charleslzq.arcsofttools.kotlin.Person
 import com.github.charleslzq.faceengine.core.kotlin.FaceEngineService
@@ -61,7 +61,7 @@ class FaceDetectActivity : AppCompatActivity() {
             }
         }
         bindService(
-            Intent(this, ArcSoftEngineService::class.java),
+            Intent(this, DefaultArcSoftEngineService::class.java),
             serviceConnection,
             Context.BIND_AUTO_CREATE
         )
