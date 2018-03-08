@@ -23,20 +23,20 @@ import java.util.*
 /**
  * Created by charleslzq on 18-3-1.
  */
-open class ArcSoftEngineAdapter<S : ArcSoftSetting, out D : ReadWriteFaceStore<Person, Face>>(
+open class ArcSoftEngineAdapterBase<S : ArcSoftSetting, out D : ReadWriteFaceStore<Person, Face>>(
     keys: ArcSoftSdkKey,
     setting: S,
     createStore: (S) -> D
 ) : AutoCloseable,
     FaceEngine<Person, Face, Float, ReadWriteFaceStore<Person, Face>> {
-    override val store = createStore(setting)
+    final override val store = createStore(setting)
     val faceRecognitionEngine = ArcSoftFaceRecognitionEngine(keys)
     val faceDetectEngine = ArcSoftFaceDetectionEngine(keys, setting)
     val faceTrackEngine = ArcSoftFaceTrackingEngine(keys, setting)
     val ageDetectEngine = ArcSoftAgeDetectionEngine(keys, setting)
     val genderDetectEngine = ArcSoftGenderDetectionEngine(keys, setting)
 
-    override fun detect(image: Bitmap): List<Face> {
+    final override fun detect(image: Bitmap): List<Face> {
         return if (faceDetectEngine.getEngine() != null && faceRecognitionEngine.getEngine() != null) {
             val detectResult = mutableListOf<AFD_FSDKFace>()
             val data = ByteArray(image.width * image.height * 3 / 2).apply {
@@ -78,8 +78,8 @@ open class ArcSoftEngineAdapter<S : ArcSoftSetting, out D : ReadWriteFaceStore<P
         }
     }
 
-    override fun calculateSimilarity(savedFace: Face, newFace: Face): Float {
-        return if (faceRecognitionEngine.getEngine() != null) {
+    final override fun calculateSimilarity(savedFace: Face, newFace: Face) =
+        if (faceRecognitionEngine.getEngine() != null) {
             AFR_FSDKMatching().let {
                 val compareCode = faceRecognitionEngine.getEngine()!!.AFR_FSDK_FacePairMatching(
                     newFace.data,
@@ -89,15 +89,14 @@ open class ArcSoftEngineAdapter<S : ArcSoftSetting, out D : ReadWriteFaceStore<P
                 if (compareCode.code == AFR_FSDKError.MOK) {
                     it.score
                 } else {
-                    -1.0f
+                    0f
                 }
             }
         } else {
-            -1.0f
+            0f
         }
-    }
 
-    override fun close() {
+    final override fun close() {
         faceRecognitionEngine.close()
         faceDetectEngine.close()
         faceTrackEngine.close()
@@ -109,7 +108,7 @@ open class ArcSoftEngineAdapter<S : ArcSoftSetting, out D : ReadWriteFaceStore<P
 class DefaultArcSoftEngineService :
     FaceEngineServiceBackground<Person, Face, Float, ReadWriteFaceStore<Person, Face>>() {
     override fun createEngine() =
-        FaceEngineRxDelegate(ArcSoftEngineAdapter(ArcSoftSdkKey(), ArcSoftSetting(resources)) {
+        FaceEngineRxDelegate(ArcSoftEngineAdapterBase(ArcSoftSdkKey(), ArcSoftSetting(resources)) {
             ReadWriteFaceStoreRxDelegate(
                 FaceFileStore(
                     Environment.getExternalStorageDirectory().absolutePath + it.faceDirectory,

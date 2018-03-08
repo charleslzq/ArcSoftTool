@@ -32,11 +32,17 @@ interface ReadOnlyFaceStore<out P : Meta, out F : Meta> {
 open class ReadOnlyFaceStoreRxDelegate<out P : Meta, out F : Meta, out D : ReadOnlyFaceStore<P, F>>(
     protected val delegate: D
 ) : ReadOnlyFaceStore<P, F> {
-    override fun getPersonIds() = callOnIo { delegate.getPersonIds() }
-    override fun getFaceData(personId: String) = callNullableOnIo { delegate.getFaceData(personId) }
-    override fun getPerson(personId: String) = callNullableOnIo { delegate.getPerson(personId) }
-    override fun getFaceIdList(personId: String) = callOnIo { delegate.getFaceIdList(personId) }
-    override fun getFace(personId: String, faceId: String) =
+    final override fun getPersonIds() = callOnIo { delegate.getPersonIds() }
+    final override fun getFaceData(personId: String) =
+        callNullableOnIo { delegate.getFaceData(personId) }
+
+    final override fun getPerson(personId: String) =
+        callNullableOnIo { delegate.getPerson(personId) }
+
+    final override fun getFaceIdList(personId: String) =
+        callOnIo { delegate.getFaceIdList(personId) }
+
+    final override fun getFace(personId: String, faceId: String) =
         callNullableOnIo { delegate.getFace(personId, faceId) }
 }
 
@@ -49,7 +55,7 @@ interface ReadWriteFaceStore<P : Meta, F : Meta> : ReadOnlyFaceStore<P, F> {
     fun clearFace(personId: String) {}
 }
 
-open class ReadWriteFaceStoreRxDelegate<P : Meta, F : Meta, out D : ReadWriteFaceStore<P, F>>(
+class ReadWriteFaceStoreRxDelegate<P : Meta, F : Meta, out D : ReadWriteFaceStore<P, F>>(
     delegate: D
 ) : ReadOnlyFaceStoreRxDelegate<P, F, D>(delegate), ReadWriteFaceStore<P, F> {
     override fun savePerson(person: P) {

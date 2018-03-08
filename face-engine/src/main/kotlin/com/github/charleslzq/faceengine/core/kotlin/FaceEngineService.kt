@@ -11,10 +11,7 @@ import com.github.charleslzq.faceengine.core.kotlin.store.ReadWriteFaceStore
  */
 class FaceEngineService<P : Meta, F : Meta, R : Comparable<R>, out S : ReadWriteFaceStore<P, F>>(
     private val engine: FaceEngine<P, F, R, S>
-) : Binder(), FaceEngine<P, F, R, S> by engine {
-    override val store: S
-        get() = engine.store
-}
+) : Binder(), FaceEngine<P, F, R, S> by engine
 
 abstract class FaceEngineServiceBackground<P : Meta, F : Meta, R : Comparable<R>, out S : ReadWriteFaceStore<P, F>> :
     Service() {
