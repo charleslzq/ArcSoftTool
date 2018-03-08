@@ -1,47 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    tools:context="com.github.charleslzq.sample.FaceDetectActivity">
+    android:layout_height="match_parent">
 
-    <com.github.charleslzq.faceengine.core.kotlin.support.FaceCaptureView
+    <com.github.charleslzq.faceengine.core.kotlin.support.FaceDetectView
         android:id="@+id/faceDetectCamera"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:adjustViewBounds="true"
-        app:autoFocus="true"
-        app:autoTakePicture="true"
-        app:facing="front"
-        app:interval="500"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toLeftOf="@id/camera_separator"
-        app:layout_constraintTop_toTopOf="parent" />
-
-    <TextView
-        android:id="@+id/counter"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toLeftOf="@id/camera_separator"
-        app:layout_constraintTop_toBottomOf="@id/faceDetectCamera" />
-
-    <android.support.constraint.Guideline
-        android:id="@+id/camera_separator"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:orientation="vertical"
-        app:layout_constraintGuide_percent="0.2" />
-
-    <ImageView
-        android:id="@+id/resultDisplay"
-        android:layout_width="0dp"
-        android:layout_height="match_parent"
-        android:scaleType="fitCenter"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintLeft_toRightOf="@id/camera_separator"
-        app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        android:adjustViewBounds="true" />
 
 </android.support.constraint.ConstraintLayout>
