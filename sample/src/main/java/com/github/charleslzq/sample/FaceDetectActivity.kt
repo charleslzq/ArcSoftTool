@@ -5,10 +5,6 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.ServiceConnection
-import android.graphics.BitmapFactory
-import android.graphics.ImageFormat
-import android.graphics.Rect
-import android.graphics.YuvImage
 import android.os.Bundle
 import android.os.IBinder
 import android.support.v7.app.AppCompatActivity
@@ -18,8 +14,7 @@ import com.github.charleslzq.arcsofttools.kotlin.Face
 import com.github.charleslzq.arcsofttools.kotlin.Person
 import com.github.charleslzq.faceengine.core.kotlin.FaceEngineService
 import com.github.charleslzq.faceengine.core.kotlin.store.ReadWriteFaceStore
-import com.guo.android_extend.java.ExtByteArrayOutputStream
-import io.fotoapparat.preview.Frame
+import com.github.charleslzq.faceengine.core.kotlin.support.convert
 import kotlinx.android.synthetic.main.activity_face_detect.*
 
 class FaceDetectActivity : AppCompatActivity() {
@@ -45,8 +40,8 @@ class FaceDetectActivity : AppCompatActivity() {
         faceDetectCamera.onNewFrame {
             val image = convert(it)
             Log.i(TAG, "on frame with size ${it.size} and rotation ${it.rotation}")
-            val detectResult = faceEngineService?.detect(image)
-            if (detectResult != null) {
+            val detectResult = faceEngineService?.detect(image) ?: emptyList()
+            if (detectResult.isNotEmpty()) {
                 val result = detectResult.mapNotNull { faceEngineService!!.search(it) }
                 if (result.isNotEmpty()) {
                     val person = result.maxBy { it.second }!!.first
@@ -85,14 +80,6 @@ class FaceDetectActivity : AppCompatActivity() {
         faceDetectCamera.stop()
         super.onDestroy()
     }
-
-    private fun convert(frame: Frame) =
-        YuvImage(frame.image, ImageFormat.NV21, frame.size.width, frame.size.height, null).run {
-            ExtByteArrayOutputStream().use {
-                compressToJpeg(Rect(0, 0, frame.size.width, frame.size.height), 100, it)
-                BitmapFactory.decodeByteArray(it.byteArray, 0, it.byteArray.size)
-            }
-        }
 
     companion object {
         const val TAG = "FaceDetectActivity"

@@ -36,6 +36,12 @@ constructor(context: Context, attributeSet: AttributeSet? = null, defStyle: Int 
         Fotoapparat.with(context)
             .apply { setup(this) }
             .frameProcessor(frameProcessor)
+            .into(cameraView)
+            .build()
+    }
+
+    open fun setup(fotoapparatBuilder: FotoapparatBuilder) {
+        fotoapparatBuilder
             .lensPosition(
                 firstAvailable(
                     front(),
@@ -43,14 +49,10 @@ constructor(context: Context, attributeSet: AttributeSet? = null, defStyle: Int 
                 )
             )
             .previewScaleType(ScaleType.CenterInside)
-            .into(cameraView)
-            .build()
-    }
-
-    open fun setup(fotoapparatBuilder: FotoapparatBuilder) {
-        fotoapparatBuilder.logger(logcat()).cameraErrorCallback {
-            Log.e(TAG, "Error with fotoapparat", it)
-        }
+            .logger(logcat())
+            .cameraErrorCallback {
+                Log.e(TAG, "Error with fotoapparat", it)
+            }
     }
 
     fun start() {

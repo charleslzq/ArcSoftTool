@@ -1,3 +1,5 @@
+@file:JvmName("RxScheduleUtils")
+
 package com.github.charleslzq.faceengine.core.kotlin.support
 
 import io.reactivex.Observable
