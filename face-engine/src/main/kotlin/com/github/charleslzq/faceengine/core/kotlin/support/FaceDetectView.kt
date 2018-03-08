@@ -30,13 +30,11 @@ constructor(context: Context, attributeSet: AttributeSet? = null, defStyle: Int 
     val isRunning: Boolean
         get() = _isRunning.get()
 
-    private val cameraView = CameraView(context, attributeSet, defStyle).also { addView(it) }
-    private val frameProcessor = FrameToObservableProcessor()
-    private val fotoapparat by lazy {
+    protected val cameraView = CameraView(context, attributeSet, defStyle).also { addView(it) }
+    protected val frameProcessor = FrameToObservableProcessor()
+    protected val fotoapparat by lazy {
         Fotoapparat.with(context)
             .apply { setup(this) }
-            .frameProcessor(frameProcessor)
-            .into(cameraView)
             .build()
     }
 
@@ -49,6 +47,8 @@ constructor(context: Context, attributeSet: AttributeSet? = null, defStyle: Int 
                 )
             )
             .previewScaleType(ScaleType.CenterInside)
+            .frameProcessor(frameProcessor)
+            .into(cameraView)
             .logger(logcat())
             .cameraErrorCallback {
                 Log.e(TAG, "Error with fotoapparat", it)
