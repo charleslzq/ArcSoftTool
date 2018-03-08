@@ -23,7 +23,7 @@ import java.util.*
 /**
  * Created by charleslzq on 18-3-1.
  */
-class ArcSoftEngineAdapter<S : ArcSoftSetting, out D : ReadWriteFaceStore<Person, Face>>(
+open class ArcSoftEngineAdapter<S : ArcSoftSetting, out D : ReadWriteFaceStore<Person, Face>>(
     keys: ArcSoftSdkKey,
     setting: S,
     createStore: (S) -> D
