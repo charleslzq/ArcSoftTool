@@ -8,6 +8,7 @@ import android.content.ServiceConnection;
 import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.widget.Toast;
@@ -51,9 +52,9 @@ public class FaceDetectActivity extends AppCompatActivity {
         setContentView(R.layout.activity_face_detect);
         ButterKnife.bind(this);
         bindService(new Intent(this, DefaultArcSoftEngineService.class), serviceConnection, Context.BIND_AUTO_CREATE);
-        faceDetectCamera.onPreviewFrame(new FaceDetectView.Consumer<Frame>() {
+        faceDetectCamera.onPreviewFrame(new FaceDetectView.FrameConsumer() {
             @Override
-            public void accept(Frame frame) {
+            public void accept(@NonNull Frame frame) {
                 Log.i(TAG, "on frame with size " + frame.getSize().toString() + " and rotation " + frame.getRotation());
                 Bitmap image = ImageUtils.convert(frame);
                 if (faceEngineService != null) {

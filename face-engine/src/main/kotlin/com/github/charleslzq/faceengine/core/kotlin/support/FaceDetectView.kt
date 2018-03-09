@@ -76,8 +76,8 @@ constructor(context: Context, attributeSet: AttributeSet? = null, defStyle: Int 
     @JvmOverloads
     fun onPreviewFrame(
         scheduler: Scheduler = AndroidSchedulers.mainThread(),
-        consumer: Consumer<Frame>
-    ) = frameProcessor.publisher.observeOn(scheduler).subscribe { consumer.accept(it) }
+        frameConsumer: FrameConsumer
+    ) = frameProcessor.publisher.observeOn(scheduler).subscribe { frameConsumer.accept(it) }
 
     class FrameToObservableProcessor : FrameProcessor {
         val publisher = PublishSubject.create<Frame>()
@@ -88,8 +88,8 @@ constructor(context: Context, attributeSet: AttributeSet? = null, defStyle: Int 
     }
 
     @FunctionalInterface
-    interface Consumer<in T> {
-        fun accept(t: T)
+    interface FrameConsumer {
+        fun accept(frame: Frame)
     }
 
     companion object {
