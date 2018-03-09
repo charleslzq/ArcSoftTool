@@ -4,7 +4,7 @@ package com.github.charleslzq.arcsofttools.kotlin.engine
  * Created by charleslzq on 18-3-2.
  */
 abstract class ArcSoftEngineWrapper<E, out V> : AutoCloseable {
-    protected val TAG = this::class.java.simpleName
+    protected val TAG by lazy { this::class.java.simpleName }
 
     private val engine by lazy {
         init()?.let {
