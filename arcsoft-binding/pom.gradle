@@ -1,6 +1,6 @@
 ext {
     bintrayRepo = 'maven'  // this is the same as whatever you called your repository in Bintray
-    bintrayName = 'kotlin-react' // your bintray package name. I am calling it the same as my library name.
+    bintrayName = 'arcsoft-binding' // your bintray package name. I am calling it the same as my library name.
     bintrayOrg = 'ericcharleslzq'
 
     publishedGroupId = 'com.github.charleslzq'
@@ -9,9 +9,9 @@ ext {
 
     libraryDescription = 'Some simple class to help writing react-like native android code'
 
-    siteUrl = 'https://github.com/charleslzq/kotlin-react'
-    gitUrl = 'https://github.com/charleslzq/kotlin-react.git'
-    gitScm = 'git@github.com:scharleslzq/kotlin-react.git'
+    siteUrl = 'https://github.com/charleslzq/ArcSoftTool'
+    gitUrl = 'https://github.com/charleslzq/ArcSoftTool.git'
+    gitScm = 'git@github.com:scharleslzq/ArcSoftTool.git'
 
     libraryVersion = '1.0.0-RC1'
 
