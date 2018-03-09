@@ -37,7 +37,7 @@ class FaceDetectActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_face_detect)
-        faceDetectCamera.onNewFrame {
+        faceDetectCamera.onPreviewFrame {
             val image = convert(it)
             Log.i(TAG, "on frame with size ${it.size} and rotation ${it.rotation}")
             val detectResult = faceEngineService?.detect(image) ?: emptyList()

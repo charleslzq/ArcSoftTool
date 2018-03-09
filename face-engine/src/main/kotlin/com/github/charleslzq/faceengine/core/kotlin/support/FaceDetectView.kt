@@ -68,13 +68,13 @@ constructor(context: Context, attributeSet: AttributeSet? = null, defStyle: Int 
     }
 
     @JvmOverloads
-    fun onNewFrame(
+    fun onPreviewFrame(
         scheduler: Scheduler = AndroidSchedulers.mainThread(),
         processor: (Frame) -> Unit
     ) = frameProcessor.publisher.observeOn(scheduler).subscribe(processor)
 
     @JvmOverloads
-    fun onNewFrame(
+    fun onPreviewFrame(
         scheduler: Scheduler = AndroidSchedulers.mainThread(),
         consumer: Consumer<Frame>
     ) = frameProcessor.publisher.observeOn(scheduler).subscribe { consumer.accept(it) }
