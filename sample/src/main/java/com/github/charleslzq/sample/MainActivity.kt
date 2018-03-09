@@ -85,14 +85,11 @@ class MainActivity : AppCompatActivity() {
             } else if (resultCode == Activity.RESULT_CANCELED) {
                 toast("Fail to identify face")
             }
-            else -> {
-            }
         }
     }
 
     enum class RequestCodes {
         IMAGE_CAMERA,
-        IMAGE_OP,
         FACE_CHECK;
 
         val code

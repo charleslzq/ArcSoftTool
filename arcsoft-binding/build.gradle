@@ -33,8 +33,6 @@ apply from: 'readLocalProperties.gradle'
 dependencies {
     api project(':face-engine')
 
-    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
-
     implementation files('libs/facedetection.jar')
     implementation files('libs/facerecognition.jar')
     implementation files('libs/facetracking.jar')

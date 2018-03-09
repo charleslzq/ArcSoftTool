@@ -10,14 +10,18 @@ import org.joda.time.LocalDateTime
 /**
  * Created by charleslzq on 18-3-1.
  */
-data class Person(
+data class Person
+@JvmOverloads
+constructor(
     override val id: String,
     val name: String,
     override val createTime: LocalDateTime = LocalDateTime.now(),
     override val updateTime: LocalDateTime = LocalDateTime.now()
 ) : Meta
 
-data class Face(
+data class Face
+@JvmOverloads
+constructor(
     override val id: String,
     val pic: Bitmap,
     val data: AFR_FSDKFace,
