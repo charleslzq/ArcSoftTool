@@ -26,8 +26,6 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 import io.fotoapparat.preview.Frame;
 import kotlin.Pair;
-import kotlin.Unit;
-import kotlin.jvm.functions.Function1;
 
 public class FaceDetectActivity extends AppCompatActivity {
     public static final String TAG = "FaceDetectActivity";
@@ -53,9 +51,9 @@ public class FaceDetectActivity extends AppCompatActivity {
         setContentView(R.layout.activity_face_detect);
         ButterKnife.bind(this);
         bindService(new Intent(this, DefaultArcSoftEngineService.class), serviceConnection, Context.BIND_AUTO_CREATE);
-        faceDetectCamera.onNewFrame(new Function1<Frame, Unit>() {
+        faceDetectCamera.onNewFrame(new FaceDetectView.Consumer<Frame>() {
             @Override
-            public Unit invoke(Frame frame) {
+            public void accept(Frame frame) {
                 Log.i(TAG, "on frame with size " + frame.getSize().toString() + " and rotation " + frame.getRotation());
                 Bitmap image = ImageUtils.convert(frame);
                 if (faceEngineService != null) {
@@ -81,7 +79,6 @@ public class FaceDetectActivity extends AppCompatActivity {
                         toast("No Face Detected, " + ++count);
                     }
                 }
-                return null;
             }
         });
     }

@@ -73,12 +73,22 @@ constructor(context: Context, attributeSet: AttributeSet? = null, defStyle: Int 
         processor: (Frame) -> Unit
     ) = frameProcessor.publisher.observeOn(scheduler).subscribe(processor)
 
+    @JvmOverloads
+    fun onNewFrame(
+        scheduler: Scheduler = AndroidSchedulers.mainThread(),
+        consumer: Consumer<Frame>
+    ) = frameProcessor.publisher.observeOn(scheduler).subscribe { consumer.accept(it) }
+
     class FrameToObservableProcessor : FrameProcessor {
         val publisher = PublishSubject.create<Frame>()
 
         override fun process(frame: Frame) {
             publisher.onNext(frame)
         }
+    }
+
+    interface Consumer<in T> {
+        fun accept(t: T)
     }
 
     companion object {
