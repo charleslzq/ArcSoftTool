@@ -51,7 +51,7 @@ public class FaceDetectActivity extends AppCompatActivity {
         setContentView(R.layout.activity_face_detect);
         ButterKnife.bind(this);
         bindService(new Intent(this, DefaultArcSoftEngineService.class), serviceConnection, Context.BIND_AUTO_CREATE);
-        faceDetectCamera.onNewFrame(new FaceDetectView.Consumer<Frame>() {
+        faceDetectCamera.onPreviewFrame(new FaceDetectView.Consumer<Frame>() {
             @Override
             public void accept(Frame frame) {
                 Log.i(TAG, "on frame with size " + frame.getSize().toString() + " and rotation " + frame.getRotation());
