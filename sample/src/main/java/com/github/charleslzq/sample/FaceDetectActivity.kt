@@ -44,16 +44,17 @@ class FaceDetectActivity : AppCompatActivity() {
             if (detectResult.isNotEmpty()) {
                 val result = detectResult.mapNotNull { faceEngineService!!.search(it) }
                 if (result.isNotEmpty()) {
-                    val person = result.maxBy { it.second }!!.first
-                    toast("Match Result ${person.name}, ${++count}")
-                    Log.i("test", "match result : $person")
-                    setResult(Activity.RESULT_OK, Intent().apply {
-                        putExtra("personName", person.name)
-                    })
-                    finish()
-                } else {
-                    toast("No Match Result, ${++count}")
+                    val person = result.maxBy { it.second } ?: Pair(Person("", ""), 0f)
+                    if (person.second > 0) {
+                        toast("Match Result ${person.first.name}, ${++count}")
+                        Log.i("test", "match result : $person")
+                        setResult(Activity.RESULT_OK, Intent().apply {
+                            putExtra("personName", person.first.name)
+                        })
+                        finish()
+                    }
                 }
+                toast("No Match Result, ${++count}")
             } else {
                 toast("No Face Detected, ${++count}")
             }
