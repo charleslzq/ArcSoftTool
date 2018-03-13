@@ -32,8 +32,6 @@ constructor(
 
 class ArcSoftFaceDataType :
         FaceDataType<Person, Face> {
-    override val personClass: Class<Person>
-        get() = Person::class.java
-    override val faceClass: Class<Face>
-        get() = Face::class.java
+    override val personClass: Class<Person> = Person::class.java
+    override val faceClass: Class<Face> = Face::class.java
 }
