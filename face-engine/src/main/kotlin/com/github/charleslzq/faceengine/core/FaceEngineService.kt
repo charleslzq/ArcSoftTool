@@ -10,7 +10,7 @@ import com.github.charleslzq.facestore.ReadWriteFaceStore
  * Created by charleslzq on 18-3-6.
  */
 class FaceEngineService<P : Meta, F : Meta, R : Comparable<R>, out S : ReadWriteFaceStore<P, F>>(
-        private val engine: FaceEngine<P, F, R, S>
+        val engine: FaceEngine<P, F, R, S>
 ) : Binder(), FaceEngine<P, F, R, S> by engine
 
 abstract class FaceEngineServiceBackground<P : Meta, F : Meta, R : Comparable<R>, out S : ReadWriteFaceStore<P, F>> :
