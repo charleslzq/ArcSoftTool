@@ -9,22 +9,22 @@ import com.github.charleslzq.facestore.ReadWriteFaceStore
 /**
  * Created by charleslzq on 18-3-6.
  */
-class FaceEngineService<P : Meta, F : Meta, R : Comparable<R>, out S : ReadWriteFaceStore<P, F>>(
+open class FaceEngineService<P : Meta, F : Meta, R : Comparable<R>, out S : ReadWriteFaceStore<P, F>>(
         val engine: FaceEngine<P, F, R, S>
 ) : Binder(), FaceEngine<P, F, R, S> by engine
 
 abstract class FaceEngineServiceBackground<P : Meta, F : Meta, R : Comparable<R>, out S : ReadWriteFaceStore<P, F>> :
         Service() {
-    private val engine by lazy {
-        createEngine()
+    private val engineService by lazy {
+        createEngineService()
     }
 
-    override fun onBind(p0: Intent?) = FaceEngineService(engine)
+    override fun onBind(p0: Intent?) = engineService
 
     override fun onDestroy() {
-        (engine as? AutoCloseable)?.close()
+        (engineService.engine as? AutoCloseable)?.close()
         super.onDestroy()
     }
 
-    abstract fun createEngine(): FaceEngine<P, F, R, S>
+    abstract fun createEngineService(): FaceEngineService<P, F, R, S>
 }

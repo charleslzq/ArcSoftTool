@@ -13,6 +13,7 @@ import com.arcsoft.facerecognition.AFR_FSDKMatching
 import com.github.charleslzq.arcsofttools.kotlin.engine.*
 import com.github.charleslzq.faceengine.core.FaceEngine
 import com.github.charleslzq.faceengine.core.FaceEngineRxDelegate
+import com.github.charleslzq.faceengine.core.FaceEngineService
 import com.github.charleslzq.faceengine.core.FaceEngineServiceBackground
 import com.github.charleslzq.faceengine.store.ReadWriteFaceStoreCacheDelegate
 import com.github.charleslzq.faceengine.store.ReadWriteFaceStoreRxDelegate
@@ -108,15 +109,23 @@ open class ArcSoftEngineAdapterBase<S : ArcSoftSetting, out D : ReadWriteFaceSto
 
 class DefaultArcSoftEngineService :
         FaceEngineServiceBackground<Person, Face, Float, ReadWriteFaceStore<Person, Face>>() {
-    override fun createEngine() =
-            FaceEngineRxDelegate(ArcSoftEngineAdapterBase(ArcSoftSdkKey(), ArcSoftSetting(resources)) {
-                ReadWriteFaceStoreCacheDelegate(
-                        ReadWriteFaceStoreRxDelegate(
-                                FaceFileReadWriteStore(
-                                        Environment.getExternalStorageDirectory().absolutePath + it.faceDirectory,
-                                        ArcSoftFaceDataType()
+    override fun createEngineService() =
+            FaceEngineService(
+                    FaceEngineRxDelegate(ArcSoftEngineAdapterBase(ArcSoftSdkKey(), ArcSoftSetting(resources)) {
+                        ReadWriteFaceStoreCacheDelegate(
+                                ReadWriteFaceStoreRxDelegate(
+                                        FaceFileReadWriteStore(
+                                                Environment.getExternalStorageDirectory().absolutePath + it.faceDirectory.run {
+                                                    if (startsWith('/')) {
+                                                        this
+                                                    } else {
+                                                        "/$this"
+                                                    }
+                                                },
+                                                ArcSoftFaceDataType()
+                                        )
                                 )
                         )
-                )
-            })
+                    })
+            )
 }
