@@ -1,6 +1,6 @@
 @file:JvmName("RxScheduleUtils")
 
-package com.github.charleslzq.faceengine.core.kotlin.support
+package com.github.charleslzq.faceengine.support
 
 import io.reactivex.Observable
 import io.reactivex.Scheduler
@@ -17,44 +17,44 @@ fun <T> callOnIo(callable: () -> T) = callOn(Schedulers.io(), callable)
 fun <T : Any> callNullableOnIo(callable: () -> T?) = callNullableOn(Schedulers.io(), callable)
 
 fun <T> callOnIoWithInterval(period: Long, callable: () -> T) =
-    callWithInterval(period, Schedulers.io(), callable)
+        callWithInterval(period, Schedulers.io(), callable)
 
 fun runOnIo(runnable: () -> Unit) = runOn(Schedulers.io(), runnable)
 
 fun runOnIoWithInterval(period: Long, runnable: () -> Unit) =
-    runWithInterval(period, Schedulers.io(), runnable)
+        runWithInterval(period, Schedulers.io(), runnable)
 
 fun <T> callOnCompute(callable: () -> T) = callOn(Schedulers.computation(), callable)
 
 fun <T : Any> callNullableOnCompute(callable: () -> T?) =
-    callNullableOn(Schedulers.computation(), callable)
+        callNullableOn(Schedulers.computation(), callable)
 
 fun runOnCompute(runnable: () -> Unit) = runOn(Schedulers.computation(), runnable)
 
 fun runOnComputeWithInterval(period: Long, runnable: () -> Unit) =
-    runWithInterval(period, Schedulers.computation(), runnable)
+        runWithInterval(period, Schedulers.computation(), runnable)
 
 fun runOnUI(runnable: () -> Unit) = runOn(AndroidSchedulers.mainThread(), runnable)
 
 fun runOnUIWithInterval(period: Long, runnable: () -> Unit) =
-    runWithInterval(period, AndroidSchedulers.mainThread(), runnable)
+        runWithInterval(period, AndroidSchedulers.mainThread(), runnable)
 
 fun <T> callOn(scheduler: Scheduler = Schedulers.trampoline(), callable: () -> T): T {
     return Observable.just(1).observeOn(scheduler).map { callable() }.blockingSingle()
 }
 
 fun <T : Any> callNullableOn(
-    scheduler: Scheduler = Schedulers.trampoline(),
-    callable: () -> T?
+        scheduler: Scheduler = Schedulers.trampoline(),
+        callable: () -> T?
 ): T? {
     return Observable.just(1).observeOn(scheduler).map { listOfNotNull(callable()) }
-        .blockingSingle().firstOrNull()
+            .blockingSingle().firstOrNull()
 }
 
 fun <T> callWithInterval(
-    period: Long,
-    scheduler: Scheduler = Schedulers.trampoline(),
-    callable: () -> T
+        period: Long,
+        scheduler: Scheduler = Schedulers.trampoline(),
+        callable: () -> T
 ): Observable<T> {
     return Observable.interval(period, TimeUnit.MILLISECONDS, scheduler).map { callable() }
 }
@@ -64,10 +64,10 @@ fun runOn(scheduler: Scheduler = Schedulers.trampoline(), runnable: () -> Unit):
 }
 
 fun runWithInterval(
-    period: Long,
-    scheduler: Scheduler = Schedulers.trampoline(),
-    runnable: () -> Unit
+        period: Long,
+        scheduler: Scheduler = Schedulers.trampoline(),
+        runnable: () -> Unit
 ): Disposable {
     return Observable.interval(period, TimeUnit.MILLISECONDS).observeOn(scheduler)
-        .subscribe { runnable() }
+            .subscribe { runnable() }
 }

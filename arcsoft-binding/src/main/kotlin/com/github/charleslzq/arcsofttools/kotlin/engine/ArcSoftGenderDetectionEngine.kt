@@ -11,8 +11,8 @@ import com.github.charleslzq.arcsofttools.kotlin.ArcSoftSetting
  * Created by charleslzq on 18-3-2.
  */
 class ArcSoftGenderDetectionEngine(
-    private val keys: ArcSoftSdkKey,
-    private val setting: ArcSoftSetting
+        private val keys: ArcSoftSdkKey,
+        private val setting: ArcSoftSetting
 ) : ArcSoftEngineWrapper<ASGE_FSDKEngine, ASGE_FSDKVersion>() {
     override fun init() = if (setting.useGenderDetection) {
         ASGE_FSDKEngine().let {

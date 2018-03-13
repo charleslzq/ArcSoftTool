@@ -12,9 +12,9 @@ import android.util.Log
 import com.github.charleslzq.arcsofttools.kotlin.DefaultArcSoftEngineService
 import com.github.charleslzq.arcsofttools.kotlin.Face
 import com.github.charleslzq.arcsofttools.kotlin.Person
-import com.github.charleslzq.faceengine.core.kotlin.FaceEngineService
-import com.github.charleslzq.faceengine.core.kotlin.store.ReadWriteFaceStore
-import com.github.charleslzq.faceengine.core.kotlin.support.convert
+import com.github.charleslzq.faceengine.core.FaceEngineService
+import com.github.charleslzq.faceengine.support.convert
+import com.github.charleslzq.facestore.ReadWriteFaceStore
 import kotlinx.android.synthetic.main.activity_face_detect.*
 
 class FaceDetectActivity : AppCompatActivity() {
@@ -31,7 +31,7 @@ class FaceDetectActivity : AppCompatActivity() {
 
     }
     private var faceEngineService: FaceEngineService<Person, Face, Float, ReadWriteFaceStore<Person, Face>>? =
-        null
+            null
     private var count = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -60,9 +60,9 @@ class FaceDetectActivity : AppCompatActivity() {
             }
         }
         bindService(
-            Intent(this, DefaultArcSoftEngineService::class.java),
-            serviceConnection,
-            Context.BIND_AUTO_CREATE
+                Intent(this, DefaultArcSoftEngineService::class.java),
+                serviceConnection,
+                Context.BIND_AUTO_CREATE
         )
     }
 

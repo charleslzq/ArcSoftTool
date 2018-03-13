@@ -11,16 +11,16 @@ import com.github.charleslzq.arcsofttools.kotlin.ArcSoftSetting
  * Created by charleslzq on 18-3-2.
  */
 class ArcSoftFaceDetectionEngine(
-    private val keys: ArcSoftSdkKey,
-    private val setting: ArcSoftSetting
+        private val keys: ArcSoftSdkKey,
+        private val setting: ArcSoftSetting
 ) : ArcSoftEngineWrapper<AFD_FSDKEngine, AFD_FSDKVersion>() {
     override fun init() = AFD_FSDKEngine().let {
         it.AFD_FSDK_InitialFaceEngine(
-            keys.appId,
-            keys.faceDetectionKey,
-            AFD_FSDKEngine.AFD_OPF_0_HIGHER_EXT,
-            setting.scale,
-            setting.maxFaceNum
+                keys.appId,
+                keys.faceDetectionKey,
+                AFD_FSDKEngine.AFD_OPF_0_HIGHER_EXT,
+                setting.scale,
+                setting.maxFaceNum
         ).run {
             if (code == AFD_FSDKError.MOK) {
                 it

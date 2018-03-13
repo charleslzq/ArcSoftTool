@@ -1,4 +1,4 @@
-package com.github.charleslzq.faceengine.core.kotlin.support
+package com.github.charleslzq.faceengine.support
 
 import android.content.Context
 import android.util.AttributeSet
@@ -25,7 +25,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 open class FaceDetectView
 @JvmOverloads
 constructor(context: Context, attributeSet: AttributeSet? = null, defStyle: Int = 0) :
-    FrameLayout(context, attributeSet, defStyle) {
+        FrameLayout(context, attributeSet, defStyle) {
     private var _isRunning = AtomicBoolean(false)
     val isRunning: Boolean
         get() = _isRunning.get()
@@ -34,25 +34,25 @@ constructor(context: Context, attributeSet: AttributeSet? = null, defStyle: Int 
     protected val frameProcessor = FrameToObservableProcessor()
     protected val fotoapparat by lazy {
         Fotoapparat.with(context)
-            .apply { setup(this) }
-            .build()
+                .apply { setup(this) }
+                .build()
     }
 
     open fun setup(fotoapparatBuilder: FotoapparatBuilder) {
         fotoapparatBuilder
-            .lensPosition(
-                firstAvailable(
-                    front(),
-                    external()
+                .lensPosition(
+                        firstAvailable(
+                                front(),
+                                external()
+                        )
                 )
-            )
-            .previewScaleType(ScaleType.CenterInside)
-            .frameProcessor(frameProcessor)
-            .into(cameraView)
-            .logger(logcat())
-            .cameraErrorCallback {
-                Log.e(TAG, "Error with fotoapparat", it)
-            }
+                .previewScaleType(ScaleType.CenterInside)
+                .frameProcessor(frameProcessor)
+                .into(cameraView)
+                .logger(logcat())
+                .cameraErrorCallback {
+                    Log.e(TAG, "Error with fotoapparat", it)
+                }
     }
 
     fun start() {
@@ -69,14 +69,14 @@ constructor(context: Context, attributeSet: AttributeSet? = null, defStyle: Int 
 
     @JvmOverloads
     fun onPreviewFrame(
-        scheduler: Scheduler = AndroidSchedulers.mainThread(),
-        processor: (Frame) -> Unit
+            scheduler: Scheduler = AndroidSchedulers.mainThread(),
+            processor: (Frame) -> Unit
     ) = frameProcessor.publisher.observeOn(scheduler).subscribe(processor)
 
     @JvmOverloads
     fun onPreviewFrame(
-        scheduler: Scheduler = AndroidSchedulers.mainThread(),
-        frameConsumer: FrameConsumer
+            scheduler: Scheduler = AndroidSchedulers.mainThread(),
+            frameConsumer: FrameConsumer
     ) = frameProcessor.publisher.observeOn(scheduler).subscribe { frameConsumer.accept(it) }
 
     class FrameToObservableProcessor : FrameProcessor {

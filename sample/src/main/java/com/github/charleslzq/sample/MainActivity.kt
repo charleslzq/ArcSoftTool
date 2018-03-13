@@ -14,12 +14,12 @@ import android.widget.Toast
 import com.github.charleslzq.arcsofttools.kotlin.DefaultArcSoftEngineService
 import com.github.charleslzq.arcsofttools.kotlin.Face
 import com.github.charleslzq.arcsofttools.kotlin.Person
-import com.github.charleslzq.faceengine.core.kotlin.FaceEngineService
-import com.github.charleslzq.faceengine.core.kotlin.store.ReadWriteFaceStore
+import com.github.charleslzq.faceengine.core.FaceEngineService
+import com.github.charleslzq.facestore.ReadWriteFaceStore
 import kotlinx.android.synthetic.main.activity_main.*
 
 fun Context.toast(message: CharSequence, duration: Int = Toast.LENGTH_SHORT) =
-    Toast.makeText(this, message, duration).show()
+        Toast.makeText(this, message, duration).show()
 
 class MainActivity : AppCompatActivity() {
     private val serviceConnection = object : ServiceConnection {
@@ -35,27 +35,27 @@ class MainActivity : AppCompatActivity() {
 
     }
     private var faceEngineService: FaceEngineService<Person, Face, Float, ReadWriteFaceStore<Person, Face>>? =
-        null
+            null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         captureImageButton.setOnClickListener {
             startActivityForResult(
-                Intent(MediaStore.ACTION_IMAGE_CAPTURE),
-                RequestCodes.IMAGE_CAMERA.code
+                    Intent(MediaStore.ACTION_IMAGE_CAPTURE),
+                    RequestCodes.IMAGE_CAMERA.code
             )
         }
         checkFaceButton.setOnClickListener {
             startActivityForResult(
-                Intent(this, FaceDetectActivity::class.java),
-                RequestCodes.FACE_CHECK.code
+                    Intent(this, FaceDetectActivity::class.java),
+                    RequestCodes.FACE_CHECK.code
             )
         }
         bindService(
-            Intent(this, DefaultArcSoftEngineService::class.java),
-            serviceConnection,
-            Context.BIND_AUTO_CREATE
+                Intent(this, DefaultArcSoftEngineService::class.java),
+                serviceConnection,
+                Context.BIND_AUTO_CREATE
         )
     }
 

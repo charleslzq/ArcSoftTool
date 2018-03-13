@@ -11,17 +11,17 @@ import com.github.charleslzq.arcsofttools.kotlin.ArcSoftSetting
  * Created by charleslzq on 18-3-2.
  */
 class ArcSoftFaceTrackingEngine(
-    private val keys: ArcSoftSdkKey,
-    private val setting: ArcSoftSetting
+        private val keys: ArcSoftSdkKey,
+        private val setting: ArcSoftSetting
 ) : ArcSoftEngineWrapper<AFT_FSDKEngine, AFT_FSDKVersion>() {
     override fun init() = if (setting.useFaceTracking) {
         AFT_FSDKEngine().let {
             it.AFT_FSDK_InitialFaceEngine(
-                keys.appId,
-                keys.faceTrackingKey,
-                AFT_FSDKEngine.AFT_OPF_0_HIGHER_EXT,
-                setting.scale,
-                setting.maxFaceNum
+                    keys.appId,
+                    keys.faceTrackingKey,
+                    AFT_FSDKEngine.AFT_OPF_0_HIGHER_EXT,
+                    setting.scale,
+                    setting.maxFaceNum
             ).run {
                 if (code == AFT_FSDKError.MOK) {
                     it

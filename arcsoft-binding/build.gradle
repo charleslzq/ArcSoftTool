@@ -32,6 +32,7 @@ apply from: 'readLocalProperties.gradle'
 
 dependencies {
     api project(':face-engine')
+    api 'com.github.charleslzq:face-store:1.0.0-RC4'
 
     implementation files('libs/facedetection.jar')
     implementation files('libs/facerecognition.jar')

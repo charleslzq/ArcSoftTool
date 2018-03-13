@@ -15,8 +15,8 @@ import android.widget.Toast;
 import com.github.charleslzq.arcsofttools.kotlin.DefaultArcSoftEngineService;
 import com.github.charleslzq.arcsofttools.kotlin.Face;
 import com.github.charleslzq.arcsofttools.kotlin.Person;
-import com.github.charleslzq.faceengine.core.kotlin.FaceEngineService;
-import com.github.charleslzq.faceengine.core.kotlin.store.ReadWriteFaceStore;
+import com.github.charleslzq.faceengine.core.FaceEngineService;
+import com.github.charleslzq.facestore.ReadWriteFaceStore;
 
 import java.util.List;
 
