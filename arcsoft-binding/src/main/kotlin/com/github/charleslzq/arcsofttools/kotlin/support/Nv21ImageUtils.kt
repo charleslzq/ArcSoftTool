@@ -18,4 +18,5 @@ fun toNv21Bytes(image: Bitmap) = ByteArray(image.width * image.height * 3 / 2).a
     }
 }
 
-fun toFrame(image: Bitmap) = Frame(Resolution(image.width, image.height), toNv21Bytes(image), 0)
+@JvmOverloads
+fun toFrame(image: Bitmap, toBytes: (Bitmap) -> ByteArray = ::toNv21Bytes) = Frame(Resolution(image.width, image.height), toBytes(image), 0)
