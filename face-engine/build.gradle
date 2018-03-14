@@ -28,7 +28,7 @@ android {
 }
 
 dependencies {
-    api 'com.github.charleslzq:face-store:1.0.0-RC4'
+    api 'com.github.charleslzq:face-store:1.0.0-RC5'
     api 'joda-time:joda-time:2.9.9'
     api 'io.fotoapparat.fotoapparat:library:2.2.0'
     api "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
