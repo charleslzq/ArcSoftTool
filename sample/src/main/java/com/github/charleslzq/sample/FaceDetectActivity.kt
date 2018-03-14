@@ -39,33 +39,46 @@ class FaceDetectActivity : AppCompatActivity() {
         faceDetectCamera.onPreviewFrame {
             Log.i(TAG, "on frame with size ${it.size} and rotation ${it.rotation}")
             val detectResult = faceEngineService?.detect(it) ?: emptyList()
-            val detectedAge = faceEngineService?.detectAge(it) ?: emptyList()
-            val detectedGender = faceEngineService?.detectGender(it) ?: emptyList()
-            if (detectResult.size == 1 && detectedAge.size == 1 && detectedGender.size == 1) {
-                val result = detectResult.mapNotNull { faceEngineService!!.search(it) }
-                if (result.isNotEmpty()) {
-                    val person = result.maxBy { it.second } ?: Pair(Person("", ""), 0f)
-                    if (person.second > 0) {
-                        toast(buildString {
-                            append("Match Result ${person.first.name}")
-                            if (detectedAge[0].age > 0) {
-                                append(", with detected age ${detectedAge[0].age}")
-                            } else {
-                                append(", fail to detect age")
-                            }
-                            append(", gender ${detectedGender[0].gender}")
-                            append(", ${++count}")
-                        })
-                        Log.i("test", "match result : $person")
-                        setResult(Activity.RESULT_OK, Intent().apply {
-                            putExtra("personName", person.first.name)
-                        })
-                        finish()
+            val detectedAge = faceEngineService?.detectAge(it)?.takeIf { it.size == 1 }?.get(0)?.age
+            val detectedGender = faceEngineService?.detectGender(it)?.takeIf { it.size == 1 }?.get(0)?.gender
+            var personName: String? = null
+            toast(buildString {
+                if (detectResult.size == 1) {
+                    val result = detectResult.mapNotNull { faceEngineService!!.search(it) }
+                    if (result.isNotEmpty()) {
+                        val person = result.maxBy { it.second } ?: Pair(Person("", ""), 0f)
+                        if (person.second > 0) {
+                            personName = person.first.name
+                            append("Match Result $personName")
+                        } else {
+                            append("No Match Face")
+                        }
+                    } else {
+                        append("No Match Result")
                     }
+                } else {
+                    append("No or too much (${detectResult.size}) Face(s) Detected")
                 }
-                toast("No Match Result, ${++count}")
-            } else {
-                toast("No or too much (${detectResult.size}) Face(s) Detected, ${++count}")
+                append(", ")
+                if (detectedAge != null) {
+                    append("detected age $detectedAge")
+                } else {
+                    append("fail to detect age")
+                }
+                append(", ")
+                if (detectedGender != null) {
+                    append("gender $detectedGender")
+                } else {
+                    append("fail to detect gender")
+                }
+                append(", ")
+                append("${++count}")
+            })
+            personName?.let {
+                setResult(Activity.RESULT_OK, Intent().apply {
+                    putExtra("personName", it)
+                })
+                finish()
             }
         }
         bindService(

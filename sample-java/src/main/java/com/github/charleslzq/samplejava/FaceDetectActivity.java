@@ -60,7 +60,9 @@ public class FaceDetectActivity extends AppCompatActivity {
                     List<Face> detectedFaces = faceEngineService.detect(frame);
                     List<DetectedAge> detectedAges = faceEngineService.detectAge(frame);
                     List<DetectedGender> detectedGenders = faceEngineService.detectGender(frame);
-                    if (detectedFaces.size() == 1 && detectedAges.size() == 1 && detectedGenders.size() == 1) {
+                    StringBuilder messageBuilder = new StringBuilder();
+                    String result = null;
+                    if (detectedFaces.size() == 1) {
                         Pair<Person, Float> max = new Pair<>(new Person("", ""), 0f);
                         for (Face face : detectedFaces) {
                             Pair<Person, Float> matchResult = faceEngineService.search(face);
@@ -69,29 +71,40 @@ public class FaceDetectActivity extends AppCompatActivity {
                             }
                         }
                         if (max.getSecond() > 0) {
-                            StringBuilder messageBuilder = new StringBuilder();
+                            result = max.getFirst().getName();
                             messageBuilder.append("Match Result ");
-                            messageBuilder.append(max.getFirst().getName());
-                            if (detectedAges.get(0).getAge() > 0) {
-                                messageBuilder.append(", with detected age ");
-                                messageBuilder.append(detectedAges.get(0).getAge());
-                            } else {
-                                messageBuilder.append(", fail to detect age");
-                            }
-                            messageBuilder.append(", gender ");
-                            messageBuilder.append(detectedGenders.get(0).getGender());
-                            messageBuilder.append(", ${++count}");
-
-                            toast(messageBuilder.toString());
-                            Intent intent = new Intent();
-                            intent.putExtra("personName", max.getFirst().getName());
-                            setResult(Activity.RESULT_OK, intent);
-                            finish();
+                            messageBuilder.append(result);
                         } else {
-                            toast("No Match Result, " + ++count);
+                            messageBuilder.append("No Match Result");
                         }
                     } else {
-                        toast("No or too much (" + detectedFaces.size() + ") Face(s) Detected, " + ++count);
+                        messageBuilder.append("No or too much (");
+                        messageBuilder.append(detectedFaces.size());
+                        messageBuilder.append(") Face(s) Detected");
+                    }
+                    messageBuilder.append(", ");
+                    if (detectedAges.size() == 1 && detectedAges.get(0).getAge() > 0) {
+                        messageBuilder.append("detected age ");
+                        messageBuilder.append(detectedAges.get(0).getAge());
+                    } else {
+                        messageBuilder.append("fail to detect age");
+                    }
+                    messageBuilder.append(", ");
+                    if (detectedGenders.size() == 1 && detectedGenders.get(0) != null && detectedGenders.get(0).getGender() != null) {
+                        messageBuilder.append("detected gender ");
+                        messageBuilder.append(detectedGenders.get(0).getGender());
+                    } else {
+                        messageBuilder.append("fail to detect gender");
+                    }
+                    messageBuilder.append(", ");
+                    messageBuilder.append(++count);
+
+                    toast(messageBuilder.toString());
+                    if (result != null) {
+                        Intent intent = new Intent();
+                        intent.putExtra("personName", result);
+                        setResult(Activity.RESULT_OK, intent);
+                        finish();
                     }
                 }
             }
