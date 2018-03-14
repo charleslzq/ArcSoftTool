@@ -12,10 +12,12 @@ import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.widget.Toast;
 
+import com.github.charleslzq.arcsofttools.kotlin.ArcSoftFaceEngineService;
 import com.github.charleslzq.arcsofttools.kotlin.DefaultArcSoftEngineService;
+import com.github.charleslzq.arcsofttools.kotlin.DetectedAge;
+import com.github.charleslzq.arcsofttools.kotlin.DetectedGender;
 import com.github.charleslzq.arcsofttools.kotlin.Face;
 import com.github.charleslzq.arcsofttools.kotlin.Person;
-import com.github.charleslzq.faceengine.core.FaceEngineService;
 import com.github.charleslzq.faceengine.support.FaceDetectView;
 import com.github.charleslzq.facestore.ReadWriteFaceStore;
 
@@ -30,11 +32,11 @@ public class FaceDetectActivity extends AppCompatActivity {
     public static final String TAG = "FaceDetectActivity";
     @BindView(R.id.faceDetectCamera)
     FaceDetectView faceDetectCamera;
-    private FaceEngineService<Frame, Person, Face, Float, ReadWriteFaceStore<Person, Face>> faceEngineService = null;
+    private ArcSoftFaceEngineService<ReadWriteFaceStore<Person, Face>> faceEngineService = null;
     private ServiceConnection serviceConnection = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName componentName, IBinder iBinder) {
-            faceEngineService = (FaceEngineService<Frame, Person, Face, Float, ReadWriteFaceStore<Person, Face>>) iBinder;
+            faceEngineService = (ArcSoftFaceEngineService<ReadWriteFaceStore<Person, Face>>) iBinder;
         }
 
         @Override
@@ -56,7 +58,9 @@ public class FaceDetectActivity extends AppCompatActivity {
                 Log.i(TAG, "on frame with size " + frame.getSize().toString() + " and rotation " + frame.getRotation());
                 if (faceEngineService != null) {
                     List<Face> detectedFaces = faceEngineService.detect(frame);
-                    if (!detectedFaces.isEmpty()) {
+                    List<DetectedAge> detectedAges = faceEngineService.detectAge(frame);
+                    List<DetectedGender> detectedGenders = faceEngineService.detectGender(frame);
+                    if (detectedFaces.size() == 1 && detectedAges.size() == 1 && detectedGenders.size() == 1) {
                         Pair<Person, Float> max = new Pair<>(new Person("", ""), 0f);
                         for (Face face : detectedFaces) {
                             Pair<Person, Float> matchResult = faceEngineService.search(face);
@@ -65,7 +69,20 @@ public class FaceDetectActivity extends AppCompatActivity {
                             }
                         }
                         if (max.getSecond() > 0) {
-                            toast("Match Result " + max.getFirst().getName() + ", " + ++count);
+                            StringBuilder messageBuilder = new StringBuilder();
+                            messageBuilder.append("Match Result ");
+                            messageBuilder.append(max.getFirst().getName());
+                            if (detectedAges.get(0).getAge() > 0) {
+                                messageBuilder.append(", with detected age ");
+                                messageBuilder.append(detectedAges.get(0).getAge());
+                            } else {
+                                messageBuilder.append(", fail to detect age");
+                            }
+                            messageBuilder.append(", gender ");
+                            messageBuilder.append(detectedGenders.get(0).getGender());
+                            messageBuilder.append(", ${++count}");
+
+                            toast(messageBuilder.toString());
                             Intent intent = new Intent();
                             intent.putExtra("personName", max.getFirst().getName());
                             setResult(Activity.RESULT_OK, intent);
@@ -74,7 +91,7 @@ public class FaceDetectActivity extends AppCompatActivity {
                             toast("No Match Result, " + ++count);
                         }
                     } else {
-                        toast("No Face Detected, " + ++count);
+                        toast("No or too much (" + detectedFaces.size() + ") Face(s) Detected, " + ++count);
                     }
                 }
             }
