@@ -25,7 +25,7 @@ interface FaceEngine<in I, P : Meta, F : Meta, R : Comparable<R>, out S : ReadWr
     fun search(face: F) = search(face, store)
 }
 
-open class FaceEngineRxDelegate<I, P : Meta, F : Meta, R : Comparable<R>, out S : ReadWriteFaceStore<P, F>>(
+open class FaceEngineRxDelegate<in I, P : Meta, F : Meta, R : Comparable<R>, out S : ReadWriteFaceStore<P, F>>(
         protected val delegate: FaceEngine<I, P, F, R, S>
 ) : FaceEngine<I, P, F, R, S> {
     final override val store: S

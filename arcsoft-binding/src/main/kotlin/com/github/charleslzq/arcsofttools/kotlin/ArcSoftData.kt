@@ -1,6 +1,7 @@
 package com.github.charleslzq.arcsofttools.kotlin
 
 import android.graphics.Bitmap
+import android.graphics.Rect
 import com.arcsoft.facerecognition.AFR_FSDKFace
 import com.arcsoft.facerecognition.AFR_FSDKVersion
 import com.github.charleslzq.facestore.FaceDataType
@@ -35,3 +36,9 @@ class ArcSoftFaceDataType :
     override val personClass: Class<Person> = Person::class.java
     override val faceClass: Class<Face> = Face::class.java
 }
+
+data class DetectedAge(
+        val rect: Rect,
+        val degree: Int,
+        val age: Int
+)

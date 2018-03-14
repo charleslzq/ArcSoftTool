@@ -9,12 +9,11 @@ import android.os.Bundle
 import android.os.IBinder
 import android.support.v7.app.AppCompatActivity
 import android.util.Log
+import com.github.charleslzq.arcsofttools.kotlin.ArcSoftFaceEngineService
 import com.github.charleslzq.arcsofttools.kotlin.DefaultArcSoftEngineService
 import com.github.charleslzq.arcsofttools.kotlin.Face
 import com.github.charleslzq.arcsofttools.kotlin.Person
-import com.github.charleslzq.faceengine.core.FaceEngineService
 import com.github.charleslzq.facestore.ReadWriteFaceStore
-import io.fotoapparat.preview.Frame
 import kotlinx.android.synthetic.main.activity_face_detect.*
 
 class FaceDetectActivity : AppCompatActivity() {
@@ -26,11 +25,11 @@ class FaceDetectActivity : AppCompatActivity() {
         override fun onServiceConnected(name: ComponentName, service: IBinder) {
             @Suppress("UNCHECKED_CAST")
             faceEngineService =
-                    service as FaceEngineService<Frame, Person, Face, Float, ReadWriteFaceStore<Person, Face>>
+                    service as ArcSoftFaceEngineService<ReadWriteFaceStore<Person, Face>>
         }
 
     }
-    private var faceEngineService: FaceEngineService<Frame, Person, Face, Float, ReadWriteFaceStore<Person, Face>>? =
+    private var faceEngineService: ArcSoftFaceEngineService<ReadWriteFaceStore<Person, Face>>? =
             null
     private var count = 0
 
@@ -40,12 +39,21 @@ class FaceDetectActivity : AppCompatActivity() {
         faceDetectCamera.onPreviewFrame {
             Log.i(TAG, "on frame with size ${it.size} and rotation ${it.rotation}")
             val detectResult = faceEngineService?.detect(it) ?: emptyList()
-            if (detectResult.isNotEmpty()) {
+            val detectedAge = faceEngineService?.detectAge(it) ?: emptyList()
+            if (detectResult.size != 1 || detectedAge.size != 1) {
                 val result = detectResult.mapNotNull { faceEngineService!!.search(it) }
                 if (result.isNotEmpty()) {
                     val person = result.maxBy { it.second } ?: Pair(Person("", ""), 0f)
                     if (person.second > 0) {
-                        toast("Match Result ${person.first.name}, ${++count}")
+                        toast(buildString {
+                            append("Match Result ${person.first.name}")
+                            if (detectedAge[0].age > 0) {
+                                append(" with detected age ${detectedAge[0].age}")
+                            } else {
+                                append(", fail to detect age")
+                            }
+                            append(", ${++count}")
+                        })
                         Log.i("test", "match result : $person")
                         setResult(Activity.RESULT_OK, Intent().apply {
                             putExtra("personName", person.first.name)
@@ -55,7 +63,7 @@ class FaceDetectActivity : AppCompatActivity() {
                 }
                 toast("No Match Result, ${++count}")
             } else {
-                toast("No Face Detected, ${++count}")
+                toast("No or too much (${detectResult.size}) Face(s) Detected, ${++count}")
             }
         }
         bindService(
