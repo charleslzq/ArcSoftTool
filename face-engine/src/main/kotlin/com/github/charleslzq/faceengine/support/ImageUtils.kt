@@ -12,7 +12,7 @@ import java.io.ByteArrayOutputStream
 /**
  * Created by charleslzq on 18-3-8.
  */
-fun convert(frame: Frame) =
+fun toBitmap(frame: Frame) =
         YuvImage(frame.image, ImageFormat.NV21, frame.size.width, frame.size.height, null).run {
             TempByteArrayOutputStream().use {
                 compressToJpeg(Rect(0, 0, frame.size.width, frame.size.height), 100, it)

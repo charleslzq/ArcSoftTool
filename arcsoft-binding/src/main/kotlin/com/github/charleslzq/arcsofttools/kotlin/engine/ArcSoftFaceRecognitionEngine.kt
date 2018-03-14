@@ -4,7 +4,7 @@ import android.util.Log
 import com.arcsoft.facerecognition.AFR_FSDKEngine
 import com.arcsoft.facerecognition.AFR_FSDKError
 import com.arcsoft.facerecognition.AFR_FSDKVersion
-import com.github.charleslzq.arcsofttools.kotlin.ArcSoftSdkKey
+import com.github.charleslzq.arcsofttools.kotlin.support.ArcSoftSdkKey
 
 /**
  * Created by charleslzq on 18-3-2.

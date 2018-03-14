@@ -4,8 +4,8 @@ import android.util.Log
 import com.arcsoft.facetracking.AFT_FSDKEngine
 import com.arcsoft.facetracking.AFT_FSDKError
 import com.arcsoft.facetracking.AFT_FSDKVersion
-import com.github.charleslzq.arcsofttools.kotlin.ArcSoftSdkKey
-import com.github.charleslzq.arcsofttools.kotlin.ArcSoftSetting
+import com.github.charleslzq.arcsofttools.kotlin.support.ArcSoftSdkKey
+import com.github.charleslzq.arcsofttools.kotlin.support.ArcSoftSetting
 
 /**
  * Created by charleslzq on 18-3-2.

@@ -1,4 +1,4 @@
-package com.github.charleslzq.arcsofttools.kotlin
+package com.github.charleslzq.arcsofttools.kotlin.support
 
 import com.github.charleslzq.arcsofttools.BuildConfig
 

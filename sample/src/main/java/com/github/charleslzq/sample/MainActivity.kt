@@ -14,8 +14,10 @@ import android.widget.Toast
 import com.github.charleslzq.arcsofttools.kotlin.DefaultArcSoftEngineService
 import com.github.charleslzq.arcsofttools.kotlin.Face
 import com.github.charleslzq.arcsofttools.kotlin.Person
+import com.github.charleslzq.arcsofttools.kotlin.support.toFrame
 import com.github.charleslzq.faceengine.core.FaceEngineService
 import com.github.charleslzq.facestore.ReadWriteFaceStore
+import io.fotoapparat.preview.Frame
 import kotlinx.android.synthetic.main.activity_main.*
 
 fun Context.toast(message: CharSequence, duration: Int = Toast.LENGTH_SHORT) =
@@ -30,11 +32,11 @@ class MainActivity : AppCompatActivity() {
         override fun onServiceConnected(name: ComponentName, service: IBinder) {
             @Suppress("UNCHECKED_CAST")
             faceEngineService =
-                    service as FaceEngineService<Person, Face, Float, ReadWriteFaceStore<Person, Face>>
+                    service as FaceEngineService<Frame, Person, Face, Float, ReadWriteFaceStore<Person, Face>>
         }
 
     }
-    private var faceEngineService: FaceEngineService<Person, Face, Float, ReadWriteFaceStore<Person, Face>>? =
+    private var faceEngineService: FaceEngineService<Frame, Person, Face, Float, ReadWriteFaceStore<Person, Face>>? =
             null
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -69,7 +71,7 @@ class MainActivity : AppCompatActivity() {
 
         when (RequestCodes.fromCode(requestCode)) {
             RequestCodes.IMAGE_CAMERA -> if (resultCode == Activity.RESULT_OK && data != null) {
-                faceEngineService?.detect(data.extras["data"] as Bitmap)?.run {
+                faceEngineService?.detect(toFrame(data.extras["data"] as Bitmap))?.run {
                     if (isNotEmpty()) {
                         val testPersonId = "test"
                         faceEngineService!!.store.savePerson(Person(testPersonId, "test_name"))
@@ -92,8 +94,7 @@ class MainActivity : AppCompatActivity() {
         IMAGE_CAMERA,
         FACE_CHECK;
 
-        val code
-            get() = ordinal + 1
+        val code = ordinal + 1
 
         companion object {
             @JvmStatic

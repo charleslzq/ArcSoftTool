@@ -5,7 +5,6 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
-import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.support.annotation.NonNull;
@@ -18,7 +17,6 @@ import com.github.charleslzq.arcsofttools.kotlin.Face;
 import com.github.charleslzq.arcsofttools.kotlin.Person;
 import com.github.charleslzq.faceengine.core.FaceEngineService;
 import com.github.charleslzq.faceengine.support.FaceDetectView;
-import com.github.charleslzq.faceengine.support.ImageUtils;
 import com.github.charleslzq.facestore.ReadWriteFaceStore;
 
 import java.util.List;
@@ -32,11 +30,11 @@ public class FaceDetectActivity extends AppCompatActivity {
     public static final String TAG = "FaceDetectActivity";
     @BindView(R.id.faceDetectCamera)
     FaceDetectView faceDetectCamera;
-    private FaceEngineService<Person, Face, Float, ReadWriteFaceStore<Person, Face>> faceEngineService = null;
+    private FaceEngineService<Frame, Person, Face, Float, ReadWriteFaceStore<Person, Face>> faceEngineService = null;
     private ServiceConnection serviceConnection = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName componentName, IBinder iBinder) {
-            faceEngineService = (FaceEngineService<Person, Face, Float, ReadWriteFaceStore<Person, Face>>) iBinder;
+            faceEngineService = (FaceEngineService<Frame, Person, Face, Float, ReadWriteFaceStore<Person, Face>>) iBinder;
         }
 
         @Override
@@ -56,9 +54,8 @@ public class FaceDetectActivity extends AppCompatActivity {
             @Override
             public void accept(@NonNull Frame frame) {
                 Log.i(TAG, "on frame with size " + frame.getSize().toString() + " and rotation " + frame.getRotation());
-                Bitmap image = ImageUtils.convert(frame);
                 if (faceEngineService != null) {
-                    List<Face> detectedFaces = faceEngineService.detect(image);
+                    List<Face> detectedFaces = faceEngineService.detect(frame);
                     if (!detectedFaces.isEmpty()) {
                         Pair<Person, Float> max = new Pair<>(new Person("", ""), 0f);
                         for (Face face : detectedFaces) {

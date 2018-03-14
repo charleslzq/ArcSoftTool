@@ -29,30 +29,30 @@ open class ReadOnlyFaceStoreRxDelegate<P : Meta, F : Meta, out D : ReadOnlyFaceS
             callNullableOnIo { delegate.getFace(personId, faceId) }
 }
 
-class ReadWriteFaceStoreRxDelegate<P : Meta, F : Meta, out D : ReadWriteFaceStore<P, F>>(
+open class ReadWriteFaceStoreRxDelegate<P : Meta, F : Meta, out D : ReadWriteFaceStore<P, F>>(
         delegate: D
 ) : ReadOnlyFaceStoreRxDelegate<P, F, D>(delegate), ReadWriteFaceStore<P, F> {
-    override fun savePerson(person: P) {
+    final override fun savePerson(person: P) {
         runOnIo { delegate.savePerson(person) }
     }
 
-    override fun saveFace(personId: String, face: F) {
+    final override fun saveFace(personId: String, face: F) {
         runOnIo { delegate.saveFace(personId, face) }
     }
 
-    override fun saveFaceData(faceData: FaceData<P, F>) {
+    final override fun saveFaceData(faceData: FaceData<P, F>) {
         runOnIo { delegate.saveFaceData(faceData) }
     }
 
-    override fun deleteFaceData(personId: String) {
+    final override fun deleteFaceData(personId: String) {
         runOnIo { delegate.deleteFaceData(personId) }
     }
 
-    override fun deleteFace(personId: String, faceId: String) {
+    final override fun deleteFace(personId: String, faceId: String) {
         runOnIo { delegate.deleteFace(personId, faceId) }
     }
 
-    override fun clearFace(personId: String) {
+    final override fun clearFace(personId: String) {
         runOnIo { delegate.clearFace(personId) }
     }
 }

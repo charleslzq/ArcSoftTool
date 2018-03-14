@@ -35,12 +35,12 @@ open class ReadOnlyFaceStoreCacheDelegate<P : Meta, F : Meta, out D : ReadOnlyFa
             faceCache.load(personId, faceId) { delegate.getFace(personId, faceId) }
 }
 
-class ReadWriteFaceStoreCacheDelegate<P : Meta, F : Meta, out D : ReadWriteFaceStore<P, F>>(
+open class ReadWriteFaceStoreCacheDelegate<P : Meta, F : Meta, out D : ReadWriteFaceStore<P, F>>(
         delegate: D,
         personCacheSize: Int = 100,
         faceCacheSize: Int = 20
 ) : ReadOnlyFaceStoreCacheDelegate<P, F, D>(delegate, personCacheSize, faceCacheSize), ReadWriteFaceStore<P, F> {
-    override fun savePerson(person: P) {
+    final override fun savePerson(person: P) {
         delegate.savePerson(person)
         if (personCache.contains(person.id)) {
             personCache.update(
@@ -51,7 +51,7 @@ class ReadWriteFaceStoreCacheDelegate<P : Meta, F : Meta, out D : ReadWriteFaceS
         fillMap(person.id)
     }
 
-    override fun saveFace(personId: String, face: F) {
+    final override fun saveFace(personId: String, face: F) {
         delegate.saveFace(personId, face)
         if (faceCache.contains(personId, face.id)) {
             faceCache.update(
@@ -65,17 +65,17 @@ class ReadWriteFaceStoreCacheDelegate<P : Meta, F : Meta, out D : ReadWriteFaceS
         }.toList()
     }
 
-    override fun saveFaceData(faceData: FaceData<P, F>) {
+    final override fun saveFaceData(faceData: FaceData<P, F>) {
         savePerson(faceData.person)
         faceData.faces.forEach { saveFace(faceData.person.id, it) }
     }
 
-    override fun deleteFaceData(personId: String) {
+    final override fun deleteFaceData(personId: String) {
         delegate.deleteFaceData(personId)
         personFaceMapper.remove(personId)
     }
 
-    override fun deleteFace(personId: String, faceId: String) {
+    final override fun deleteFace(personId: String, faceId: String) {
         delegate.deleteFace(personId, faceId)
         if (personFaceMapper.containsKey(personId) && personFaceMapper[personId]!!.contains(faceId)) {
             personFaceMapper[personId] = personFaceMapper[personId]!!.toMutableList().apply {
@@ -84,7 +84,7 @@ class ReadWriteFaceStoreCacheDelegate<P : Meta, F : Meta, out D : ReadWriteFaceS
         }
     }
 
-    override fun clearFace(personId: String) {
+    final override fun clearFace(personId: String) {
         delegate.clearFace(personId)
         personFaceMapper[personId] = emptyList()
     }

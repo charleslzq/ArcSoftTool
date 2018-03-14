@@ -9,11 +9,11 @@ import com.github.charleslzq.facestore.ReadWriteFaceStore
 /**
  * Created by charleslzq on 18-3-6.
  */
-open class FaceEngineService<P : Meta, F : Meta, R : Comparable<R>, out S : ReadWriteFaceStore<P, F>>(
-        val engine: FaceEngine<P, F, R, S>
-) : Binder(), FaceEngine<P, F, R, S> by engine
+open class FaceEngineService<in I, P : Meta, F : Meta, R : Comparable<R>, out S : ReadWriteFaceStore<P, F>>(
+        val engine: FaceEngine<I, P, F, R, S>
+) : Binder(), FaceEngine<I, P, F, R, S> by engine
 
-abstract class FaceEngineServiceBackground<P : Meta, F : Meta, R : Comparable<R>, out S : ReadWriteFaceStore<P, F>> :
+abstract class FaceEngineServiceBackground<I, P : Meta, F : Meta, R : Comparable<R>, out S : ReadWriteFaceStore<P, F>> :
         Service() {
     private val engineService by lazy {
         createEngineService()
@@ -26,5 +26,5 @@ abstract class FaceEngineServiceBackground<P : Meta, F : Meta, R : Comparable<R>
         super.onDestroy()
     }
 
-    abstract fun createEngineService(): FaceEngineService<P, F, R, S>
+    abstract fun createEngineService(): FaceEngineService<I, P, F, R, S>
 }

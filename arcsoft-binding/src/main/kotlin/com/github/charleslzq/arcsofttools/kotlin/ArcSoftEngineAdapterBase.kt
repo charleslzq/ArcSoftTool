@@ -1,6 +1,5 @@
 package com.github.charleslzq.arcsofttools.kotlin
 
-import android.graphics.Bitmap
 import android.graphics.Rect
 import android.os.Environment
 import com.arcsoft.facedetection.AFD_FSDKEngine
@@ -11,15 +10,18 @@ import com.arcsoft.facerecognition.AFR_FSDKError
 import com.arcsoft.facerecognition.AFR_FSDKFace
 import com.arcsoft.facerecognition.AFR_FSDKMatching
 import com.github.charleslzq.arcsofttools.kotlin.engine.*
+import com.github.charleslzq.arcsofttools.kotlin.support.ArcSoftSdkKey
+import com.github.charleslzq.arcsofttools.kotlin.support.ArcSoftSetting
 import com.github.charleslzq.faceengine.core.FaceEngine
 import com.github.charleslzq.faceengine.core.FaceEngineRxDelegate
 import com.github.charleslzq.faceengine.core.FaceEngineService
 import com.github.charleslzq.faceengine.core.FaceEngineServiceBackground
 import com.github.charleslzq.faceengine.store.ReadWriteFaceStoreCacheDelegate
 import com.github.charleslzq.faceengine.store.ReadWriteFaceStoreRxDelegate
+import com.github.charleslzq.faceengine.support.toBitmap
 import com.github.charleslzq.facestore.FaceFileReadWriteStore
 import com.github.charleslzq.facestore.ReadWriteFaceStore
-import com.guo.android_extend.image.ImageConverter
+import io.fotoapparat.preview.Frame
 import java.util.*
 
 /**
@@ -29,8 +31,7 @@ open class ArcSoftEngineAdapterBase<S : ArcSoftSetting, out D : ReadWriteFaceSto
         keys: ArcSoftSdkKey,
         setting: S,
         createStore: (S) -> D
-) : AutoCloseable,
-        FaceEngine<Person, Face, Float, ReadWriteFaceStore<Person, Face>> {
+) : AutoCloseable, FaceEngine<Frame, Person, Face, Float, ReadWriteFaceStore<Person, Face>> {
     final override val store = createStore(setting)
     val faceRecognitionEngine = ArcSoftFaceRecognitionEngine(keys)
     val faceDetectEngine = ArcSoftFaceDetectionEngine(keys, setting)
@@ -38,20 +39,14 @@ open class ArcSoftEngineAdapterBase<S : ArcSoftSetting, out D : ReadWriteFaceSto
     val ageDetectEngine = ArcSoftAgeDetectionEngine(keys, setting)
     val genderDetectEngine = ArcSoftGenderDetectionEngine(keys, setting)
 
-    final override fun detect(image: Bitmap): List<Face> {
+    final override fun detect(image: Frame): List<Face> {
         return if (faceDetectEngine.getEngine() != null && faceRecognitionEngine.getEngine() != null) {
             val detectResult = mutableListOf<AFD_FSDKFace>()
-            val data = ByteArray(image.width * image.height * 3 / 2).apply {
-                ImageConverter().run {
-                    initial(image.width, image.height, ImageConverter.CP_PAF_NV21)
-                    convert(image, this@apply)
-                    destroy()
-                }
-            }
+            val pic = toBitmap(image)
             val detectCode = faceDetectEngine.getEngine()!!.AFD_FSDK_StillImageFaceDetection(
-                    data,
-                    image.width,
-                    image.height,
+                    image.image,
+                    image.size.width,
+                    image.size.height,
                     AFD_FSDKEngine.CP_PAF_NV21,
                     detectResult
             )
@@ -60,14 +55,16 @@ open class ArcSoftEngineAdapterBase<S : ArcSoftSetting, out D : ReadWriteFaceSto
                 detectResult.mapNotNull {
                     val extractResult = AFR_FSDKFace()
                     val extractCode = faceRecognitionEngine.getEngine()!!.AFR_FSDK_ExtractFRFeature(
-                            data, image.width, image.height,
+                            image.image,
+                            image.size.width,
+                            image.size.height,
                             AFR_FSDKEngine.CP_PAF_NV21,
                             Rect(it.rect),
                             it.degree,
                             extractResult
                     )
                     if (extractCode.code == AFR_FSDKError.MOK) {
-                        Face(UUID.randomUUID().toString(), image, extractResult, recognitionVersion)
+                        Face(UUID.randomUUID().toString(), pic, extractResult, recognitionVersion)
                     } else {
                         null
                     }
@@ -108,7 +105,7 @@ open class ArcSoftEngineAdapterBase<S : ArcSoftSetting, out D : ReadWriteFaceSto
 }
 
 class DefaultArcSoftEngineService :
-        FaceEngineServiceBackground<Person, Face, Float, ReadWriteFaceStore<Person, Face>>() {
+        FaceEngineServiceBackground<Frame, Person, Face, Float, ReadWriteFaceStore<Person, Face>>() {
     override fun createEngineService() =
             FaceEngineService(
                     FaceEngineRxDelegate(ArcSoftEngineAdapterBase(ArcSoftSdkKey(), ArcSoftSetting(resources)) {

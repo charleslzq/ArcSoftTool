@@ -1,6 +1,5 @@
 package com.github.charleslzq.faceengine.core
 
-import android.graphics.Bitmap
 import com.github.charleslzq.faceengine.support.callNullableOnCompute
 import com.github.charleslzq.faceengine.support.callOnCompute
 import com.github.charleslzq.facestore.Meta
@@ -10,9 +9,9 @@ import com.github.charleslzq.facestore.ReadWriteFaceStore
 /**
  * Created by charleslzq on 18-3-1.
  */
-interface FaceEngine<P : Meta, F : Meta, R : Comparable<R>, out S : ReadWriteFaceStore<P, F>> {
+interface FaceEngine<in I, P : Meta, F : Meta, R : Comparable<R>, out S : ReadWriteFaceStore<P, F>> {
     val store: S
-    fun detect(image: Bitmap): List<F> = emptyList()
+    fun detect(image: I): List<F> = emptyList()
     fun calculateSimilarity(savedFace: F, newFace: F): R
     fun search(newFace: F, store: ReadOnlyFaceStore<P, F>) = store.getPersonIds()
             .mapNotNull { store.getPerson(it) }
@@ -26,16 +25,16 @@ interface FaceEngine<P : Meta, F : Meta, R : Comparable<R>, out S : ReadWriteFac
     fun search(face: F) = search(face, store)
 }
 
-class FaceEngineRxDelegate<P : Meta, F : Meta, R : Comparable<R>, out S : ReadWriteFaceStore<P, F>>(
-        private val delegate: FaceEngine<P, F, R, S>
-) : FaceEngine<P, F, R, S> {
-    override val store: S
+open class FaceEngineRxDelegate<I, P : Meta, F : Meta, R : Comparable<R>, out S : ReadWriteFaceStore<P, F>>(
+        protected val delegate: FaceEngine<I, P, F, R, S>
+) : FaceEngine<I, P, F, R, S> {
+    final override val store: S
         get() = delegate.store
 
-    override fun detect(image: Bitmap) = callOnCompute { delegate.detect(image) }
-    override fun calculateSimilarity(savedFace: F, newFace: F) =
+    final override fun detect(image: I) = callOnCompute { delegate.detect(image) }
+    final override fun calculateSimilarity(savedFace: F, newFace: F) =
             callOnCompute { delegate.calculateSimilarity(savedFace, newFace) }
 
-    override fun search(newFace: F, store: ReadOnlyFaceStore<P, F>) =
+    final override fun search(newFace: F, store: ReadOnlyFaceStore<P, F>) =
             callNullableOnCompute { delegate.search(newFace, store) }
 }

@@ -1,4 +1,4 @@
-package com.github.charleslzq.arcsofttools.kotlin
+package com.github.charleslzq.arcsofttools.kotlin.support
 
 import android.content.res.Resources
 import com.github.charleslzq.arcsofttools.R

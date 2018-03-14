@@ -15,6 +15,7 @@ import android.widget.Toast;
 import com.github.charleslzq.arcsofttools.kotlin.DefaultArcSoftEngineService;
 import com.github.charleslzq.arcsofttools.kotlin.Face;
 import com.github.charleslzq.arcsofttools.kotlin.Person;
+import com.github.charleslzq.arcsofttools.kotlin.support.Nv21ImageUtils;
 import com.github.charleslzq.faceengine.core.FaceEngineService;
 import com.github.charleslzq.facestore.ReadWriteFaceStore;
 
@@ -22,13 +23,14 @@ import java.util.List;
 
 import butterknife.ButterKnife;
 import butterknife.OnClick;
+import io.fotoapparat.preview.Frame;
 
 public class MainActivity extends AppCompatActivity {
-    private FaceEngineService<Person, Face, Float, ReadWriteFaceStore<Person, Face>> faceEngineService = null;
+    private FaceEngineService<Frame, Person, Face, Float, ReadWriteFaceStore<Person, Face>> faceEngineService = null;
     private ServiceConnection serviceConnection = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName componentName, IBinder iBinder) {
-            faceEngineService = (FaceEngineService<Person, Face, Float, ReadWriteFaceStore<Person, Face>>) iBinder;
+            faceEngineService = (FaceEngineService<Frame, Person, Face, Float, ReadWriteFaceStore<Person, Face>>) iBinder;
         }
 
         @Override
@@ -67,7 +69,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void registerImage(Intent data) {
-        List<Face> faceList = faceEngineService.detect((Bitmap) data.getExtras().get("data"));
+        List<Face> faceList = faceEngineService.detect(Nv21ImageUtils.toFrame((Bitmap) data.getExtras().get("data")));
         if (!faceList.isEmpty()) {
             String testPersonId = "test";
             faceEngineService.getStore().savePerson(new Person(testPersonId, "test_name"));

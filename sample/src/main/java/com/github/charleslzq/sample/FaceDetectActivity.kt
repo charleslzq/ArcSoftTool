@@ -13,8 +13,8 @@ import com.github.charleslzq.arcsofttools.kotlin.DefaultArcSoftEngineService
 import com.github.charleslzq.arcsofttools.kotlin.Face
 import com.github.charleslzq.arcsofttools.kotlin.Person
 import com.github.charleslzq.faceengine.core.FaceEngineService
-import com.github.charleslzq.faceengine.support.convert
 import com.github.charleslzq.facestore.ReadWriteFaceStore
+import io.fotoapparat.preview.Frame
 import kotlinx.android.synthetic.main.activity_face_detect.*
 
 class FaceDetectActivity : AppCompatActivity() {
@@ -26,11 +26,11 @@ class FaceDetectActivity : AppCompatActivity() {
         override fun onServiceConnected(name: ComponentName, service: IBinder) {
             @Suppress("UNCHECKED_CAST")
             faceEngineService =
-                    service as FaceEngineService<Person, Face, Float, ReadWriteFaceStore<Person, Face>>
+                    service as FaceEngineService<Frame, Person, Face, Float, ReadWriteFaceStore<Person, Face>>
         }
 
     }
-    private var faceEngineService: FaceEngineService<Person, Face, Float, ReadWriteFaceStore<Person, Face>>? =
+    private var faceEngineService: FaceEngineService<Frame, Person, Face, Float, ReadWriteFaceStore<Person, Face>>? =
             null
     private var count = 0
 
@@ -38,9 +38,8 @@ class FaceDetectActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_face_detect)
         faceDetectCamera.onPreviewFrame {
-            val image = convert(it)
             Log.i(TAG, "on frame with size ${it.size} and rotation ${it.rotation}")
-            val detectResult = faceEngineService?.detect(image) ?: emptyList()
+            val detectResult = faceEngineService?.detect(it) ?: emptyList()
             if (detectResult.isNotEmpty()) {
                 val result = detectResult.mapNotNull { faceEngineService!!.search(it) }
                 if (result.isNotEmpty()) {
