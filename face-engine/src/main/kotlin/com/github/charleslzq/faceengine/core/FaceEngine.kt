@@ -1,6 +1,6 @@
 package com.github.charleslzq.faceengine.core
 
-import com.github.charleslzq.faceengine.support.callNullableOnCompute
+import com.github.charleslzq.faceengine.support.callNullableOnIo
 import com.github.charleslzq.faceengine.support.callOnCompute
 import com.github.charleslzq.facestore.Meta
 import com.github.charleslzq.facestore.ReadOnlyFaceStore
@@ -31,9 +31,13 @@ open class FaceEngineRxDelegate<in I, P : Meta, F : Meta, R : Comparable<R>, out
         get() = delegate.store
 
     final override fun detect(image: I) = callOnCompute { delegate.detect(image) }
+
     final override fun calculateSimilarity(savedFace: F, newFace: F) =
             callOnCompute { delegate.calculateSimilarity(savedFace, newFace) }
 
     final override fun search(newFace: F, store: ReadOnlyFaceStore<P, F>) =
-            callNullableOnCompute { delegate.search(newFace, store) }
+            callNullableOnIo { delegate.search(newFace, store) }
+
+    final override fun search(face: F) =
+            callNullableOnIo { delegate.search(face) }
 }
