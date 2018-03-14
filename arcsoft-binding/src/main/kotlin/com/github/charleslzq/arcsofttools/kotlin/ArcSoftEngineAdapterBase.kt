@@ -15,14 +15,13 @@ import com.arcsoft.facerecognition.AFR_FSDKMatching
 import com.arcsoft.facetracking.AFT_FSDKEngine
 import com.arcsoft.facetracking.AFT_FSDKError
 import com.arcsoft.facetracking.AFT_FSDKFace
+import com.arcsoft.genderestimation.ASGE_FSDKFace
+import com.arcsoft.genderestimation.ASGE_FSDKGender
 import com.github.charleslzq.arcsofttools.kotlin.engine.*
 import com.github.charleslzq.arcsofttools.kotlin.support.ArcSoftRxDelegate
 import com.github.charleslzq.arcsofttools.kotlin.support.ArcSoftSdkKey
 import com.github.charleslzq.arcsofttools.kotlin.support.ArcSoftSetting
-import com.github.charleslzq.faceengine.core.AgeDetector
-import com.github.charleslzq.faceengine.core.FaceEngine
-import com.github.charleslzq.faceengine.core.FaceEngineService
-import com.github.charleslzq.faceengine.core.FaceEngineServiceBackground
+import com.github.charleslzq.faceengine.core.*
 import com.github.charleslzq.faceengine.store.ReadWriteFaceStoreCacheDelegate
 import com.github.charleslzq.faceengine.store.ReadWriteFaceStoreRxDelegate
 import com.github.charleslzq.faceengine.support.toBitmap
@@ -34,7 +33,10 @@ import java.util.*
 /**
  * Created by charleslzq on 18-3-1.
  */
-interface ArcSoftFaceEngine<out D : ReadWriteFaceStore<Person, Face>> : FaceEngine<Frame, Person, Face, Float, D>, AgeDetector<Frame, DetectedAge>
+interface ArcSoftFaceEngine<out D : ReadWriteFaceStore<Person, Face>>
+    : FaceEngine<Frame, Person, Face, Float, D>,
+        AgeDetector<Frame, DetectedAge>,
+        GenderDetector<Frame, DetectedGender>
 
 open class ArcSoftEngineAdapterBase<S : ArcSoftSetting, out D : ReadWriteFaceStore<Person, Face>>(
         keys: ArcSoftSdkKey,
@@ -122,6 +124,26 @@ open class ArcSoftEngineAdapterBase<S : ArcSoftSetting, out D : ReadWriteFaceSto
         emptyList()
     }
 
+    override fun detectGender(image: Frame) = if (genderDetectEngine.initialized()) {
+        val faces = trackFace(image)
+        val results = mutableListOf<ASGE_FSDKGender>()
+        val errorCode = genderDetectEngine.getEngine()!!.ASGE_FSDK_GenderEstimation_Image(
+                image.image,
+                image.size.width,
+                image.size.height,
+                AFT_FSDKEngine.CP_PAF_NV21,
+                faces.map { ASGE_FSDKFace(it.rect, it.degree) },
+                results
+        )
+        if (errorCode.code == ASAE_FSDKError.MOK) {
+            results.mapIndexed { index, gender -> DetectedGender(faces[index].rect, faces[index].degree, ArcSoftGender.fromCode(gender.gender)) }
+        } else {
+            emptyList()
+        }
+    } else {
+        emptyList()
+    }
+
     final override fun close() {
         faceRecognitionEngine.close()
         faceDetectEngine.close()
@@ -151,7 +173,9 @@ open class ArcSoftEngineAdapterBase<S : ArcSoftSetting, out D : ReadWriteFaceSto
 
 class ArcSoftFaceEngineService<out D : ReadWriteFaceStore<Person, Face>>(
         arcSoftFaceEngine: ArcSoftFaceEngine<D>
-) : FaceEngineService<Frame, Person, Face, Float, D>(arcSoftFaceEngine), AgeDetector<Frame, DetectedAge> by arcSoftFaceEngine
+) : FaceEngineService<Frame, Person, Face, Float, D>(arcSoftFaceEngine),
+        AgeDetector<Frame, DetectedAge> by arcSoftFaceEngine,
+        GenderDetector<Frame, DetectedGender> by arcSoftFaceEngine
 
 class DefaultArcSoftEngineService :
         FaceEngineServiceBackground<Frame, Person, Face, Float, ReadWriteFaceStore<Person, Face>>() {

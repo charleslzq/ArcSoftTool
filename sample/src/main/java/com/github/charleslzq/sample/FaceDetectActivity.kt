@@ -40,7 +40,8 @@ class FaceDetectActivity : AppCompatActivity() {
             Log.i(TAG, "on frame with size ${it.size} and rotation ${it.rotation}")
             val detectResult = faceEngineService?.detect(it) ?: emptyList()
             val detectedAge = faceEngineService?.detectAge(it) ?: emptyList()
-            if (detectResult.size != 1 || detectedAge.size != 1) {
+            val detectedGender = faceEngineService?.detectGender(it) ?: emptyList()
+            if (detectResult.size != 1 || detectedAge.size != 1 || detectedGender.size != 1) {
                 val result = detectResult.mapNotNull { faceEngineService!!.search(it) }
                 if (result.isNotEmpty()) {
                     val person = result.maxBy { it.second } ?: Pair(Person("", ""), 0f)
@@ -48,10 +49,11 @@ class FaceDetectActivity : AppCompatActivity() {
                         toast(buildString {
                             append("Match Result ${person.first.name}")
                             if (detectedAge[0].age > 0) {
-                                append(" with detected age ${detectedAge[0].age}")
+                                append(", with detected age ${detectedAge[0].age}")
                             } else {
                                 append(", fail to detect age")
                             }
+                            append(", gender ${detectedGender[0].gender}")
                             append(", ${++count}")
                         })
                         Log.i("test", "match result : $person")
