@@ -4,12 +4,11 @@ import com.github.charleslzq.faceengine.support.callNullableOnCompute
 import com.github.charleslzq.faceengine.support.callOnCompute
 import com.github.charleslzq.facestore.Meta
 import com.github.charleslzq.facestore.ReadOnlyFaceStore
-import com.github.charleslzq.facestore.ReadWriteFaceStore
 
 /**
  * Created by charleslzq on 18-3-1.
  */
-interface FaceEngine<in I, P : Meta, F : Meta, R : Comparable<R>, out S : ReadWriteFaceStore<P, F>> {
+interface FaceEngine<in I, P : Meta, F : Meta, R : Comparable<R>, out S : ReadOnlyFaceStore<P, F>> {
     val store: S
     fun detect(image: I): List<F> = emptyList()
     fun calculateSimilarity(savedFace: F, newFace: F): R
@@ -25,7 +24,7 @@ interface FaceEngine<in I, P : Meta, F : Meta, R : Comparable<R>, out S : ReadWr
     fun search(face: F) = search(face, store)
 }
 
-open class FaceEngineRxDelegate<in I, P : Meta, F : Meta, R : Comparable<R>, out S : ReadWriteFaceStore<P, F>>(
+open class FaceEngineRxDelegate<in I, P : Meta, F : Meta, R : Comparable<R>, out S : ReadOnlyFaceStore<P, F>>(
         protected val delegate: FaceEngine<I, P, F, R, S>
 ) : FaceEngine<I, P, F, R, S> {
     final override val store: S
