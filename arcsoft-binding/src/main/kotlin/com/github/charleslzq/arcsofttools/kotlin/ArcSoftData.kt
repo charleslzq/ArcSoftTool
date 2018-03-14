@@ -37,22 +37,20 @@ class ArcSoftFaceDataType :
     override val faceClass: Class<Face> = Face::class.java
 }
 
-interface FaceLocation {
-    val rect: Rect
-    val degree: Int
-}
+data class FaceLocation(
+        val rect: Rect,
+        val degree: Int
+)
 
 data class DetectedAge(
-        override val rect: Rect,
-        override val degree: Int,
+        val faceLocation: FaceLocation,
         val age: Int
-) : FaceLocation
+)
 
 data class DetectedGender(
-        override val rect: Rect,
-        override val degree: Int,
+        val faceLocation: FaceLocation,
         val gender: ArcSoftGender
-) : FaceLocation
+)
 
 enum class ArcSoftGender {
     UNKNOWN,
