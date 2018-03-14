@@ -41,7 +41,7 @@ class FaceDetectActivity : AppCompatActivity() {
             val detectResult = faceEngineService?.detect(it) ?: emptyList()
             val detectedAge = faceEngineService?.detectAge(it) ?: emptyList()
             val detectedGender = faceEngineService?.detectGender(it) ?: emptyList()
-            if (detectResult.size != 1 || detectedAge.size != 1 || detectedGender.size != 1) {
+            if (detectResult.size != 1 && detectedAge.size != 1 && detectedGender.size != 1) {
                 val result = detectResult.mapNotNull { faceEngineService!!.search(it) }
                 if (result.isNotEmpty()) {
                     val person = result.maxBy { it.second } ?: Pair(Person("", ""), 0f)
