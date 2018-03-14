@@ -116,7 +116,7 @@ open class ArcSoftEngineAdapterBase<S : ArcSoftSetting, out D : ReadWriteFaceSto
                 results
         )
         if (errorCode.code == ASAE_FSDKError.MOK) {
-            results.mapIndexed { index, age -> DetectedAge(faces[index].rect, faces[index].degree, age.age) }
+            results.mapIndexed { index, age -> DetectedAge(FaceLocation(faces[index].rect, faces[index].degree), age.age) }
         } else {
             emptyList()
         }
@@ -136,7 +136,7 @@ open class ArcSoftEngineAdapterBase<S : ArcSoftSetting, out D : ReadWriteFaceSto
                 results
         )
         if (errorCode.code == ASAE_FSDKError.MOK) {
-            results.mapIndexed { index, gender -> DetectedGender(faces[index].rect, faces[index].degree, ArcSoftGender.fromCode(gender.gender)) }
+            results.mapIndexed { index, gender -> DetectedGender(FaceLocation(faces[index].rect, faces[index].degree), ArcSoftGender.fromCode(gender.gender)) }
         } else {
             emptyList()
         }
