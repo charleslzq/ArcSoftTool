@@ -13,13 +13,13 @@ import android.util.Log;
 import android.widget.Toast;
 
 import com.github.charleslzq.arcsofttools.kotlin.ArcSoftFaceEngineService;
-import com.github.charleslzq.arcsofttools.kotlin.DefaultArcSoftEngineService;
 import com.github.charleslzq.arcsofttools.kotlin.DetectedAge;
 import com.github.charleslzq.arcsofttools.kotlin.DetectedGender;
 import com.github.charleslzq.arcsofttools.kotlin.Face;
 import com.github.charleslzq.arcsofttools.kotlin.Person;
+import com.github.charleslzq.arcsofttools.kotlin.WebSocketArcSoftEngineService;
 import com.github.charleslzq.faceengine.support.FaceDetectView;
-import com.github.charleslzq.facestore.ReadWriteFaceStore;
+import com.github.charleslzq.facestore.websocket.WebSocketCompositeFaceStore;
 
 import java.util.List;
 
@@ -32,11 +32,12 @@ public class FaceDetectActivity extends AppCompatActivity {
     public static final String TAG = "FaceDetectActivity";
     @BindView(R.id.faceDetectCamera)
     FaceDetectView faceDetectCamera;
-    private ArcSoftFaceEngineService<ReadWriteFaceStore<Person, Face>> faceEngineService = null;
+    private ArcSoftFaceEngineService<WebSocketCompositeFaceStore<Person, Face>> faceEngineService = null;
     private ServiceConnection serviceConnection = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName componentName, IBinder iBinder) {
-            faceEngineService = (ArcSoftFaceEngineService<ReadWriteFaceStore<Person, Face>>) iBinder;
+            faceEngineService = (ArcSoftFaceEngineService<WebSocketCompositeFaceStore<Person, Face>>) iBinder;
+            faceEngineService.getStore().refresh();
         }
 
         @Override
@@ -51,7 +52,7 @@ public class FaceDetectActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_face_detect);
         ButterKnife.bind(this);
-        bindService(new Intent(this, DefaultArcSoftEngineService.class), serviceConnection, Context.BIND_AUTO_CREATE);
+        bindService(new Intent(this, WebSocketArcSoftEngineService.class), serviceConnection, Context.BIND_AUTO_CREATE);
         faceDetectCamera.onPreviewFrame(new FaceDetectView.FrameConsumer() {
             @Override
             public void accept(@NonNull Frame frame) {

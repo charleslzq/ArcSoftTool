@@ -11,12 +11,12 @@ import android.os.IBinder
 import android.provider.MediaStore
 import android.support.v7.app.AppCompatActivity
 import android.widget.Toast
-import com.github.charleslzq.arcsofttools.kotlin.DefaultArcSoftEngineService
 import com.github.charleslzq.arcsofttools.kotlin.Face
 import com.github.charleslzq.arcsofttools.kotlin.Person
+import com.github.charleslzq.arcsofttools.kotlin.WebSocketArcSoftEngineService
 import com.github.charleslzq.arcsofttools.kotlin.support.toFrame
 import com.github.charleslzq.faceengine.core.FaceEngineService
-import com.github.charleslzq.facestore.ReadWriteFaceStore
+import com.github.charleslzq.facestore.websocket.WebSocketCompositeFaceStore
 import io.fotoapparat.preview.Frame
 import kotlinx.android.synthetic.main.activity_main.*
 
@@ -32,11 +32,12 @@ class MainActivity : AppCompatActivity() {
         override fun onServiceConnected(name: ComponentName, service: IBinder) {
             @Suppress("UNCHECKED_CAST")
             faceEngineService =
-                    service as FaceEngineService<Frame, Person, Face, Float, ReadWriteFaceStore<Person, Face>>
+                    service as FaceEngineService<Frame, Person, Face, Float, WebSocketCompositeFaceStore<Person, Face>>
+            faceEngineService?.store?.refresh()
         }
 
     }
-    private var faceEngineService: FaceEngineService<Frame, Person, Face, Float, ReadWriteFaceStore<Person, Face>>? =
+    private var faceEngineService: FaceEngineService<Frame, Person, Face, Float, WebSocketCompositeFaceStore<Person, Face>>? =
             null
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -55,7 +56,7 @@ class MainActivity : AppCompatActivity() {
             )
         }
         bindService(
-                Intent(this, DefaultArcSoftEngineService::class.java),
+                Intent(this, WebSocketArcSoftEngineService::class.java),
                 serviceConnection,
                 Context.BIND_AUTO_CREATE
         )

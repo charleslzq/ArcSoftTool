@@ -12,12 +12,12 @@ import android.provider.MediaStore;
 import android.support.v7.app.AppCompatActivity;
 import android.widget.Toast;
 
-import com.github.charleslzq.arcsofttools.kotlin.DefaultArcSoftEngineService;
 import com.github.charleslzq.arcsofttools.kotlin.Face;
 import com.github.charleslzq.arcsofttools.kotlin.Person;
+import com.github.charleslzq.arcsofttools.kotlin.WebSocketArcSoftEngineService;
 import com.github.charleslzq.arcsofttools.kotlin.support.Nv21ImageUtils;
 import com.github.charleslzq.faceengine.core.FaceEngineService;
-import com.github.charleslzq.facestore.ReadWriteFaceStore;
+import com.github.charleslzq.facestore.websocket.WebSocketCompositeFaceStore;
 
 import java.util.List;
 
@@ -26,11 +26,12 @@ import butterknife.OnClick;
 import io.fotoapparat.preview.Frame;
 
 public class MainActivity extends AppCompatActivity {
-    private FaceEngineService<Frame, Person, Face, Float, ReadWriteFaceStore<Person, Face>> faceEngineService = null;
+    private FaceEngineService<Frame, Person, Face, Float, WebSocketCompositeFaceStore<Person, Face>> faceEngineService = null;
     private ServiceConnection serviceConnection = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName componentName, IBinder iBinder) {
-            faceEngineService = (FaceEngineService<Frame, Person, Face, Float, ReadWriteFaceStore<Person, Face>>) iBinder;
+            faceEngineService = (FaceEngineService<Frame, Person, Face, Float, WebSocketCompositeFaceStore<Person, Face>>) iBinder;
+            faceEngineService.getStore().refresh();
         }
 
         @Override
@@ -44,7 +45,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         ButterKnife.bind(this);
-        bindService(new Intent(this, DefaultArcSoftEngineService.class), serviceConnection, Context.BIND_AUTO_CREATE);
+        bindService(new Intent(this, WebSocketArcSoftEngineService.class), serviceConnection, Context.BIND_AUTO_CREATE);
     }
 
     @Override

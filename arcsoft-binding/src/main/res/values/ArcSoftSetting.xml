@@ -6,4 +6,5 @@
     <string name="ArcSoft_faceDirectory">/data/faces</string>
     <integer name="ArcSoft_scale">16</integer>
     <integer name="ArcSoft_maxFaceNum">25</integer>
+    <string name="ArcSoft_WebSocket_url">ws://10.0.2.2:8080/face-store</string>
 </resources>

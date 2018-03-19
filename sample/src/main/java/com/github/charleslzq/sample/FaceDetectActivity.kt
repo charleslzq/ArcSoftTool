@@ -10,10 +10,10 @@ import android.os.IBinder
 import android.support.v7.app.AppCompatActivity
 import android.util.Log
 import com.github.charleslzq.arcsofttools.kotlin.ArcSoftFaceEngineService
-import com.github.charleslzq.arcsofttools.kotlin.DefaultArcSoftEngineService
 import com.github.charleslzq.arcsofttools.kotlin.Face
 import com.github.charleslzq.arcsofttools.kotlin.Person
-import com.github.charleslzq.facestore.ReadWriteFaceStore
+import com.github.charleslzq.arcsofttools.kotlin.WebSocketArcSoftEngineService
+import com.github.charleslzq.facestore.websocket.WebSocketCompositeFaceStore
 import kotlinx.android.synthetic.main.activity_face_detect.*
 
 class FaceDetectActivity : AppCompatActivity() {
@@ -25,11 +25,12 @@ class FaceDetectActivity : AppCompatActivity() {
         override fun onServiceConnected(name: ComponentName, service: IBinder) {
             @Suppress("UNCHECKED_CAST")
             faceEngineService =
-                    service as ArcSoftFaceEngineService<ReadWriteFaceStore<Person, Face>>
+                    service as ArcSoftFaceEngineService<WebSocketCompositeFaceStore<Person, Face>>
+            faceEngineService?.store?.refresh()
         }
 
     }
-    private var faceEngineService: ArcSoftFaceEngineService<ReadWriteFaceStore<Person, Face>>? =
+    private var faceEngineService: ArcSoftFaceEngineService<WebSocketCompositeFaceStore<Person, Face>>? =
             null
     private var count = 0
 
@@ -82,7 +83,7 @@ class FaceDetectActivity : AppCompatActivity() {
             }
         }
         bindService(
-                Intent(this, DefaultArcSoftEngineService::class.java),
+                Intent(this, WebSocketArcSoftEngineService::class.java),
                 serviceConnection,
                 Context.BIND_AUTO_CREATE
         )

@@ -21,12 +21,14 @@ import com.github.charleslzq.arcsofttools.kotlin.engine.*
 import com.github.charleslzq.arcsofttools.kotlin.support.ArcSoftRxDelegate
 import com.github.charleslzq.arcsofttools.kotlin.support.ArcSoftSdkKey
 import com.github.charleslzq.arcsofttools.kotlin.support.ArcSoftSetting
+import com.github.charleslzq.arcsofttools.kotlin.support.ArcSoftSettingWithWebSocket
 import com.github.charleslzq.faceengine.core.*
 import com.github.charleslzq.faceengine.store.ReadWriteFaceStoreCacheDelegate
 import com.github.charleslzq.faceengine.store.ReadWriteFaceStoreRxDelegate
 import com.github.charleslzq.faceengine.support.toBitmap
 import com.github.charleslzq.facestore.FaceFileReadWriteStore
 import com.github.charleslzq.facestore.ReadWriteFaceStore
+import com.github.charleslzq.facestore.websocket.WebSocketCompositeFaceStore
 import io.fotoapparat.preview.Frame
 import java.util.*
 
@@ -52,7 +54,6 @@ open class ArcSoftEngineAdapterBase<S : ArcSoftSetting, out D : ReadWriteFaceSto
 
     final override fun detect(image: Frame) = if (faceDetectEngine.getEngine() != null && faceRecognitionEngine.getEngine() != null) {
         val detectResult = mutableListOf<AFD_FSDKFace>()
-        val pic = toBitmap(image)
         val detectCode = faceDetectEngine.getEngine()!!.AFD_FSDK_StillImageFaceDetection(
                 image.image,
                 image.size.width,
@@ -62,6 +63,7 @@ open class ArcSoftEngineAdapterBase<S : ArcSoftSetting, out D : ReadWriteFaceSto
         )
         if (detectCode.code == AFD_FSDKError.MOK) {
             val recognitionVersion = faceRecognitionEngine.getVersion()!!
+            val pic = toBitmap(image)
             detectResult.mapNotNull {
                 val extractResult = AFR_FSDKFace()
                 val extractCode = faceRecognitionEngine.getEngine()!!.AFR_FSDK_ExtractFRFeature(
@@ -177,7 +179,7 @@ class ArcSoftFaceEngineService<out D : ReadWriteFaceStore<Person, Face>>(
         AgeDetector<Frame, DetectedAge> by arcSoftFaceEngine,
         GenderDetector<Frame, DetectedGender> by arcSoftFaceEngine
 
-class DefaultArcSoftEngineService :
+class LocalArcSoftEngineService :
         FaceEngineServiceBackground<Frame, Person, Face, Float, ReadWriteFaceStore<Person, Face>>() {
     override fun createEngineService() =
             ArcSoftFaceEngineService<ReadWriteFaceStore<Person, Face>>(
@@ -198,4 +200,28 @@ class DefaultArcSoftEngineService :
                         )
                     })
             )
+}
+
+class WebSocketArcSoftEngineService :
+        FaceEngineServiceBackground<Frame, Person, Face, Float, WebSocketCompositeFaceStore<Person, Face>>() {
+    override fun createEngineService() = ArcSoftFaceEngineService(
+            ArcSoftRxDelegate(ArcSoftEngineAdapterBase(ArcSoftSdkKey(), ArcSoftSettingWithWebSocket(resources)) {
+                WebSocketCompositeFaceStore(
+                        it.webSocketUrl,
+                        ReadWriteFaceStoreCacheDelegate(
+                                ReadWriteFaceStoreRxDelegate(
+                                        FaceFileReadWriteStore(
+                                                Environment.getExternalStorageDirectory().absolutePath + it.faceDirectory.run {
+                                                    if (startsWith('/')) {
+                                                        this
+                                                    } else {
+                                                        "/$this"
+                                                    }
+                                                },
+                                                ArcSoftFaceDataType()
+                                        )
+                                )
+                        )
+                )
+            }))
 }

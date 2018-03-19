@@ -27,7 +27,7 @@
         </activity>
 
         <service
-            android:name="com.github.charleslzq.arcsofttools.kotlin.DefaultArcSoftEngineService"
+            android:name="com.github.charleslzq.arcsofttools.kotlin.WebSocketArcSoftEngineService"
             android:enabled="true" />
 
         <activity android:name=".FaceDetectActivity"></activity>
