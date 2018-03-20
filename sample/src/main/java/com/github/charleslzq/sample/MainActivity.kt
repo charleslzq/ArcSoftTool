@@ -13,7 +13,6 @@ import android.provider.MediaStore
 import android.support.v7.app.AppCompatActivity
 import android.text.Editable
 import android.text.TextWatcher
-import android.util.Log
 import android.widget.ArrayAdapter
 import android.widget.AutoCompleteTextView
 import android.widget.Toast
@@ -79,49 +78,52 @@ class MainActivity : AppCompatActivity() {
 
         when (RequestCodes.fromCode(requestCode)) {
             RequestCodes.IMAGE_CAMERA -> if (resultCode == Activity.RESULT_OK && data != null && faceEngineService != null) {
-                var selectedPerson: SimplePerson? = null
-                val dialogLayout = layoutInflater.inflate(R.layout.dialog_register, null)
-                val autoCompleteTexts = dialogLayout.findViewById<AutoCompleteTextView>(R.id.personRegister)
-                autoCompleteTexts.setAdapter(ArrayAdapter<SimplePerson>(
-                        this,
-                        android.R.layout.simple_dropdown_item_1line,
-                        faceEngineService!!.engine.store.getPersonIds()
-                                .mapNotNull { faceEngineService!!.engine.store.getPerson(it) }
-                                .map { SimplePerson.fromPerson(it) }
-                ))
-                autoCompleteTexts.setOnItemClickListener { parent, _, position, _ ->
-                    @Suppress("UNCHECKED_CAST")
-                    selectedPerson = (parent.adapter as ArrayAdapter<SimplePerson>).getItem(position)
-                }
-                autoCompleteTexts.addTextChangedListener(object : TextWatcher {
-                    override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
-                    }
-
-                    override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
-                    }
-
-                    override fun afterTextChanged(s: Editable?) {
-                        selectedPerson = null
-                    }
-                })
-                AlertDialog.Builder(this)
-                        .setView(dialogLayout)
-                        .setTitle("Your ID or Name")
-                        .setPositiveButton("OK", { _, _ ->
-                            val personName = selectedPerson?.name ?: autoCompleteTexts.text.toString()
-                            Log.i("test", personName)
-                            faceEngineService!!.detect(toFrame(data.extras["data"] as Bitmap)).run {
-                                if (isNotEmpty()) {
-                                    val testPersonId = selectedPerson?.id ?: UUID.randomUUID().toString()
-                                    faceEngineService!!.store.savePerson(Person(testPersonId, personName))
-                                    forEach {
-                                        faceEngineService!!.store.saveFace(testPersonId, it)
-                                    }
-                                }
+                faceEngineService!!.detect(toFrame(data.extras["data"] as Bitmap)).run {
+                    if (isNotEmpty() && size == 1) {
+                        forEach {
+                            var selectedPerson: SimplePerson? = null
+                            val dialogLayout = layoutInflater.inflate(R.layout.dialog_register, null)
+                            val autoCompleteTexts = dialogLayout.findViewById<AutoCompleteTextView>(R.id.personRegister)
+                            autoCompleteTexts.setAdapter(ArrayAdapter<SimplePerson>(
+                                    this@MainActivity,
+                                    android.R.layout.simple_dropdown_item_1line,
+                                    faceEngineService!!.engine.store.getPersonIds()
+                                            .mapNotNull { faceEngineService!!.engine.store.getPerson(it) }
+                                            .map { SimplePerson.fromPerson(it) }
+                            ))
+                            autoCompleteTexts.setOnItemClickListener { parent, _, position, _ ->
+                                @Suppress("UNCHECKED_CAST")
+                                selectedPerson = (parent.adapter as ArrayAdapter<SimplePerson>).getItem(position)
                             }
-                        })
-                        .setNegativeButton("CANCEL", { dialog, _ -> dialog.dismiss() })
-                        .show()
+                            autoCompleteTexts.addTextChangedListener(object : TextWatcher {
+                                override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
+                                }
+
+                                override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+                                }
+
+                                override fun afterTextChanged(s: Editable?) {
+                                    selectedPerson = null
+                                }
+                            })
+                            AlertDialog.Builder(this@MainActivity)
+                                    .setView(dialogLayout)
+                                    .setTitle("Your ID or Name")
+                                    .setPositiveButton("OK", { _, _ ->
+                                        val personId = selectedPerson?.id
+                                                ?: UUID.randomUUID().toString()
+                                        val personName = selectedPerson?.name
+                                                ?: autoCompleteTexts.text.toString()
+                                        if (selectedPerson == null) {
+                                            faceEngineService!!.store.savePerson(Person(personId, personName))
+                                        }
+                                        faceEngineService!!.store.saveFace(personId, it)
+                                    })
+                                    .setNegativeButton("CANCEL", { dialog, _ -> dialog.dismiss() })
+                                    .show()
+                        }
+                    }
+                }
             }
             RequestCodes.FACE_CHECK -> if (resultCode == Activity.RESULT_OK && data != null) {
                 val personName = data.extras["personName"] as String
