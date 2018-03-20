@@ -31,8 +31,3 @@ enum class ServerMessagePayloadTypes {
     FACE_DELETE,
     FACE_CLEAR
 }
-
-interface TypedMessageHnadler<P, F> {
-    fun handlePerson(message: Message<P>)
-    fun handleFace(personId: String, message: Message<F>)
-}

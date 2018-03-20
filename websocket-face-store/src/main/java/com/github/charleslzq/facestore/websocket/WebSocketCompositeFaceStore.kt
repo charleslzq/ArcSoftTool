@@ -7,7 +7,6 @@ import com.github.charleslzq.facestore.Meta
 import com.github.charleslzq.facestore.ReadWriteFaceStore
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
-import com.google.gson.reflect.TypeToken
 
 /**
  * Created by charleslzq on 18-3-19.
@@ -18,7 +17,7 @@ constructor(
         url: String,
         private val localStore: ReadWriteFaceStore<P, F>,
         private val gson: Gson = Converters.registerLocalDateTime(GsonBuilder()).create()
-) : CompositeReadWriteFaceStore<P, F>(localStore), TypedMessageHnadler<P, F> {
+) : CompositeReadWriteFaceStore<P, F>(localStore) {
     private val client = WebSocketClient(url, ::onMessage)
 
     var url = url
@@ -105,8 +104,8 @@ constructor(
         )
         rawMessage.headers[MessageHeaders.TYPE_HEADER.value]?.let {
             when (ServerMessagePayloadTypes.valueOf(it)) {
-                ServerMessagePayloadTypes.PERSON -> handlePerson(toObject(message))
-                ServerMessagePayloadTypes.FACE -> handleFace(checkAndGet(rawMessage.headers, MessageHeaders.PERSON_ID), toObject(message))
+                ServerMessagePayloadTypes.PERSON -> localStore.savePerson(gson.fromJson(gson.toJson(rawMessage.payload), dataType.personClass))
+                ServerMessagePayloadTypes.FACE -> localStore.saveFace(checkAndGet(rawMessage.headers, MessageHeaders.PERSON_ID), gson.fromJson(gson.toJson(rawMessage.payload), dataType.faceClass))
                 ServerMessagePayloadTypes.PERSON_DELETE -> localStore.deleteFaceData(checkAndGet(rawMessage.headers, MessageHeaders.PERSON_ID))
                 ServerMessagePayloadTypes.FACE_DELETE -> localStore.deleteFace(
                         checkAndGet(rawMessage.headers, MessageHeaders.PERSON_ID),
@@ -119,17 +118,6 @@ constructor(
         }
     }
 
-    override fun handlePerson(message: Message<P>) {
-        localStore.savePerson(message.payload)
-    }
-
-    override fun handleFace(personId: String, message: Message<F>) {
-        localStore.saveFace(personId, message.payload)
-    }
-
     private fun checkAndGet(headers: Map<String, String>, key: MessageHeaders) = headers[key.value]
             ?: throw IllegalArgumentException("Required header ${key.value} not found")
-
-    private inline fun <reified M> toObject(message: String) =
-            gson.fromJson<M>(message, object : TypeToken<M>() {}.type)
 }
