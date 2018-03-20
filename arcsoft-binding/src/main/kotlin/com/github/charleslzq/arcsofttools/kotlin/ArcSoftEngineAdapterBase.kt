@@ -1,6 +1,5 @@
 package com.github.charleslzq.arcsofttools.kotlin
 
-import android.graphics.Bitmap
 import android.graphics.Rect
 import android.os.Environment
 import com.arcsoft.ageestimation.ASAE_FSDKAge
@@ -18,7 +17,6 @@ import com.arcsoft.facetracking.AFT_FSDKError
 import com.arcsoft.facetracking.AFT_FSDKFace
 import com.arcsoft.genderestimation.ASGE_FSDKFace
 import com.arcsoft.genderestimation.ASGE_FSDKGender
-import com.fatboyindustrial.gsonjodatime.Converters
 import com.github.charleslzq.arcsofttools.kotlin.engine.*
 import com.github.charleslzq.arcsofttools.kotlin.support.ArcSoftRxDelegate
 import com.github.charleslzq.arcsofttools.kotlin.support.ArcSoftSdkKey
@@ -32,7 +30,6 @@ import com.github.charleslzq.faceengine.support.toBitmap
 import com.github.charleslzq.facestore.FaceFileReadWriteStore
 import com.github.charleslzq.facestore.ReadWriteFaceStore
 import com.github.charleslzq.facestore.websocket.WebSocketCompositeFaceStore
-import com.google.gson.GsonBuilder
 import io.fotoapparat.preview.Frame
 import java.util.*
 
@@ -199,9 +196,7 @@ class LocalArcSoftEngineService :
                                                     }
                                                 },
                                                 ArcSoftFaceDataType(),
-                                                Converters.registerLocalDateTime(
-                                                        GsonBuilder().registerTypeAdapter(Bitmap::class.java, BitmapConverter())
-                                                ).create()
+                                                BitmapConverter.createGson()
                                         )
                                 )
                         )
@@ -226,9 +221,7 @@ class WebSocketArcSoftEngineService :
                                                     }
                                                 },
                                                 ArcSoftFaceDataType(),
-                                                Converters.registerLocalDateTime(
-                                                        GsonBuilder().registerTypeAdapter(Bitmap::class.java, BitmapConverter())
-                                                ).create()
+                                                BitmapConverter.createGson()
                                         )
                                 )
                         )

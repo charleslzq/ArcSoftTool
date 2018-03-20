@@ -3,6 +3,7 @@ package com.github.charleslzq.faceengine.support
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.util.Base64
+import com.fatboyindustrial.gsonjodatime.Converters
 import com.google.gson.*
 import java.io.ByteArrayOutputStream
 import java.lang.reflect.Type
@@ -22,4 +23,10 @@ class BitmapConverter : JsonSerializer<Bitmap>, JsonDeserializer<Bitmap> {
             Base64.decode(json.asString, Base64.DEFAULT).let {
                 BitmapFactory.decodeByteArray(it, 0, it.size)
             }
+
+    companion object {
+        fun createGson() = Converters.registerLocalDateTime(
+                GsonBuilder().registerTypeAdapter(Bitmap::class.java, BitmapConverter())
+        ).create()
+    }
 }

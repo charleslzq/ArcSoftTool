@@ -1,14 +1,11 @@
 package com.github.charleslzq.facestore.websocket
 
-import android.graphics.Bitmap
-import com.fatboyindustrial.gsonjodatime.Converters
 import com.github.charleslzq.faceengine.support.BitmapConverter
 import com.github.charleslzq.facestore.CompositeReadWriteFaceStore
 import com.github.charleslzq.facestore.FaceData
 import com.github.charleslzq.facestore.Meta
 import com.github.charleslzq.facestore.ReadWriteFaceStore
 import com.google.gson.Gson
-import com.google.gson.GsonBuilder
 
 /**
  * Created by charleslzq on 18-3-19.
@@ -18,9 +15,7 @@ class WebSocketCompositeFaceStore<P : Meta, F : Meta>
 constructor(
         url: String,
         private val localStore: ReadWriteFaceStore<P, F>,
-        private val gson: Gson = Converters.registerLocalDateTime(
-                GsonBuilder().registerTypeAdapter(Bitmap::class.java, BitmapConverter())
-        ).create()
+        private val gson: Gson = BitmapConverter.createGson()
 ) : CompositeReadWriteFaceStore<P, F>(localStore) {
     private val client = WebSocketClient(url, ::onMessage)
 
