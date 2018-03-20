@@ -25,7 +25,7 @@ constructor(
         set(value) {
             field = value
             client.url = value
-            client.connect()
+            client.end()
         }
 
     fun refresh() {

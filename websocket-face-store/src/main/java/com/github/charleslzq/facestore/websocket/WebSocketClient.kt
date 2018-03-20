@@ -21,6 +21,12 @@ class WebSocketClient(
         AsyncHttpClient.getDefaultInstance().websocket(url, "web-socket", ::onComplete)
     }
 
+    fun end() {
+        if (isOpen()) {
+            webSocket?.end()
+        }
+    }
+
     fun send(message: String) = runOnIo {
         webSocket?.send(message)
     }
