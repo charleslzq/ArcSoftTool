@@ -44,7 +44,7 @@ open class ReadWriteFaceStoreCacheDelegate<P : Meta, F : Meta, out D : ReadWrite
         delegate.savePerson(person)
         if (personCache.contains(person.id)) {
             personCache.update(
-                    args = person.id,
+                    person.id,
                     data = person
             )
         }
@@ -60,9 +60,11 @@ open class ReadWriteFaceStoreCacheDelegate<P : Meta, F : Meta, out D : ReadWrite
             )
         }
         fillMap(personId)
-        personFaceMapper[personId] = personFaceMapper[personId]!!.toMutableList().apply {
-            add(face.id)
-        }.toList()
+        if (!personFaceMapper[personId]!!.contains(face.id)) {
+            personFaceMapper[personId] = personFaceMapper[personId]!!.toMutableList().apply {
+                add(face.id)
+            }.toList()
+        }
     }
 
     final override fun saveFaceData(faceData: FaceData<P, F>) {
