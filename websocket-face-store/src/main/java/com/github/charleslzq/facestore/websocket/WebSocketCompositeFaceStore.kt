@@ -7,7 +7,6 @@ import com.github.charleslzq.facestore.Meta
 import com.github.charleslzq.facestore.ReadWriteFaceStore
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
-import org.joda.time.LocalDateTime
 
 /**
  * Created by charleslzq on 18-3-19.
@@ -29,14 +28,10 @@ constructor(
             client.end()
         }
 
-    @JvmOverloads
-    fun refresh(fullSync: Boolean = true) {
+    fun refresh() {
         val headers = mapOf(
                 MessageHeaders.TYPE_HEADER.value to ClientMessagePayloadTypes.REFRESH.name
         ).toMutableMap()
-        if (!fullSync) {
-            headers[MessageHeaders.TIMESTAMP.value] = gson.toJson(LocalDateTime.now())
-        }
         connect()
         client.send(gson.toJson(Message(headers, "refresh")))
     }
