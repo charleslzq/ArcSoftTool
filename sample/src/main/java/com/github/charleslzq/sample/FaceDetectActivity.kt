@@ -26,7 +26,7 @@ class FaceDetectActivity : AppCompatActivity() {
             @Suppress("UNCHECKED_CAST")
             faceEngineService =
                     service as ArcSoftFaceEngineService<WebSocketCompositeFaceStore<Person, Face>>
-            faceEngineService?.store?.refresh()
+            faceEngineService!!.store.refresh()
         }
 
     }

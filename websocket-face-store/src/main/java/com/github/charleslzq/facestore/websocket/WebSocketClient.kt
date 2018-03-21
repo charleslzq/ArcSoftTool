@@ -39,6 +39,11 @@ class WebSocketClient(
                         onMessage(it)
                     }
                 }
+                webSocket.setClosedCallback {
+                    if (it != null) {
+                        webSocket.resume()
+                    }
+                }
                 this.webSocket = webSocket
             }
             false -> {

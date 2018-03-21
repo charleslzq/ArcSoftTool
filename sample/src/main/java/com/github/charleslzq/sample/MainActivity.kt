@@ -39,7 +39,7 @@ class MainActivity : AppCompatActivity() {
             @Suppress("UNCHECKED_CAST")
             faceEngineService =
                     service as FaceEngineService<Frame, Person, Face, Float, WebSocketCompositeFaceStore<Person, Face>>
-            faceEngineService?.store?.refresh()
+            faceEngineService!!.store.refresh()
         }
 
     }
