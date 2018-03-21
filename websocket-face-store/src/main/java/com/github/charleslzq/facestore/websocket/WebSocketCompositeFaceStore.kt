@@ -100,6 +100,7 @@ constructor(
     private fun connect() {
         if (!client.isOpen()) {
             client.connect()
+            refresh()
         }
     }
 
