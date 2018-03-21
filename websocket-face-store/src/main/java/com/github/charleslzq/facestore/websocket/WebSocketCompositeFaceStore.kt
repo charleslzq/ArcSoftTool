@@ -6,6 +6,8 @@ import com.github.charleslzq.facestore.FaceData
 import com.github.charleslzq.facestore.Meta
 import com.github.charleslzq.facestore.ReadWriteFaceStore
 import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
+import org.joda.time.LocalDateTime
 
 /**
  * Created by charleslzq on 18-3-19.
@@ -18,6 +20,7 @@ constructor(
         private val gson: Gson = BitmapConverter.createGson()
 ) : CompositeReadWriteFaceStore<P, F>(localStore) {
     private val client = WebSocketClient(url, ::onMessage)
+    private val idListMessageType = object : TypeToken<Message<List<String>>>() {}
 
     var url = url
         set(value) {
@@ -26,10 +29,14 @@ constructor(
             client.end()
         }
 
-    fun refresh() {
+    @JvmOverloads
+    fun refresh(fullSync: Boolean = true) {
         val headers = mapOf(
                 MessageHeaders.TYPE_HEADER.value to ClientMessagePayloadTypes.REFRESH.name
         ).toMutableMap()
+        if (!fullSync) {
+            headers[MessageHeaders.TIMESTAMP.value] = gson.toJson(LocalDateTime.now())
+        }
         connect()
         client.send(gson.toJson(Message(headers, "refresh")))
     }
@@ -104,7 +111,20 @@ constructor(
         rawMessage.headers[MessageHeaders.TYPE_HEADER.value]?.let {
             when (ServerMessagePayloadTypes.valueOf(it)) {
                 ServerMessagePayloadTypes.PERSON -> localStore.savePerson(gson.fromJson(gson.toJson(rawMessage.payload), dataType.personClass))
+                ServerMessagePayloadTypes.PERSON_ID_LIST -> {
+                    val idListMessage = gson.fromJson<Message<List<String>>>(message, idListMessageType.type)
+                    localStore.getPersonIds().minus(idListMessage.payload).forEach {
+                        localStore.deleteFaceData(it)
+                    }
+                }
                 ServerMessagePayloadTypes.FACE -> localStore.saveFace(checkAndGet(rawMessage.headers, MessageHeaders.PERSON_ID), gson.fromJson(gson.toJson(rawMessage.payload), dataType.faceClass))
+                ServerMessagePayloadTypes.FACE_ID_LIST -> {
+                    val idListMessage = gson.fromJson<Message<List<String>>>(message, idListMessageType.type)
+                    val personId = checkAndGet(idListMessage.headers, MessageHeaders.PERSON_ID)
+                    localStore.getFaceIdList(personId).minus(idListMessage.payload).forEach {
+                        localStore.deleteFace(personId, it)
+                    }
+                }
                 ServerMessagePayloadTypes.PERSON_DELETE -> localStore.deleteFaceData(checkAndGet(rawMessage.headers, MessageHeaders.PERSON_ID))
                 ServerMessagePayloadTypes.FACE_DELETE -> localStore.deleteFace(
                         checkAndGet(rawMessage.headers, MessageHeaders.PERSON_ID),

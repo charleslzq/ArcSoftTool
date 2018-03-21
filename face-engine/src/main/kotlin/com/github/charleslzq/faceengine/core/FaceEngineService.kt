@@ -13,9 +13,9 @@ open class FaceEngineService<in I, P : Meta, F : Meta, R : Comparable<R>, out S 
         val engine: FaceEngine<I, P, F, R, S>
 ) : Binder(), FaceEngine<I, P, F, R, S> by engine
 
-abstract class FaceEngineServiceBackground<I, P : Meta, F : Meta, R : Comparable<R>, out S : ReadOnlyFaceStore<P, F>> :
+abstract class FaceEngineServiceBackground<in I, P : Meta, F : Meta, R : Comparable<R>, out S : ReadOnlyFaceStore<P, F>> :
         Service() {
-    private val engineService by lazy {
+    protected val engineService by lazy {
         createEngineService()
     }
 

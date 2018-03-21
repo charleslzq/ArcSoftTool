@@ -206,6 +206,11 @@ class LocalArcSoftEngineService :
 
 class WebSocketArcSoftEngineService :
         FaceEngineServiceBackground<Frame, Person, Face, Float, WebSocketCompositeFaceStore<Person, Face>>() {
+    override fun onCreate() {
+        super.onCreate()
+        engineService.store.refresh()
+    }
+
     override fun createEngineService() = ArcSoftFaceEngineService(
             ArcSoftRxDelegate(ArcSoftEngineAdapterBase(ArcSoftSdkKey(), ArcSoftSettingWithWebSocket(resources)) {
                 WebSocketCompositeFaceStore(
