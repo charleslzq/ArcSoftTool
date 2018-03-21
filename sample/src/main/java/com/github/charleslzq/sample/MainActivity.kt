@@ -16,13 +16,12 @@ import android.text.TextWatcher
 import android.widget.ArrayAdapter
 import android.widget.AutoCompleteTextView
 import android.widget.Toast
+import com.github.charleslzq.arcsofttools.kotlin.ArcSoftFaceEngineService
 import com.github.charleslzq.arcsofttools.kotlin.Face
 import com.github.charleslzq.arcsofttools.kotlin.Person
 import com.github.charleslzq.arcsofttools.kotlin.WebSocketArcSoftEngineService
 import com.github.charleslzq.arcsofttools.kotlin.support.toFrame
-import com.github.charleslzq.faceengine.core.FaceEngineService
 import com.github.charleslzq.facestore.websocket.WebSocketCompositeFaceStore
-import io.fotoapparat.preview.Frame
 import kotlinx.android.synthetic.main.activity_main.*
 import java.util.*
 
@@ -38,12 +37,12 @@ class MainActivity : AppCompatActivity() {
         override fun onServiceConnected(name: ComponentName, service: IBinder) {
             @Suppress("UNCHECKED_CAST")
             faceEngineService =
-                    service as FaceEngineService<Frame, Person, Face, Float, WebSocketCompositeFaceStore<Person, Face>>
+                    service as ArcSoftFaceEngineService<WebSocketCompositeFaceStore<Person, Face>>
             faceEngineService!!.store.refresh()
         }
 
     }
-    private var faceEngineService: FaceEngineService<Frame, Person, Face, Float, WebSocketCompositeFaceStore<Person, Face>>? =
+    private var faceEngineService: ArcSoftFaceEngineService<WebSocketCompositeFaceStore<Person, Face>>? =
             null
 
     override fun onCreate(savedInstanceState: Bundle?) {
