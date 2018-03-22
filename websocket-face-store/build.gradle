@@ -27,7 +27,7 @@ android {
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
-    api 'com.github.charleslzq:face-store:1.0.0-RC6'
+    api "com.github.charleslzq:face-store:$face_store_version"
     api project(':face-engine')
     implementation 'com.koushikdutta.async:androidasync:2.2.1'
     implementation 'com.google.code.gson:gson:2.8.2'
