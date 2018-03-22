@@ -22,7 +22,7 @@ constructor(
         private val allowSend: Boolean = false
 ) : WebSocketFaceStoreInstance {
     private val idListMessageType = object : TypeToken<Message<List<String>>>() {}
-    val client = WebSocketClient(url, ::onMessage)
+    private val client = WebSocketClient(url, ::onMessage)
     override var url: String
         get() = client.url
         set(value) {
