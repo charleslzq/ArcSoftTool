@@ -5,9 +5,6 @@ import com.github.charleslzq.facestore.*
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 
-/**
- * Created by charleslzq on 18-3-19.
- */
 interface WebSocketFaceStoreInstance : WebSocketInstance {
     fun refresh()
     fun <T> send(message: Message<T>)
@@ -17,7 +14,7 @@ class WebSocketFaceStoreBroker<P : Meta, F : Meta>
 @JvmOverloads
 constructor(
         url: String,
-        val localStore: ReadWriteFaceStore<P, F>,
+        private val localStore: ReadWriteFaceStore<P, F>,
         private val gson: Gson = BitmapConverter.createGson(),
         private val allowSend: Boolean = false
 ) : WebSocketFaceStoreInstance {
