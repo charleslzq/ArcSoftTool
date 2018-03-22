@@ -8,27 +8,39 @@ import com.koushikdutta.async.http.WebSocket
 /**
  * Created by charleslzq on 18-3-19.
  */
+interface WebSocketInstance {
+    var url: String
+    fun isOpen(): Boolean
+    fun connect()
+    fun disconnect()
+    fun send(message: String)
+}
+
 class WebSocketClient(
-        var url: String,
+        override var url: String,
         private val onMessage: (String) -> Unit
-) {
+) : WebSocketInstance {
     private var webSocket: WebSocket? = null
     private val logTag = javaClass.name
 
-    fun isOpen() = webSocket?.isOpen ?: false
+    override fun isOpen() = webSocket?.isOpen ?: false
 
-    fun connect() = runOnIo {
-        AsyncHttpClient.getDefaultInstance().websocket(url, "web-socket", ::onComplete)
+    override fun connect() {
+        runOnIo {
+            AsyncHttpClient.getDefaultInstance().websocket(url, "web-socket", ::onComplete)
+        }
     }
 
-    fun end() {
+    override fun disconnect() {
         if (isOpen()) {
             webSocket?.end()
         }
     }
 
-    fun send(message: String) = runOnIo {
-        webSocket?.send(message)
+    override fun send(message: String) {
+        runOnIo {
+            webSocket?.send(message)
+        }
     }
 
     private fun onComplete(ex: Exception?, webSocket: WebSocket?) {

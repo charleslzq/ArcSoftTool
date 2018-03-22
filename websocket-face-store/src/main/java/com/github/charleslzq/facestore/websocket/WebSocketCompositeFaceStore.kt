@@ -8,15 +8,57 @@ import com.google.gson.reflect.TypeToken
 /**
  * Created by charleslzq on 18-3-19.
  */
-class WebSocketBroker<P : Meta, F : Meta>
+interface WebSocketFaceStoreInstance : WebSocketInstance {
+    fun refresh()
+    fun <T> send(message: Message<T>)
+}
+
+class WebSocketFaceStoreBroker<P : Meta, F : Meta>
 @JvmOverloads
 constructor(
         url: String,
-        private val localStore: ReadWriteFaceStore<P, F>,
-        private val gson: Gson = BitmapConverter.createGson()
-) {
-    val client = WebSocketClient(url, ::onMessage)
+        val localStore: ReadWriteFaceStore<P, F>,
+        private val gson: Gson = BitmapConverter.createGson(),
+        private val allowSend: Boolean = false
+) : WebSocketFaceStoreInstance {
     private val idListMessageType = object : TypeToken<Message<List<String>>>() {}
+    val client = WebSocketClient(url, ::onMessage)
+    override var url: String
+        get() = client.url
+        set(value) {
+            client.url = value
+            disconnect()
+        }
+
+    override fun connect() {
+        if (!isOpen()) {
+            client.connect()
+        }
+    }
+
+    override fun disconnect() = client.disconnect()
+
+    override fun isOpen() = client.isOpen()
+
+    override fun send(message: String) {
+        if (allowSend) {
+            connect()
+            client.send(message)
+        } else {
+            throw UnsupportedOperationException("Not Allowed To Send Message")
+        }
+    }
+
+    override fun <T> send(message: Message<T>) {
+        send(gson.toJson(message))
+    }
+
+    override fun refresh() {
+        val headers = mapOf(
+                MessageHeaders.TYPE_HEADER.value to ClientMessagePayloadTypes.REFRESH.name
+        ).toMutableMap()
+        client.send(gson.toJson(Message(headers, "refresh")))
+    }
 
     private fun onMessage(message: String) {
         val rawMessage = gson.fromJson<Message<Any>>(
@@ -65,46 +107,22 @@ constructor(
         url: String,
         localStore: ReadWriteFaceStore<P, F>,
         gson: Gson = BitmapConverter.createGson()
-) : ReadOnlyFaceStore<P, F> by localStore {
-    private val broker = WebSocketBroker(url, localStore, gson)
-
-    fun setUrl(url: String) {
-        broker.client.url = url
-        broker.client.end()
-    }
-}
+) : ReadOnlyFaceStore<P, F> by localStore, WebSocketFaceStoreInstance by WebSocketFaceStoreBroker<P, F>(url, localStore, gson, false)
 
 class WebSocketCompositeFaceStore<P : Meta, F : Meta>
 @JvmOverloads
 constructor(
         url: String,
         localStore: ReadWriteFaceStore<P, F>,
-        private val gson: Gson = BitmapConverter.createGson()
-) : CompositeReadWriteFaceStore<P, F>(localStore) {
-    private val broker = WebSocketBroker(url, localStore, gson)
-
-    var url = url
-        set(value) {
-            field = value
-            broker.client.url = value
-            broker.client.end()
-        }
-
-    fun refresh() {
-        val headers = mapOf(
-                MessageHeaders.TYPE_HEADER.value to ClientMessagePayloadTypes.REFRESH.name
-        ).toMutableMap()
-        connect()
-        broker.client.send(gson.toJson(Message(headers, "refresh")))
-    }
+        gson: Gson = BitmapConverter.createGson()
+) : CompositeReadWriteFaceStore<P, F>(localStore), WebSocketFaceStoreInstance by WebSocketFaceStoreBroker<P, F>(url, localStore, gson, true) {
 
     override fun savePerson(person: P) {
         val headers = mapOf(
                 MessageHeaders.TYPE_HEADER.value to ClientMessagePayloadTypes.PERSON.name,
                 MessageHeaders.PERSON_ID.value to person.id
         ).toMutableMap()
-        connect()
-        broker.client.send(gson.toJson(Message(headers, person)))
+        send(Message(headers, person))
     }
 
     override fun saveFace(personId: String, face: F) {
@@ -113,8 +131,7 @@ constructor(
                 MessageHeaders.PERSON_ID.value to personId,
                 MessageHeaders.FACE_ID.value to face.id
         ).toMutableMap()
-        connect()
-        broker.client.send(gson.toJson(Message(headers, face)))
+        send(Message(headers, face))
     }
 
     override fun saveFaceData(faceData: FaceData<P, F>) {
@@ -122,8 +139,7 @@ constructor(
                 MessageHeaders.TYPE_HEADER.value to ClientMessagePayloadTypes.FACE_DATA.name,
                 MessageHeaders.PERSON_ID.value to faceData.person.id
         ).toMutableMap()
-        connect()
-        broker.client.send(gson.toJson(Message(headers, faceData)))
+        send(Message(headers, faceData))
     }
 
     override fun deleteFaceData(personId: String) {
@@ -131,8 +147,7 @@ constructor(
                 MessageHeaders.TYPE_HEADER.value to ClientMessagePayloadTypes.PERSON_DELETE.name,
                 MessageHeaders.PERSON_ID.value to personId
         ).toMutableMap()
-        connect()
-        broker.client.send(gson.toJson(Message(headers, personId)))
+        send(Message(headers, personId))
     }
 
     override fun clearFace(personId: String) {
@@ -140,8 +155,7 @@ constructor(
                 MessageHeaders.TYPE_HEADER.value to ClientMessagePayloadTypes.FACE_CLEAR.name,
                 MessageHeaders.PERSON_ID.value to personId
         ).toMutableMap()
-        connect()
-        broker.client.send(gson.toJson(Message(headers, personId)))
+        send(Message(headers, personId))
     }
 
     override fun deleteFace(personId: String, faceId: String) {
@@ -150,13 +164,6 @@ constructor(
                 MessageHeaders.PERSON_ID.value to personId,
                 MessageHeaders.FACE_ID.value to faceId
         ).toMutableMap()
-        connect()
-        broker.client.send(gson.toJson(Message(headers, faceId)))
-    }
-
-    private fun connect() {
-        if (!broker.client.isOpen()) {
-            broker.client.connect()
-        }
+        send(Message(headers, faceId))
     }
 }
