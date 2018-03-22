@@ -54,6 +54,7 @@ constructor(
         val headers = mapOf(
                 MessageHeaders.TYPE_HEADER.value to ClientMessagePayloadTypes.REFRESH.name
         ).toMutableMap()
+        connect()
         client.send(gson.toJson(Message(headers, "refresh")))
     }
 
