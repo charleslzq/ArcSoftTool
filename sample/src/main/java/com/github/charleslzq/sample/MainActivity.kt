@@ -60,6 +60,9 @@ class MainActivity : AppCompatActivity() {
                     RequestCodes.FACE_CHECK.code
             )
         }
+        refreshButton.setOnClickListener {
+            faceEngineService?.store?.refresh()
+        }
         bindService(
                 Intent(this, WebSocketArcSoftEngineService::class.java),
                 serviceConnection,
