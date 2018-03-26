@@ -71,7 +71,7 @@ public class FaceDetectActivity extends AppCompatActivity {
                                 max = matchResult;
                             }
                         }
-                        if (max.getSecond() > 0) {
+                        if (max.getSecond() > 0.5f) {
                             result = max.getFirst().getName();
                             messageBuilder.append("Match Result ");
                             messageBuilder.append(result);

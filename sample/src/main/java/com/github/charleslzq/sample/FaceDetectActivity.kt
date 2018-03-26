@@ -48,7 +48,7 @@ class FaceDetectActivity : AppCompatActivity() {
                     val result = detectResult.mapNotNull { faceEngineService!!.search(it) }
                     if (result.isNotEmpty()) {
                         val person = result.maxBy { it.second } ?: Pair(Person("", ""), 0f)
-                        if (person.second > 0) {
+                        if (person.second > 0.5f) {
                             personName = person.first.name
                             append("Match Result $personName")
                         } else {
@@ -74,6 +74,8 @@ class FaceDetectActivity : AppCompatActivity() {
                 }
                 append(", ")
                 append("${++count}")
+            }.also {
+                Log.i("test", it)
             })
             personName?.let {
                 setResult(Activity.RESULT_OK, Intent().apply {
