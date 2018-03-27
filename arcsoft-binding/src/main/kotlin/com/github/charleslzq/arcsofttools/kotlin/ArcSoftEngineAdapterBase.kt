@@ -227,4 +227,9 @@ class WebSocketArcSoftEngineService :
                         )
                 )
             }))
+
+    override fun onDestroy() {
+        super.onDestroy()
+        engineService.engine.store.disconnect()
+    }
 }

@@ -32,11 +32,7 @@ constructor(
             disconnect()
         }
 
-    override fun connect() {
-        if (!isOpen()) {
-            client.connect()
-        }
-    }
+    override fun connect(onConnect: () -> Unit) = client.connect(onConnect)
 
     override fun disconnect() = client.disconnect()
 
@@ -44,8 +40,9 @@ constructor(
 
     override fun send(message: String) {
         if (allowSend) {
-            connect()
-            client.send(message)
+            connect {
+                client.send(message)
+            }
         } else {
             throw UnsupportedOperationException("Not Allowed To Send Message")
         }
@@ -53,22 +50,19 @@ constructor(
 
     override fun <T> send(message: Message<T>) {
         val token = UUID.randomUUID().toString()
-        send(gson.toJson(message.apply {
-            headers[MessageHeaders.TOKEN.value] = token
-            headers[MessageHeaders.TIMESTAMP.value] = gson.toJson(LocalDateTime.now())
-        }.also {
-            onGoingMessages[token] = it as Message<Any>
-        }))
+        message.headers[MessageHeaders.TOKEN.value] = token
+        message.headers[MessageHeaders.TIMESTAMP.value] = gson.toJson(LocalDateTime.now())
+        send(gson.toJson(message))
+        onGoingMessages[token] = message as Message<Any>
     }
 
-    override fun refresh() {
+    override fun refresh() = connect {
         val token = UUID.randomUUID().toString()
         val headers = mapOf(
                 MessageHeaders.TYPE_HEADER.value to ClientMessagePayloadTypes.REFRESH.name,
                 MessageHeaders.TOKEN.value to token,
                 MessageHeaders.TIMESTAMP.value to gson.toJson(LocalDateTime.now())
         ).toMutableMap()
-        connect()
         client.send(gson.toJson(Message(headers, "refresh").also { onGoingMessages[token] = it as Message<Any> }))
     }
 

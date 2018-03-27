@@ -11,7 +11,7 @@ import com.koushikdutta.async.http.WebSocket
 interface WebSocketInstance {
     var url: String
     fun isOpen(): Boolean
-    fun connect()
+    fun connect(onConnect: () -> Unit = {})
     fun disconnect()
     fun send(message: String)
 }
@@ -25,9 +25,15 @@ class WebSocketClient(
 
     override fun isOpen() = webSocket?.isOpen ?: false
 
-    override fun connect() {
-        runOnIo {
-            AsyncHttpClient.getDefaultInstance().websocket(url, "web-socket", ::onComplete)
+    override fun connect(onConnect: () -> Unit) {
+        if (isOpen()) {
+            onConnect()
+        } else {
+            runOnIo {
+                AsyncHttpClient.getDefaultInstance().websocket(url, "web-socket") { ex, webSocket ->
+                    onComplete(ex, webSocket, onConnect)
+                }
+            }
         }
     }
 
@@ -43,7 +49,7 @@ class WebSocketClient(
         }
     }
 
-    private fun onComplete(ex: Exception?, webSocket: WebSocket?) {
+    private fun onComplete(ex: Exception?, webSocket: WebSocket?, onConnect: () -> Unit) {
         when (ex == null && webSocket != null) {
             true -> {
                 webSocket!!.setStringCallback {
@@ -52,6 +58,7 @@ class WebSocketClient(
                     }
                 }
                 this.webSocket = webSocket
+                onConnect()
             }
             false -> {
                 Log.e(logTag, "Error when connecting $url", ex)
