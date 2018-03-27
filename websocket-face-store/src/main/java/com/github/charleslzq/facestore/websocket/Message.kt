@@ -12,7 +12,10 @@ enum class MessageHeaders(val value: String) {
     TYPE_HEADER("TYPE_HEADER"),
     PERSON_ID("personId"),
     FACE_ID("faceId"),
-    TIMESTAMP("timestamp")
+    TIMESTAMP("timestamp"),
+    INDEX("index"),
+    SIZE("size"),
+    TOKEN("token")
 }
 
 enum class ClientMessagePayloadTypes {
@@ -32,5 +35,6 @@ enum class ServerMessagePayloadTypes {
     FACE_ID_LIST,
     PERSON_DELETE,
     FACE_DELETE,
-    FACE_CLEAR
+    FACE_CLEAR,
+    CONFIRM
 }

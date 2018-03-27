@@ -1,9 +1,12 @@
 package com.github.charleslzq.facestore.websocket
 
+import android.util.Log
 import com.github.charleslzq.faceengine.support.BitmapConverter
 import com.github.charleslzq.facestore.*
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
+import org.joda.time.LocalDateTime
+import java.util.*
 
 interface WebSocketFaceStoreInstance : WebSocketInstance {
     fun refresh()
@@ -18,8 +21,10 @@ constructor(
         private val gson: Gson = BitmapConverter.createGson(),
         private val allowSend: Boolean = false
 ) : WebSocketFaceStoreInstance {
+    private val TAG = javaClass.name
     private val idListMessageType = object : TypeToken<Message<List<String>>>() {}
     private val client = WebSocketClient(url, ::onMessage)
+    private val onGoingMessages: MutableMap<String, Message<Any>> = mutableMapOf()
     override var url: String
         get() = client.url
         set(value) {
@@ -47,15 +52,24 @@ constructor(
     }
 
     override fun <T> send(message: Message<T>) {
-        send(gson.toJson(message))
+        val token = UUID.randomUUID().toString()
+        send(gson.toJson(message.apply {
+            headers[MessageHeaders.TOKEN.value] = token
+            headers[MessageHeaders.TIMESTAMP.value] = gson.toJson(LocalDateTime.now())
+        }.also {
+            onGoingMessages[token] = it as Message<Any>
+        }))
     }
 
     override fun refresh() {
+        val token = UUID.randomUUID().toString()
         val headers = mapOf(
-                MessageHeaders.TYPE_HEADER.value to ClientMessagePayloadTypes.REFRESH.name
+                MessageHeaders.TYPE_HEADER.value to ClientMessagePayloadTypes.REFRESH.name,
+                MessageHeaders.TOKEN.value to token,
+                MessageHeaders.TIMESTAMP.value to gson.toJson(LocalDateTime.now())
         ).toMutableMap()
         connect()
-        client.send(gson.toJson(Message(headers, "refresh")))
+        client.send(gson.toJson(Message(headers, "refresh").also { onGoingMessages[token] = it as Message<Any> }))
     }
 
     private fun onMessage(message: String) {
@@ -65,17 +79,32 @@ constructor(
         )
         rawMessage.headers[MessageHeaders.TYPE_HEADER.value]?.let {
             when (ServerMessagePayloadTypes.valueOf(it)) {
-                ServerMessagePayloadTypes.PERSON -> localStore.savePerson(gson.fromJson(gson.toJson(rawMessage.payload), localStore.dataType.personClass))
+                ServerMessagePayloadTypes.PERSON -> {
+                    val index = rawMessage.headers[MessageHeaders.INDEX.value]
+                    val size = rawMessage.headers[MessageHeaders.SIZE.value]
+                    if (index != null && size != null) {
+                        Log.i(TAG, "Handling face store refreshing, person ${index.toInt() + 1}/$size")
+                    }
+                    localStore.savePerson(gson.fromJson(gson.toJson(rawMessage.payload), localStore.dataType.personClass))
+                }
                 ServerMessagePayloadTypes.PERSON_ID_LIST -> {
                     val idListMessage = gson.fromJson<Message<List<String>>>(message, idListMessageType.type)
                     localStore.getPersonIds().minus(idListMessage.payload).forEach {
                         localStore.deleteFaceData(it)
                     }
                 }
-                ServerMessagePayloadTypes.FACE -> localStore.saveFace(
-                        checkAndGet(rawMessage.headers, MessageHeaders.PERSON_ID),
-                        gson.fromJson(gson.toJson(rawMessage.payload), localStore.dataType.faceClass)
-                )
+                ServerMessagePayloadTypes.FACE -> {
+                    val personId = checkAndGet(rawMessage.headers, MessageHeaders.PERSON_ID)
+                    val index = rawMessage.headers[MessageHeaders.INDEX.value]
+                    val size = rawMessage.headers[MessageHeaders.SIZE.value]
+                    if (index != null && size != null) {
+                        Log.i(TAG, "Handling face store refreshing, face(person $personId) ${index.toInt() + 1}/$size")
+                    }
+                    localStore.saveFace(
+                            personId,
+                            gson.fromJson(gson.toJson(rawMessage.payload), localStore.dataType.faceClass)
+                    )
+                }
                 ServerMessagePayloadTypes.FACE_ID_LIST -> {
                     val idListMessage = gson.fromJson<Message<List<String>>>(message, idListMessageType.type)
                     val personId = checkAndGet(idListMessage.headers, MessageHeaders.PERSON_ID)
@@ -91,6 +120,14 @@ constructor(
                 ServerMessagePayloadTypes.FACE_CLEAR -> localStore.clearFace(
                         checkAndGet(rawMessage.headers, MessageHeaders.PERSON_ID)
                 )
+                ServerMessagePayloadTypes.CONFIRM -> {
+                    val token = checkAndGet(rawMessage.headers, MessageHeaders.TOKEN)
+                    val time = checkAndGet(rawMessage.headers, MessageHeaders.TIMESTAMP)
+                    onGoingMessages[token]?.let {
+                        onGoingMessages.remove(token)
+                        Log.i(TAG, "Server Complete handling of message $it with token $token at $time")
+                    }
+                }
             }
         }
     }
