@@ -16,14 +16,19 @@ import android.text.TextWatcher
 import android.widget.ArrayAdapter
 import android.widget.AutoCompleteTextView
 import android.widget.Toast
+import com.bin.david.form.data.column.Column
+import com.bin.david.form.data.table.TableData
 import com.github.charleslzq.arcsofttools.kotlin.ArcSoftFaceEngineService
 import com.github.charleslzq.arcsofttools.kotlin.Face
 import com.github.charleslzq.arcsofttools.kotlin.Person
 import com.github.charleslzq.arcsofttools.kotlin.WebSocketArcSoftEngineService
 import com.github.charleslzq.arcsofttools.kotlin.support.toFrame
+import com.github.charleslzq.facestore.FaceData
 import com.github.charleslzq.facestore.websocket.WebSocketCompositeFaceStore
 import kotlinx.android.synthetic.main.activity_main.*
+import org.joda.time.format.DateTimeFormat
 import java.util.*
+
 
 fun Context.toast(message: CharSequence, duration: Int = Toast.LENGTH_SHORT) =
         Toast.makeText(this, message, duration).show()
@@ -38,12 +43,31 @@ class MainActivity : AppCompatActivity() {
             @Suppress("UNCHECKED_CAST")
             faceEngineService =
                     service as ArcSoftFaceEngineService<WebSocketCompositeFaceStore<Person, Face>>
-            faceEngineService!!.store.refresh()
+            faceEngineService!!.store.refresh {
+                faceStoreTable.tableData = TableData<FaceData<Person, Face>>("Registered Persons And Faces",
+                        faceEngineService!!.store.getPersonIds().map { faceEngineService!!.store.getFaceData(it) },
+                        columns
+                )
+                faceStoreTable.notifyDataChanged()
+            }
         }
 
     }
     private var faceEngineService: ArcSoftFaceEngineService<WebSocketCompositeFaceStore<Person, Face>>? =
             null
+    private val fmt = DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ss.SSS")
+    private val columns: List<Column<*>> = listOf(
+            Column("Person",
+                    Column<String>("id", "person.id"),
+                    Column<String>("name", "person.name")
+            ),
+            Column<List<Face>>("Face Count", "faces") {
+                it.size.toString()
+            },
+            Column<List<Face>>("Last Update", "faces") {
+                it.map { it.updateTime }.max()?.let { fmt.print(it) } ?: "UNKNOWN"
+            }
+    )
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
