@@ -17,7 +17,7 @@ import android.widget.ArrayAdapter
 import android.widget.AutoCompleteTextView
 import android.widget.Toast
 import com.bin.david.form.data.column.Column
-import com.bin.david.form.data.table.TableData
+import com.bin.david.form.data.table.PageTableData
 import com.github.charleslzq.arcsofttools.kotlin.ArcSoftFaceEngineService
 import com.github.charleslzq.arcsofttools.kotlin.Face
 import com.github.charleslzq.arcsofttools.kotlin.Person
@@ -49,7 +49,7 @@ class MainActivity : AppCompatActivity() {
     }
     private var faceEngineService: ArcSoftFaceEngineService<WebSocketCompositeFaceStore<Person, Face>>? =
             null
-    private val fmt = DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ss.SSS")
+    private val fmt = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss.SSS")
     private val columns: List<Column<*>> = listOf(
             Column("Person",
                     Column<String>("id", "person.id"),
@@ -66,10 +66,12 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        faceStoreTable.tableData = TableData<FaceData<Person, Face>>("Registered Persons And Faces",
+        faceStoreTable.tableData = PageTableData<FaceData<Person, Face>>("Registered Persons And Faces",
                 faceEngineService!!.store.getPersonIds().map { faceEngineService!!.store.getFaceData(it) },
                 columns
-        )
+        ).apply {
+            pageSize = 10
+        }
         captureImageButton.setOnClickListener {
             startActivityForResult(
                     Intent(MediaStore.ACTION_IMAGE_CAPTURE),
