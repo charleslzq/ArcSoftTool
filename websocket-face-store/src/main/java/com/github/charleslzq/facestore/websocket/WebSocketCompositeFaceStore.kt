@@ -142,9 +142,12 @@ class WebSocketCompositeFaceStore<P : Meta, F : Meta>
 @JvmOverloads
 constructor(
         url: String,
-        localStore: ReadWriteFaceStore<P, F>,
+        localStore: ListenableReadWriteFaceStore<P, F>,
         gson: Gson = BitmapConverter.createGson()
-) : CompositeReadWriteFaceStore<P, F>(localStore), WebSocketFaceStoreInstance by WebSocketFaceStoreBroker<P, F>(url, localStore, gson, true) {
+) : CompositeReadWriteFaceStore<P, F>(localStore),
+        ListenableReadWriteFaceStore<P, F>,
+        WebSocketFaceStoreInstance by WebSocketFaceStoreBroker<P, F>(url, localStore, gson, true) {
+    override val listeners = localStore.listeners
 
     override fun savePerson(person: P) {
         val headers = mapOf(

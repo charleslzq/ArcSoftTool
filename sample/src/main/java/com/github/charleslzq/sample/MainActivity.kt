@@ -24,6 +24,7 @@ import com.github.charleslzq.arcsofttools.kotlin.Person
 import com.github.charleslzq.arcsofttools.kotlin.WebSocketArcSoftEngineService
 import com.github.charleslzq.arcsofttools.kotlin.support.toFrame
 import com.github.charleslzq.facestore.FaceData
+import com.github.charleslzq.facestore.FaceStoreChangeListener
 import com.github.charleslzq.facestore.websocket.WebSocketCompositeFaceStore
 import kotlinx.android.synthetic.main.activity_main.*
 import org.joda.time.format.DateTimeFormat
@@ -36,6 +37,9 @@ fun Context.toast(message: CharSequence, duration: Int = Toast.LENGTH_SHORT) =
 class MainActivity : AppCompatActivity() {
     private val serviceConnection = object : ServiceConnection {
         override fun onServiceDisconnected(name: ComponentName) {
+            faceEngineService!!.store.apply {
+                listeners.remove(storeListener)
+            }
             faceEngineService = null
         }
 
@@ -43,7 +47,11 @@ class MainActivity : AppCompatActivity() {
             @Suppress("UNCHECKED_CAST")
             faceEngineService =
                     service as ArcSoftFaceEngineService<WebSocketCompositeFaceStore<Person, Face>>
-            faceEngineService!!.store.refresh()
+            faceEngineService!!.store.apply {
+                listeners.add(storeListener)
+                refresh()
+            }
+            reload()
         }
 
     }
@@ -62,15 +70,20 @@ class MainActivity : AppCompatActivity() {
                 it.map { it.updateTime }.max()?.let { fmt.print(it) } ?: "UNKNOWN"
             }
     )
+    private val storeListener = object : FaceStoreChangeListener<Person, Face> {
+        override fun onPersonUpdate(person: Person) = reload()
+        override fun onFaceUpdate(personId: String, face: Face) = reload()
+        override fun onFaceDataDelete(personId: String) = reload()
+        override fun onFaceDelete(personId: String, faceId: String) = reload()
+        override fun onPersonFaceClear(personId: String) = reload()
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        faceStoreTable.tableData = PageTableData<FaceData<Person, Face>>("Registered Persons And Faces",
-                faceEngineService!!.store.getPersonIds().map { faceEngineService!!.store.getFaceData(it) },
-                columns
-        ).apply {
-            pageSize = 10
+        faceStoreTable.config.apply {
+            isShowXSequence = false
+            isShowYSequence = false
         }
         captureImageButton.setOnClickListener {
             startActivityForResult(
@@ -156,6 +169,17 @@ class MainActivity : AppCompatActivity() {
                 toast("Found Person $personName")
             } else if (resultCode == Activity.RESULT_CANCELED) {
                 toast("Fail to identify face")
+            }
+        }
+    }
+
+    private fun reload() {
+        faceEngineService?.store?.run {
+            faceStoreTable.tableData = PageTableData<FaceData<Person, Face>>("Registered Persons And Faces",
+                    getPersonIds().map { getFaceData(it) },
+                    columns
+            ).apply {
+                pageSize = 10
             }
         }
     }

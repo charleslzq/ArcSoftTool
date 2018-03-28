@@ -6,14 +6,19 @@
     android:layout_height="match_parent"
     tools:context="com.github.charleslzq.sample.MainActivity">
 
-    <com.bin.david.form.core.SmartTable
-        android:id="@+id/faceStoreTable"
+    <FrameLayout
         android:layout_width="0dp"
         android:layout_height="match_parent"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toLeftOf="@id/tableSeparator"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent">
+
+        <com.bin.david.form.core.SmartTable
+            android:id="@+id/faceStoreTable"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+    </FrameLayout>
 
     <android.support.constraint.Guideline
         android:id="@+id/tableSeparator"

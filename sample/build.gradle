@@ -4,10 +4,6 @@ apply plugin: 'kotlin-android-extensions'
 android {
     compileSdkVersion 27
 
-    compileOptions {
-        kotlinOptions.freeCompilerArgs += ['-module-name', "arcsoft_tool.sample"]
-    }
-
     defaultConfig {
         applicationId "com.github.charleslzq.sample"
         minSdkVersion 19
