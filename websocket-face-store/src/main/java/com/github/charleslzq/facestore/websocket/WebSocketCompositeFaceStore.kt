@@ -9,7 +9,7 @@ import org.joda.time.LocalDateTime
 import java.util.*
 
 interface WebSocketFaceStoreInstance : WebSocketInstance {
-    fun refresh(onRefreshComplete: () -> Unit = {})
+    fun refresh()
     fun <T> send(message: Message<T>)
 }
 
@@ -25,7 +25,6 @@ constructor(
     private val idListMessageType = object : TypeToken<Message<List<String>>>() {}
     private val client = WebSocketClient(url, ::onMessage)
     private val onGoingMessages: MutableMap<String, Message<Any>> = mutableMapOf()
-    private val onRefreshCompleteMap: MutableMap<String, () -> Unit> = mutableMapOf()
     override var url: String
         get() = client.url
         set(value) {
@@ -57,7 +56,7 @@ constructor(
         onGoingMessages[token] = message as Message<Any>
     }
 
-    override fun refresh(onRefreshComplete: () -> Unit) = connect {
+    override fun refresh() = connect {
         val token = UUID.randomUUID().toString()
         val headers = mapOf(
                 MessageHeaders.TYPE_HEADER.value to ClientMessagePayloadTypes.REFRESH.name,
@@ -65,7 +64,6 @@ constructor(
                 MessageHeaders.TIMESTAMP.value to gson.toJson(LocalDateTime.now())
         ).toMutableMap()
         client.send(gson.toJson(Message(headers, "refresh").also { onGoingMessages[token] = it as Message<Any> }))
-        onRefreshCompleteMap[token] = onRefreshComplete
     }
 
     private fun onMessage(message: String) {
@@ -123,7 +121,6 @@ constructor(
                         onGoingMessages.remove(token)
                         Log.i(TAG, "Server Complete handling of message $it with token $token at $time")
                     }
-                    onRefreshCompleteMap[token]?.let { it() }
                 }
             }
         }

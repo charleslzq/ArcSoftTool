@@ -43,13 +43,7 @@ class MainActivity : AppCompatActivity() {
             @Suppress("UNCHECKED_CAST")
             faceEngineService =
                     service as ArcSoftFaceEngineService<WebSocketCompositeFaceStore<Person, Face>>
-            faceEngineService!!.store.refresh {
-                faceStoreTable.tableData = TableData<FaceData<Person, Face>>("Registered Persons And Faces",
-                        faceEngineService!!.store.getPersonIds().map { faceEngineService!!.store.getFaceData(it) },
-                        columns
-                )
-                faceStoreTable.notifyDataChanged()
-            }
+            faceEngineService!!.store.refresh()
         }
 
     }
@@ -72,6 +66,10 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+        faceStoreTable.tableData = TableData<FaceData<Person, Face>>("Registered Persons And Faces",
+                faceEngineService!!.store.getPersonIds().map { faceEngineService!!.store.getFaceData(it) },
+                columns
+        )
         captureImageButton.setOnClickListener {
             startActivityForResult(
                     Intent(MediaStore.ACTION_IMAGE_CAPTURE),
