@@ -29,9 +29,11 @@ open class ReadOnlyFaceStoreRxDelegate<P : Meta, F : Meta, out D : ReadOnlyFaceS
             callNullableOnIo { delegate.getFace(personId, faceId) }
 }
 
-open class ReadWriteFaceStoreRxDelegate<P : Meta, F : Meta, out D : ReadWriteFaceStore<P, F>>(
+open class ReadWriteFaceStoreRxDelegate<P : Meta, F : Meta, out D : ListenableReadWriteFaceStore<P, F>>(
         delegate: D
-) : ReadOnlyFaceStoreRxDelegate<P, F, D>(delegate), ReadWriteFaceStore<P, F> {
+) : ReadOnlyFaceStoreRxDelegate<P, F, D>(delegate), ListenableReadWriteFaceStore<P, F> {
+    final override val listeners = delegate.listeners
+
     final override fun savePerson(person: P) {
         runOnIo { delegate.savePerson(person) }
     }

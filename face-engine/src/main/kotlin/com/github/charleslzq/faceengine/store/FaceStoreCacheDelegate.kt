@@ -35,11 +35,13 @@ open class ReadOnlyFaceStoreCacheDelegate<P : Meta, F : Meta, out D : ReadOnlyFa
             faceCache.load(personId, faceId) { delegate.getFace(personId, faceId) }
 }
 
-open class ReadWriteFaceStoreCacheDelegate<P : Meta, F : Meta, out D : ReadWriteFaceStore<P, F>>(
+open class ReadWriteFaceStoreCacheDelegate<P : Meta, F : Meta, out D : ListenableReadWriteFaceStore<P, F>>(
         delegate: D,
         personCacheSize: Int = 100,
         faceCacheSize: Int = 20
-) : ReadOnlyFaceStoreCacheDelegate<P, F, D>(delegate, personCacheSize, faceCacheSize), ReadWriteFaceStore<P, F> {
+) : ReadOnlyFaceStoreCacheDelegate<P, F, D>(delegate, personCacheSize, faceCacheSize), ListenableReadWriteFaceStore<P, F> {
+    final override val listeners = delegate.listeners
+
     final override fun savePerson(person: P) {
         delegate.savePerson(person)
         if (personCache.contains(person.id)) {
