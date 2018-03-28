@@ -51,7 +51,7 @@ class MainActivity : AppCompatActivity() {
                 listeners.add(storeListener)
                 refresh()
             }
-            reload()
+            reload(100)
         }
 
     }
@@ -173,13 +173,13 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun reload() {
+    private fun reload(newPageSize: Int? = null) {
         faceEngineService?.store?.run {
             faceStoreTable.tableData = PageTableData<FaceData<Person, Face>>("Registered Persons And Faces",
-                    getPersonIds().map { getFaceData(it) },
+                    getPersonIds().mapNotNull { getFaceData(it) },
                     columns
             ).apply {
-                pageSize = 10
+                newPageSize?.let { pageSize = it }
             }
         }
     }
