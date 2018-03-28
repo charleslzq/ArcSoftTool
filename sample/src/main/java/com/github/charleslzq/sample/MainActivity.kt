@@ -71,12 +71,28 @@ class MainActivity : AppCompatActivity() {
             }
     )
     private val storeListener = object : FaceStoreChangeListener<Person, Face> {
-        override fun onPersonUpdate(person: Person) = reload()
-        override fun onFaceUpdate(personId: String, face: Face) = reload()
-        override fun onFaceDataDelete(personId: String) = reload()
-        override fun onFaceDelete(personId: String, faceId: String) = reload()
-        override fun onPersonFaceClear(personId: String) = reload()
+        override fun onPersonUpdate(person: Person) {
+            reload()
+        }
+
+        override fun onFaceUpdate(personId: String, face: Face) {
+            reload()
+        }
+
+        override fun onFaceDataDelete(personId: String) {
+            reload()
+        }
+
+        override fun onFaceDelete(personId: String, faceId: String) {
+            reload()
+        }
+
+        override fun onPersonFaceClear(personId: String) {
+            reload()
+        }
     }
+    private val defaultFilter: (FaceData<Person, Face>) -> Boolean = { true }
+    private var tableFilter = defaultFilter
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -85,6 +101,29 @@ class MainActivity : AppCompatActivity() {
             isShowXSequence = false
             isShowYSequence = false
         }
+        tableFilterText.addTextChangedListener(object : TextWatcher {
+            override fun afterTextChanged(s: Editable?) {
+                s?.toString()?.trim()?.run {
+                    tableFilter = if (isBlank()) {
+                        defaultFilter
+                    } else {
+                        {
+                            it.person.id.contains(this) || it.person.name.contains(this)
+                        }
+                    }
+                    if (!reload()) {
+                        toast("Unable to find corresponding person with id or name contains the text")
+                    }
+                }
+            }
+
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
+            }
+
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+            }
+
+        })
         captureImageButton.setOnClickListener {
             startActivityForResult(
                     Intent(MediaStore.ACTION_IMAGE_CAPTURE),
@@ -173,16 +212,18 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun reload(newPageSize: Int? = null) {
+    private fun reload(newPageSize: Int? = null): Boolean =
         faceEngineService?.store?.run {
-            faceStoreTable.tableData = PageTableData<FaceData<Person, Face>>("Registered Persons And Faces",
-                    getPersonIds().mapNotNull { getFaceData(it) },
-                    columns
-            ).apply {
-                newPageSize?.let { pageSize = it }
-            }
-        }
-    }
+            getPersonIds().mapNotNull { getFaceData(it) }.filter(tableFilter).takeIf { it.isNotEmpty() }?.let {
+                faceStoreTable.tableData = PageTableData<FaceData<Person, Face>>("Registered Persons And Faces",
+                        it,
+                        columns
+                ).apply {
+                    newPageSize?.let { pageSize = it }
+                }
+                true
+            } ?: false
+        } ?: false
 
     enum class RequestCodes {
         IMAGE_CAMERA,
