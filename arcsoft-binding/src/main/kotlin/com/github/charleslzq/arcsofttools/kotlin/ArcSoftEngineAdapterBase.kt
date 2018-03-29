@@ -36,10 +36,15 @@ import java.util.*
 /**
  * Created by charleslzq on 18-3-1.
  */
+interface FaceTracker {
+    fun trackFace(image: Frame): List<AFT_FSDKFace>
+}
+
 interface ArcSoftFaceEngine<out D : ReadWriteFaceStore<Person, Face>>
     : FaceEngine<Frame, Person, Face, Float, D>,
         AgeDetector<Frame, DetectedAge>,
-        GenderDetector<Frame, DetectedGender>
+        GenderDetector<Frame, DetectedGender>,
+        FaceTracker
 
 open class ArcSoftEngineAdapterBase<S : ArcSoftSetting, out D : ReadWriteFaceStore<Person, Face>>(
         keys: ArcSoftSdkKey,
@@ -155,7 +160,7 @@ open class ArcSoftEngineAdapterBase<S : ArcSoftSetting, out D : ReadWriteFaceSto
         genderDetectEngine.close()
     }
 
-    private fun trackFace(image: Frame) = if (faceTrackEngine.initialized()) {
+    override fun trackFace(image: Frame) = if (faceTrackEngine.initialized()) {
         val result = mutableListOf<AFT_FSDKFace>()
         val errorCode = faceTrackEngine.getEngine()!!.AFT_FSDK_FaceFeatureDetect(
                 image.image,
@@ -178,7 +183,8 @@ class ArcSoftFaceEngineService<out D : ReadWriteFaceStore<Person, Face>>(
         arcSoftFaceEngine: ArcSoftFaceEngine<D>
 ) : FaceEngineService<Frame, Person, Face, Float, D>(arcSoftFaceEngine),
         AgeDetector<Frame, DetectedAge> by arcSoftFaceEngine,
-        GenderDetector<Frame, DetectedGender> by arcSoftFaceEngine
+        GenderDetector<Frame, DetectedGender> by arcSoftFaceEngine,
+        FaceTracker by arcSoftFaceEngine
 
 class LocalArcSoftEngineService :
         FaceEngineServiceBackground<Frame, Person, Face, Float, ReadWriteFaceStore<Person, Face>>() {
