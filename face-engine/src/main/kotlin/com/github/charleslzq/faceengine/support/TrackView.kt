@@ -33,7 +33,7 @@ constructor(context: Context, attributeSet: AttributeSet? = null, @AttrRes defSt
         attributeSet?.let { context.obtainStyledAttributes(it, R.styleable.FaceDetectView) }?.extract {
             strokePaint.color = getColor(R.styleable.FaceDetectView_rectColor, DEFAULT_COLOR)
             strokePaint.strokeWidth = getDimension(R.styleable.FaceDetectView_rectWidth, DEFAULT_WIDTH)
-            _track.set(getBoolean(R.styleable.FaceDetectView_showTrackRect, DETAULT_TRACK))
+            _track.set(getBoolean(R.styleable.FaceDetectView_showTrackRect, DEFAULT_TRACK))
             visibility = if (track) {
                 VISIBLE
             } else {
@@ -56,7 +56,7 @@ constructor(context: Context, attributeSet: AttributeSet? = null, @AttrRes defSt
     }
 
     companion object {
-        const val DETAULT_TRACK = true
+        const val DEFAULT_TRACK = true
         const val DEFAULT_COLOR = Color.RED
         const val DEFAULT_WIDTH = 1f
     }
