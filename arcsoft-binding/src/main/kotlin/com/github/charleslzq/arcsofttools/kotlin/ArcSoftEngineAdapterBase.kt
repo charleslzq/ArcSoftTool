@@ -36,15 +36,17 @@ import java.util.*
 /**
  * Created by charleslzq on 18-3-1.
  */
-interface FaceTracker {
-    fun trackFace(image: Frame): List<AFT_FSDKFace>
+data class TrackedFace(val rect: Rect, val degree: Int)
+
+interface FaceTracker<F> {
+    fun trackFace(image: Frame): List<F>
 }
 
 interface ArcSoftFaceEngine<out D : ReadWriteFaceStore<Person, Face>>
     : FaceEngine<Frame, Person, Face, Float, D>,
         AgeDetector<Frame, DetectedAge>,
         GenderDetector<Frame, DetectedGender>,
-        FaceTracker
+        FaceTracker<TrackedFace>
 
 open class ArcSoftEngineAdapterBase<S : ArcSoftSetting, out D : ReadWriteFaceStore<Person, Face>>(
         keys: ArcSoftSdkKey,
@@ -170,9 +172,9 @@ open class ArcSoftEngineAdapterBase<S : ArcSoftSetting, out D : ReadWriteFaceSto
                 result
         )
         if (errorCode.code == AFT_FSDKError.MOK) {
-            result
+            result.map { TrackedFace(it.rect, it.degree) }
         } else {
-            emptyList<AFT_FSDKFace>()
+            emptyList()
         }
     } else {
         emptyList()
@@ -184,7 +186,7 @@ class ArcSoftFaceEngineService<out D : ReadWriteFaceStore<Person, Face>>(
 ) : FaceEngineService<Frame, Person, Face, Float, D>(arcSoftFaceEngine),
         AgeDetector<Frame, DetectedAge> by arcSoftFaceEngine,
         GenderDetector<Frame, DetectedGender> by arcSoftFaceEngine,
-        FaceTracker by arcSoftFaceEngine
+        FaceTracker<TrackedFace> by arcSoftFaceEngine
 
 class LocalArcSoftEngineService :
         FaceEngineServiceBackground<Frame, Person, Face, Float, ReadWriteFaceStore<Person, Face>>() {

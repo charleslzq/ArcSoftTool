@@ -17,4 +17,5 @@ class ArcSoftRxDelegate<S : ArcSoftSetting, out D : ReadWriteFaceStore<Person, F
 ) : FaceEngineRxDelegate<Frame, Person, Face, Float, D>(arcSoftEngineAdapterBase), ArcSoftFaceEngine<D> {
     override fun detectGender(image: Frame) = callOnCompute { (delegate as ArcSoftEngineAdapterBase<*, *>).detectGender(image) }
     override fun detectAge(image: Frame) = callOnCompute { (delegate as ArcSoftEngineAdapterBase<*, *>).detectAge(image) }
+    override fun trackFace(image: Frame) = callOnCompute { (delegate as ArcSoftEngineAdapterBase<*, *>).trackFace(image) }
 }

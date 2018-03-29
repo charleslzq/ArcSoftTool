@@ -1,6 +1,8 @@
 package com.github.charleslzq.faceengine.support
 
 import android.content.Context
+import android.graphics.Rect
+import android.support.annotation.AttrRes
 import android.util.AttributeSet
 import android.util.Log
 import android.widget.FrameLayout
@@ -24,13 +26,14 @@ import java.util.concurrent.atomic.AtomicBoolean
  */
 open class FaceDetectView
 @JvmOverloads
-constructor(context: Context, attributeSet: AttributeSet? = null, defStyle: Int = 0) :
+constructor(context: Context, attributeSet: AttributeSet? = null, @AttrRes defStyle: Int = 0) :
         FrameLayout(context, attributeSet, defStyle) {
     private var _isRunning = AtomicBoolean(false)
     val isRunning: Boolean
         get() = _isRunning.get()
 
     protected val cameraView = CameraView(context, attributeSet, defStyle).also { addView(it) }
+    protected val trackView = TrackView(context, attributeSet, defStyle).also { addView(it) }
     protected val frameProcessor = FrameToObservableProcessor()
     protected val fotoapparat by lazy {
         Fotoapparat.with(context)
@@ -64,6 +67,12 @@ constructor(context: Context, attributeSet: AttributeSet? = null, defStyle: Int 
     fun stop() {
         if (_isRunning.compareAndSet(true, false)) {
             fotoapparat.stop()
+        }
+    }
+
+    fun updateTrackRects(rects: List<Rect>) {
+        if (trackView.track) {
+            trackView.resetRects(rects)
         }
     }
 

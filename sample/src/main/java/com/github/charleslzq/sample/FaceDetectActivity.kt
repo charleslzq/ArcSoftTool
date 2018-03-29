@@ -39,49 +39,55 @@ class FaceDetectActivity : AppCompatActivity() {
         setContentView(R.layout.activity_face_detect)
         faceDetectCamera.onPreviewFrame {
             Log.i(TAG, "on frame with size ${it.size} and rotation ${it.rotation}")
-            val detectResult = faceEngineService?.detect(it) ?: emptyList()
-            val detectedAge = faceEngineService?.detectAge(it)?.takeIf { it.size == 1 }?.get(0)?.age
-            val detectedGender = faceEngineService?.detectGender(it)?.takeIf { it.size == 1 }?.get(0)?.gender
-            var personName: String? = null
-            toast(buildString {
-                if (detectResult.size == 1) {
-                    val result = detectResult.mapNotNull { faceEngineService!!.search(it) }
-                    if (result.isNotEmpty()) {
-                        val person = result.maxBy { it.second } ?: Pair(Person("", ""), 0f)
-                        if (person.second > 0.5f) {
-                            personName = person.first.name
-                            append("Match Result $personName")
+            val trackFaces = faceEngineService?.trackFace(it) ?: emptyList()
+            faceDetectCamera.updateTrackRects(trackFaces.map { it.rect })
+            if (trackFaces.size == 1) {
+                val detectResult = faceEngineService?.detect(it) ?: emptyList()
+                val detectedAge = faceEngineService?.detectAge(it)?.takeIf { it.size == 1 }?.get(0)?.age
+                val detectedGender = faceEngineService?.detectGender(it)?.takeIf { it.size == 1 }?.get(0)?.gender
+                var personName: String? = null
+                toast(buildString {
+                    if (detectResult.size == 1) {
+                        val result = detectResult.mapNotNull { faceEngineService!!.search(it) }
+                        if (result.isNotEmpty()) {
+                            val person = result.maxBy { it.second } ?: Pair(Person("", ""), 0f)
+                            if (person.second > 0.5f) {
+                                personName = person.first.name
+                                append("Match Result $personName")
+                            } else {
+                                append("No Match Face")
+                            }
                         } else {
-                            append("No Match Face")
+                            append("No Match Result")
                         }
                     } else {
-                        append("No Match Result")
+                        append("No or too much (${detectResult.size}) Face(s) Detected")
                     }
-                } else {
-                    append("No or too much (${detectResult.size}) Face(s) Detected")
-                }
-                append(", ")
-                if (detectedAge != null) {
-                    append("detected age $detectedAge")
-                } else {
-                    append("fail to detect age")
-                }
-                append(", ")
-                if (detectedGender != null) {
-                    append("gender $detectedGender")
-                } else {
-                    append("fail to detect gender")
-                }
-                append(", ")
-                append("${++count}")
-            }.also {
-                Log.i("test", it)
-            })
-            personName?.let {
-                setResult(Activity.RESULT_OK, Intent().apply {
-                    putExtra("personName", it)
+                    append(", ")
+                    if (detectedAge != null) {
+                        append("detected age $detectedAge")
+                    } else {
+                        append("fail to detect age")
+                    }
+                    append(", ")
+                    if (detectedGender != null) {
+                        append("gender $detectedGender")
+                    } else {
+                        append("fail to detect gender")
+                    }
+                    append(", ")
+                    append("${++count}")
+                }.also {
+                    Log.i("Check Result", it)
                 })
-                finish()
+                personName?.let {
+                    setResult(Activity.RESULT_OK, Intent().apply {
+                        putExtra("personName", it)
+                    })
+                    finish()
+                }
+            } else {
+                toast("Too much faces!")
             }
         }
         bindService(
