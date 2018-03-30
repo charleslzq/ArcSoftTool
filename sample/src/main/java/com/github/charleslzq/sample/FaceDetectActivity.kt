@@ -40,7 +40,7 @@ class FaceDetectActivity : AppCompatActivity() {
         faceDetectCamera.onPreviewFrame {
             Log.i(TAG, "on frame with size ${it.size} and rotation ${it.rotation}")
             val trackFaces = faceEngineService?.trackFace(it) ?: emptyList()
-            faceDetectCamera.updateTrackRects(trackFaces.map { it.rect })
+            faceDetectCamera.updateTrackFaces(trackFaces)
             if (trackFaces.size == 1) {
                 val detectResult = faceEngineService?.detect(it) ?: emptyList()
                 val detectedAge = faceEngineService?.detectAge(it)?.takeIf { it.size == 1 }?.get(0)?.age

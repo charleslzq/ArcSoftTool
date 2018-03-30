@@ -1,5 +1,6 @@
 package com.github.charleslzq.faceengine.core
 
+import android.graphics.Rect
 import com.github.charleslzq.faceengine.support.callNullableOnIo
 import com.github.charleslzq.faceengine.support.callOnCompute
 import com.github.charleslzq.facestore.Meta
@@ -8,6 +9,20 @@ import com.github.charleslzq.facestore.ReadOnlyFaceStore
 /**
  * Created by charleslzq on 18-3-1.
  */
+data class TrackedFace(val rect: Rect, val degree: Int)
+
+interface FaceTracker<in I> {
+    fun trackFace(image: I): List<TrackedFace>
+}
+
+interface GenderDetector<in I, out G> {
+    fun detectGender(image: I): List<G>
+}
+
+interface AgeDetector<in I, out A> {
+    fun detectAge(image: I): List<A>
+}
+
 interface FaceEngine<in I, P : Meta, F : Meta, R : Comparable<R>, out S : ReadOnlyFaceStore<P, F>> {
     val store: S
     fun detect(image: I): List<F> = emptyList()

@@ -1,11 +1,11 @@
 package com.github.charleslzq.faceengine.support
 
 import android.content.Context
-import android.graphics.Rect
 import android.support.annotation.AttrRes
 import android.util.AttributeSet
 import android.util.Log
 import android.widget.FrameLayout
+import com.github.charleslzq.faceengine.core.TrackedFace
 import io.fotoapparat.Fotoapparat
 import io.fotoapparat.FotoapparatBuilder
 import io.fotoapparat.log.logcat
@@ -70,9 +70,9 @@ constructor(context: Context, attributeSet: AttributeSet? = null, @AttrRes defSt
         }
     }
 
-    fun updateTrackRects(rects: List<Rect>) {
+    fun updateTrackFaces(faces: List<TrackedFace>) {
         if (trackView.track) {
-            trackView.resetRects(rects)
+            trackView.resetRects(faces)
         }
     }
 

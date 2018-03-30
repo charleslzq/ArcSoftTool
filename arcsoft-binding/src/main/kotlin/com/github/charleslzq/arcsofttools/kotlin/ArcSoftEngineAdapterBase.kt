@@ -36,17 +36,11 @@ import java.util.*
 /**
  * Created by charleslzq on 18-3-1.
  */
-data class TrackedFace(val rect: Rect, val degree: Int)
-
-interface FaceTracker<F> {
-    fun trackFace(image: Frame): List<F>
-}
-
 interface ArcSoftFaceEngine<out D : ReadWriteFaceStore<Person, Face>>
     : FaceEngine<Frame, Person, Face, Float, D>,
         AgeDetector<Frame, DetectedAge>,
         GenderDetector<Frame, DetectedGender>,
-        FaceTracker<TrackedFace>
+        FaceTracker<Frame>
 
 open class ArcSoftEngineAdapterBase<S : ArcSoftSetting, out D : ReadWriteFaceStore<Person, Face>>(
         keys: ArcSoftSdkKey,
@@ -186,7 +180,7 @@ class ArcSoftFaceEngineService<out D : ReadWriteFaceStore<Person, Face>>(
 ) : FaceEngineService<Frame, Person, Face, Float, D>(arcSoftFaceEngine),
         AgeDetector<Frame, DetectedAge> by arcSoftFaceEngine,
         GenderDetector<Frame, DetectedGender> by arcSoftFaceEngine,
-        FaceTracker<TrackedFace> by arcSoftFaceEngine
+        FaceTracker<Frame> by arcSoftFaceEngine
 
 class LocalArcSoftEngineService :
         FaceEngineServiceBackground<Frame, Person, Face, Float, ReadWriteFaceStore<Person, Face>>() {

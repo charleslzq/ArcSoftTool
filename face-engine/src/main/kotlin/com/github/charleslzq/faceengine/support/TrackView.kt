@@ -5,11 +5,11 @@ import android.content.res.TypedArray
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
-import android.graphics.Rect
 import android.support.annotation.AttrRes
 import android.util.AttributeSet
 import android.view.View
 import com.github.charleslzq.faceengine.core.R
+import com.github.charleslzq.faceengine.core.TrackedFace
 import java.util.concurrent.atomic.AtomicBoolean
 
 /**
@@ -22,7 +22,7 @@ fun TypedArray.extract(setup: TypedArray.() -> Unit) {
 
 class TrackView
 constructor(context: Context, attributeSet: AttributeSet? = null, @AttrRes defStyle: Int = 0) : View(context, attributeSet, defStyle) {
-    val rects = mutableListOf<Rect>()
+    val rects = mutableListOf<TrackedFace>()
     val strokePaint = Paint().apply {
         style = Paint.Style.STROKE
     }
@@ -42,9 +42,9 @@ constructor(context: Context, attributeSet: AttributeSet? = null, @AttrRes defSt
         }
     }
 
-    fun resetRects(newRects: List<Rect>) {
+    fun resetRects(newFaces: List<TrackedFace>) {
         rects.clear()
-        rects.addAll(newRects)
+        rects.addAll(newFaces)
 
         invalidate()
     }
@@ -52,7 +52,12 @@ constructor(context: Context, attributeSet: AttributeSet? = null, @AttrRes defSt
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
 
-        rects.forEach { canvas.drawRect(it, strokePaint) }
+        rects.forEach {
+            canvas.save()
+            canvas.rotate(it.degree.toFloat())
+            canvas.drawRect(it.rect, strokePaint)
+            canvas.restore()
+        }
     }
 
     companion object {
