@@ -18,6 +18,7 @@ import com.github.charleslzq.arcsofttools.kotlin.DetectedGender;
 import com.github.charleslzq.arcsofttools.kotlin.Face;
 import com.github.charleslzq.arcsofttools.kotlin.Person;
 import com.github.charleslzq.arcsofttools.kotlin.WebSocketArcSoftEngineService;
+import com.github.charleslzq.faceengine.core.TrackedFace;
 import com.github.charleslzq.faceengine.support.FaceDetectView;
 import com.github.charleslzq.facestore.websocket.WebSocketCompositeFaceStore;
 
@@ -58,55 +59,64 @@ public class FaceDetectActivity extends AppCompatActivity {
             public void accept(@NonNull Frame frame) {
                 Log.i(TAG, "on frame with size " + frame.getSize().toString() + " and rotation " + frame.getRotation());
                 if (faceEngineService != null) {
-                    List<Face> detectedFaces = faceEngineService.detect(frame);
-                    List<DetectedAge> detectedAges = faceEngineService.detectAge(frame);
-                    List<DetectedGender> detectedGenders = faceEngineService.detectGender(frame);
-                    StringBuilder messageBuilder = new StringBuilder();
-                    String result = null;
-                    if (detectedFaces.size() == 1) {
-                        Pair<Person, Float> max = new Pair<>(new Person("", ""), 0f);
-                        for (Face face : detectedFaces) {
-                            Pair<Person, Float> matchResult = faceEngineService.search(face);
-                            if (matchResult != null && matchResult.getSecond() > max.getSecond()) {
-                                max = matchResult;
+                    List<TrackedFace> trackedFaces = faceEngineService.trackFace(frame);
+                    faceDetectCamera.updateTrackFaces(trackedFaces);
+                    if (trackedFaces.size() == 1) {
+                        List<Face> detectedFaces = faceEngineService.detect(frame);
+                        List<DetectedAge> detectedAges = faceEngineService.detectAge(frame);
+                        List<DetectedGender> detectedGenders = faceEngineService.detectGender(frame);
+                        StringBuilder messageBuilder = new StringBuilder();
+                        String result = null;
+                        if (detectedFaces.size() == 1) {
+                            Pair<Person, Float> max = new Pair<>(new Person("", ""), 0f);
+                            for (Face face : detectedFaces) {
+                                Pair<Person, Float> matchResult = faceEngineService.search(face);
+                                if (matchResult != null && matchResult.getSecond() > max.getSecond()) {
+                                    max = matchResult;
+                                }
                             }
-                        }
-                        if (max.getSecond() > 0.5f) {
-                            result = max.getFirst().getName();
-                            messageBuilder.append("Match Result ");
-                            messageBuilder.append(result);
+                            if (max.getSecond() > 0.5f) {
+                                result = max.getFirst().getName();
+                                messageBuilder.append("Match Result ");
+                                messageBuilder.append(result);
+                                messageBuilder.append(" score ");
+                                messageBuilder.append(max.getSecond());
+                            } else {
+                                messageBuilder.append("No Match Result");
+                            }
                         } else {
-                            messageBuilder.append("No Match Result");
+                            messageBuilder.append("No or too much (");
+                            messageBuilder.append(detectedFaces.size());
+                            messageBuilder.append(") Face(s) Detected");
                         }
-                    } else {
-                        messageBuilder.append("No or too much (");
-                        messageBuilder.append(detectedFaces.size());
-                        messageBuilder.append(") Face(s) Detected");
-                    }
-                    messageBuilder.append(", ");
-                    if (detectedAges.size() == 1 && detectedAges.get(0).getAge() > 0) {
-                        messageBuilder.append("detected age ");
-                        messageBuilder.append(detectedAges.get(0).getAge());
-                    } else {
-                        messageBuilder.append("fail to detect age");
-                    }
-                    messageBuilder.append(", ");
-                    if (detectedGenders.size() == 1 && detectedGenders.get(0) != null && detectedGenders.get(0).getGender() != null) {
-                        messageBuilder.append("detected gender ");
-                        messageBuilder.append(detectedGenders.get(0).getGender());
-                    } else {
-                        messageBuilder.append("fail to detect gender");
-                    }
-                    messageBuilder.append(", ");
-                    messageBuilder.append(++count);
+                        messageBuilder.append(", ");
+                        if (detectedAges.size() == 1 && detectedAges.get(0).getAge() > 0) {
+                            messageBuilder.append("detected age ");
+                            messageBuilder.append(detectedAges.get(0).getAge());
+                        } else {
+                            messageBuilder.append("fail to detect age");
+                        }
+                        messageBuilder.append(", ");
+                        if (detectedGenders.size() == 1 && detectedGenders.get(0) != null && detectedGenders.get(0).getGender() != null) {
+                            messageBuilder.append("detected gender ");
+                            messageBuilder.append(detectedGenders.get(0).getGender());
+                        } else {
+                            messageBuilder.append("fail to detect gender");
+                        }
+                        messageBuilder.append(", ");
+                        messageBuilder.append(++count);
 
-                    toast(messageBuilder.toString());
-                    if (result != null) {
-                        Intent intent = new Intent();
-                        intent.putExtra("personName", result);
-                        setResult(Activity.RESULT_OK, intent);
-                        finish();
+                        Log.i("Check Result", messageBuilder.toString());
+                        toast(messageBuilder.toString());
+                        if (result != null) {
+                            Intent intent = new Intent();
+                            intent.putExtra("personName", result);
+                            setResult(Activity.RESULT_OK, intent);
+                            finish();
+                        }
                     }
+                } else {
+                    toast("Too much faces!");
                 }
             }
         });

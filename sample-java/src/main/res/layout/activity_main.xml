@@ -4,15 +4,53 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="com.github.charleslzq.samplejava.MainActivity">
+    tools:context="com.github.charleslzq.sample.MainActivity">
 
-    <ImageView
-        android:id="@+id/capturedIamge"
+    <EditText
+        android:id="@+id/tableFilterText"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:hint="Filter"
+        app:layout_constraintBottom_toBottomOf="@id/filterBoxSeparator"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toLeftOf="@id/tableSeparator"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <android.support.constraint.Guideline
+        android:id="@+id/filterBoxSeparator"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:scaleType="fitCenter"
-        app:layout_constraintBottom_toTopOf="@id/captureImageButton"
+        android:orientation="horizontal"
+        app:layout_constraintGuide_percent="0.2" />
+
+    <FrameLayout
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toLeftOf="@id/tableSeparator"
+        app:layout_constraintTop_toTopOf="@id/filterBoxSeparator">
+
+        <com.bin.david.form.core.SmartTable
+            android:id="@+id/faceStoreTable"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+    </FrameLayout>
+
+    <android.support.constraint.Guideline
+        android:id="@+id/tableSeparator"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        app:layout_constraintGuide_percent="0.8" />
+
+    <Button
+        android:id="@+id/refreshButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="refresh"
+        app:layout_constraintBottom_toTopOf="@id/captureImageButton"
+        app:layout_constraintLeft_toRightOf="@id/tableSeparator"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
@@ -20,20 +58,20 @@
         android:id="@+id/captureImageButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Click Me"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintLeft_toLeftOf="parent"
+        android:text="Register"
+        app:layout_constraintBottom_toTopOf="@id/checkFaceButton"
+        app:layout_constraintLeft_toRightOf="@id/tableSeparator"
         app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toBottomOf="@id/refreshButton" />
 
     <Button
         android:id="@+id/checkFaceButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Check Me"
+        android:text="Check"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintLeft_toRightOf="@id/tableSeparator"
         app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toTopOf="@id/captureImageButton" />
+        app:layout_constraintTop_toBottomOf="@id/captureImageButton" />
 
 </android.support.constraint.ConstraintLayout>
