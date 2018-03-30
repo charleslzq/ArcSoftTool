@@ -53,7 +53,7 @@ class FaceDetectActivity : AppCompatActivity() {
                             val person = result.maxBy { it.second } ?: Pair(Person("", ""), 0f)
                             if (person.second > 0.5f) {
                                 personName = person.first.name
-                                append("Match Result $personName")
+                                append("Match Result $personName score ${person.second}")
                             } else {
                                 append("No Match Face")
                             }
