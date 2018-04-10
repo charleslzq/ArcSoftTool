@@ -32,5 +32,5 @@ task clean(type: Delete) {
 }
 
 ext {
-    face_store_version = '1.0.0'
+    face_store_version = '1.0.1-RC1'
 }

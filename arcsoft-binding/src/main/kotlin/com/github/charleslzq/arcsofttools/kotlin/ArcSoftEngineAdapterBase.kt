@@ -197,7 +197,8 @@ class LocalArcSoftEngineService :
                                                         "/$this"
                                                     }
                                                 },
-                                                ArcSoftFaceDataType(),
+                                                Person::class.java,
+                                                Face::class.java,
                                                 BitmapConverter.createGson()
                                         )
                                 )
@@ -222,7 +223,8 @@ class WebSocketArcSoftEngineService :
                                                         "/$this"
                                                     }
                                                 },
-                                                ArcSoftFaceDataType(),
+                                                Person::class.java,
+                                                Face::class.java,
                                                 BitmapConverter.createGson()
                                         )
                                 )

@@ -1,6 +1,8 @@
 package com.github.charleslzq.faceengine.store
 
-import com.github.charleslzq.facestore.*
+import com.github.charleslzq.facestore.ListenableReadWriteFaceStore
+import com.github.charleslzq.facestore.Meta
+import com.github.charleslzq.facestore.ReadOnlyFaceStore
 import com.github.charleslzq.pacsdemo.support.MemCache
 
 /**
@@ -11,10 +13,12 @@ open class ReadOnlyFaceStoreCacheDelegate<P : Meta, F : Meta, out D : ReadOnlyFa
         personCacheSize: Int = 100,
         faceCacheSize: Int = 20
 ) : ReadOnlyFaceStore<P, F> {
-    final override val dataType: FaceDataType<P, F>
-        get() = delegate.dataType
-    protected val personCache = MemCache(delegate.dataType.personClass, personCacheSize)
-    protected val faceCache = MemCache(delegate.dataType.faceClass, faceCacheSize)
+    final override val faceClass: Class<F>
+        get() = delegate.faceClass
+    final override val personClass: Class<P>
+        get() = delegate.personClass
+    protected val personCache = MemCache(personClass, personCacheSize)
+    protected val faceCache = MemCache(faceClass, faceCacheSize)
     protected val personFaceMapper by lazy {
         delegate.getPersonIds().map {
             it to delegate.getFaceIdList(it)
@@ -22,9 +26,6 @@ open class ReadOnlyFaceStoreCacheDelegate<P : Meta, F : Meta, out D : ReadOnlyFa
     }
 
     final override fun getPersonIds() = personFaceMapper.keys.toList()
-    final override fun getFaceData(personId: String) = getPerson(personId)?.run {
-        FaceData(this, getFaceIdList(personId).mapNotNull { getFace(personId, it) })
-    }
 
     final override fun getPerson(personId: String) =
             personCache.load(personId) { delegate.getPerson(personId) }
@@ -69,13 +70,8 @@ open class ReadWriteFaceStoreCacheDelegate<P : Meta, F : Meta, out D : Listenabl
         }
     }
 
-    final override fun saveFaceData(faceData: FaceData<P, F>) {
-        savePerson(faceData.person)
-        faceData.faces.forEach { saveFace(faceData.person.id, it) }
-    }
-
-    final override fun deleteFaceData(personId: String) {
-        delegate.deleteFaceData(personId)
+    final override fun deletePerson(personId: String) {
+        delegate.deletePerson(personId)
         personFaceMapper.remove(personId)
     }
 
@@ -86,11 +82,6 @@ open class ReadWriteFaceStoreCacheDelegate<P : Meta, F : Meta, out D : Listenabl
                 remove(faceId)
             }.toList()
         }
-    }
-
-    final override fun clearFace(personId: String) {
-        delegate.clearFace(personId)
-        personFaceMapper[personId] = emptyList()
     }
 
     private fun fillMap(personId: String) {

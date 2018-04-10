@@ -22,10 +22,8 @@ enum class ClientMessagePayloadTypes {
     REFRESH,
     PERSON,
     FACE,
-    FACE_DATA,
     PERSON_DELETE,
-    FACE_DELETE,
-    FACE_CLEAR
+    FACE_DELETE
 }
 
 enum class ServerMessagePayloadTypes {
@@ -35,6 +33,5 @@ enum class ServerMessagePayloadTypes {
     FACE_ID_LIST,
     PERSON_DELETE,
     FACE_DELETE,
-    FACE_CLEAR,
     CONFIRM
 }

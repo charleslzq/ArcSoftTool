@@ -4,7 +4,6 @@ import android.graphics.Bitmap
 import android.graphics.Rect
 import com.arcsoft.facerecognition.AFR_FSDKFace
 import com.arcsoft.facerecognition.AFR_FSDKVersion
-import com.github.charleslzq.facestore.FaceDataType
 import com.github.charleslzq.facestore.Meta
 import org.joda.time.LocalDateTime
 
@@ -30,12 +29,6 @@ constructor(
         override val createTime: LocalDateTime = LocalDateTime.now(),
         override val updateTime: LocalDateTime = LocalDateTime.now()
 ) : Meta
-
-class ArcSoftFaceDataType :
-        FaceDataType<Person, Face> {
-    override val personClass: Class<Person> = Person::class.java
-    override val faceClass: Class<Face> = Face::class.java
-}
 
 data class FaceLocation(
         val rect: Rect,

@@ -23,8 +23,8 @@ import com.github.charleslzq.arcsofttools.kotlin.Face
 import com.github.charleslzq.arcsofttools.kotlin.Person
 import com.github.charleslzq.arcsofttools.kotlin.WebSocketArcSoftEngineService
 import com.github.charleslzq.arcsofttools.kotlin.support.toFrame
-import com.github.charleslzq.facestore.FaceData
 import com.github.charleslzq.facestore.FaceStoreChangeListener
+import com.github.charleslzq.facestore.Meta
 import com.github.charleslzq.facestore.websocket.WebSocketCompositeFaceStore
 import kotlinx.android.synthetic.main.activity_main.*
 import org.joda.time.format.DateTimeFormat
@@ -79,19 +79,11 @@ class MainActivity : AppCompatActivity() {
             reload()
         }
 
-        override fun onFaceDataDelete(personId: String) {
-            reload()
-        }
-
         override fun onFaceDelete(personId: String, faceId: String) {
             reload()
         }
-
-        override fun onPersonFaceClear(personId: String) {
-            reload()
-        }
     }
-    private val defaultFilter: (FaceData<Person, Face>) -> Boolean = { true }
+    private val defaultFilter: (Person) -> Boolean = { true }
     private var tableFilter = defaultFilter
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -108,7 +100,7 @@ class MainActivity : AppCompatActivity() {
                         defaultFilter
                     } else {
                         {
-                            it.person.id.contains(this) || it.person.name.contains(this)
+                            it.id.contains(this) || it.name.contains(this)
                         }
                     }
                     if (!reload()) {
@@ -214,9 +206,9 @@ class MainActivity : AppCompatActivity() {
 
     private fun reload(newPageSize: Int? = null): Boolean =
         faceEngineService?.store?.run {
-            getPersonIds().mapNotNull { getFaceData(it) }.filter(tableFilter).takeIf { it.isNotEmpty() }?.let {
+            getPersonIds().mapNotNull { getPerson(it) }.filter(tableFilter).takeIf { it.isNotEmpty() }?.let {
                 faceStoreTable.tableData = PageTableData<FaceData<Person, Face>>("Registered Persons And Faces",
-                        it,
+                        it.map { FaceData(it, getFaceIdList(it.id).mapNotNull { faceId -> getFace(it.id, faceId) }) },
                         columns
                 ).apply {
                     newPageSize?.let { pageSize = it }
@@ -236,6 +228,8 @@ class MainActivity : AppCompatActivity() {
             fun fromCode(requestCode: Int) = RequestCodes.values()[requestCode - 1]
         }
     }
+
+    data class FaceData<out P : Meta, out F : Meta>(val person: P, val faces: List<F>)
 
     data class SimplePerson(
             val id: String,

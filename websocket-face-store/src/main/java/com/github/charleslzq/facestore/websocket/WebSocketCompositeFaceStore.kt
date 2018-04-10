@@ -79,12 +79,12 @@ constructor(
                     if (index != null && size != null) {
                         Log.i(TAG, "Handling face store refreshing, person ${index.toInt() + 1}/$size")
                     }
-                    localStore.savePerson(gson.fromJson(gson.toJson(rawMessage.payload), localStore.dataType.personClass))
+                    localStore.savePerson(gson.fromJson(gson.toJson(rawMessage.payload), localStore.personClass))
                 }
                 ServerMessagePayloadTypes.PERSON_ID_LIST -> {
                     val idListMessage = gson.fromJson<Message<List<String>>>(message, idListMessageType.type)
                     localStore.getPersonIds().minus(idListMessage.payload).forEach {
-                        localStore.deleteFaceData(it)
+                        localStore.deletePerson(it)
                     }
                 }
                 ServerMessagePayloadTypes.FACE -> {
@@ -96,7 +96,7 @@ constructor(
                     }
                     localStore.saveFace(
                             personId,
-                            gson.fromJson(gson.toJson(rawMessage.payload), localStore.dataType.faceClass)
+                            gson.fromJson(gson.toJson(rawMessage.payload), localStore.faceClass)
                     )
                 }
                 ServerMessagePayloadTypes.FACE_ID_LIST -> {
@@ -106,13 +106,10 @@ constructor(
                         localStore.deleteFace(personId, it)
                     }
                 }
-                ServerMessagePayloadTypes.PERSON_DELETE -> localStore.deleteFaceData(checkAndGet(rawMessage.headers, MessageHeaders.PERSON_ID))
+                ServerMessagePayloadTypes.PERSON_DELETE -> localStore.deletePerson(checkAndGet(rawMessage.headers, MessageHeaders.PERSON_ID))
                 ServerMessagePayloadTypes.FACE_DELETE -> localStore.deleteFace(
                         checkAndGet(rawMessage.headers, MessageHeaders.PERSON_ID),
                         checkAndGet(rawMessage.headers, MessageHeaders.FACE_ID)
-                )
-                ServerMessagePayloadTypes.FACE_CLEAR -> localStore.clearFace(
-                        checkAndGet(rawMessage.headers, MessageHeaders.PERSON_ID)
                 )
                 ServerMessagePayloadTypes.CONFIRM -> {
                     val token = checkAndGet(rawMessage.headers, MessageHeaders.TOKEN)
@@ -166,25 +163,9 @@ constructor(
         send(Message(headers, face))
     }
 
-    override fun saveFaceData(faceData: FaceData<P, F>) {
-        val headers = mapOf(
-                MessageHeaders.TYPE_HEADER.value to ClientMessagePayloadTypes.FACE_DATA.name,
-                MessageHeaders.PERSON_ID.value to faceData.person.id
-        ).toMutableMap()
-        send(Message(headers, faceData))
-    }
-
-    override fun deleteFaceData(personId: String) {
+    override fun deletePerson(personId: String) {
         val headers = mapOf(
                 MessageHeaders.TYPE_HEADER.value to ClientMessagePayloadTypes.PERSON_DELETE.name,
-                MessageHeaders.PERSON_ID.value to personId
-        ).toMutableMap()
-        send(Message(headers, personId))
-    }
-
-    override fun clearFace(personId: String) {
-        val headers = mapOf(
-                MessageHeaders.TYPE_HEADER.value to ClientMessagePayloadTypes.FACE_CLEAR.name,
                 MessageHeaders.PERSON_ID.value to personId
         ).toMutableMap()
         send(Message(headers, personId))

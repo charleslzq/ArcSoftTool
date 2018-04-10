@@ -30,8 +30,8 @@ import com.github.charleslzq.arcsofttools.kotlin.Face;
 import com.github.charleslzq.arcsofttools.kotlin.Person;
 import com.github.charleslzq.arcsofttools.kotlin.WebSocketArcSoftEngineService;
 import com.github.charleslzq.arcsofttools.kotlin.support.Nv21ImageUtils;
-import com.github.charleslzq.facestore.FaceData;
 import com.github.charleslzq.facestore.FaceStoreChangeListener;
+import com.github.charleslzq.facestore.Meta;
 import com.github.charleslzq.facestore.websocket.WebSocketCompositeFaceStore;
 
 import org.joda.time.format.DateTimeFormat;
@@ -58,13 +58,13 @@ public class MainActivity extends AppCompatActivity {
     @BindView(R.id.tableFilterText)
     EditText tableFilterText;
     private ArcSoftFaceEngineService<WebSocketCompositeFaceStore<Person, Face>> faceEngineService = null;
-    private Predicate<FaceData<Person, Face>> defaultFilter = new Predicate<FaceData<Person, Face>>() {
+    private Predicate<Person> defaultFilter = new Predicate<Person>() {
         @Override
-        public boolean test(FaceData<Person, Face> faceData) {
+        public boolean test(Person person) {
             return true;
         }
     };
-    private Predicate<FaceData<Person, Face>> tableFilter = defaultFilter;
+    private Predicate<Person> tableFilter = defaultFilter;
     private ServiceConnection serviceConnection = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName componentName, IBinder iBinder) {
@@ -82,17 +82,12 @@ public class MainActivity extends AppCompatActivity {
     };
     private final FaceStoreChangeListener<Person, Face> storeListener = new FaceStoreChangeListener<Person, Face>() {
         @Override
-        public void onPersonFaceClear(String s) {
-            reload();
-        }
-
-        @Override
         public void onFaceDelete(String s, String s1) {
             reload();
         }
 
         @Override
-        public void onFaceDataDelete(String s) {
+        public void onPersonDelete(String s) {
             reload();
         }
 
@@ -165,10 +160,10 @@ public class MainActivity extends AppCompatActivity {
                     tableFilter = defaultFilter;
                 } else {
                     final String text = s.toString().trim();
-                    tableFilter = new Predicate<FaceData<Person, Face>>() {
+                    tableFilter = new Predicate<Person>() {
                         @Override
-                        public boolean test(FaceData<Person, Face> personFaceFaceData) {
-                            return personFaceFaceData.getPerson().getId().contains(text) || personFaceFaceData.getPerson().getName().contains(text);
+                        public boolean test(Person person) {
+                            return person.getId().contains(text) || person.getName().contains(text);
                         }
                     };
                 }
@@ -206,9 +201,17 @@ public class MainActivity extends AppCompatActivity {
         if (faceEngineService != null) {
             List<FaceData<Person, Face>> faceDataList = new ArrayList<>();
             for (String id : faceEngineService.getStore().getPersonIds()) {
-                FaceData<Person, Face> faceData = faceEngineService.getStore().getFaceData(id);
-                if (tableFilter.test(faceData)) {
-                    faceDataList.add(faceData);
+                Person person = faceEngineService.getStore().getPerson(id);
+                if (tableFilter.test(person)) {
+                    List<String> faceIdList = faceEngineService.getStore().getFaceIdList(id);
+                    List<Face> faces = new ArrayList<>();
+                    for (String faceId : faceIdList) {
+                        Face face = faceEngineService.getStore().getFace(id, faceId);
+                        if (face != null) {
+                            faces.add(face);
+                        }
+                    }
+                    faceDataList.add(new FaceData<>(person, faces));
                 }
             }
             if (!faceDataList.isEmpty()) {
@@ -354,6 +357,24 @@ public class MainActivity extends AppCompatActivity {
 
     interface Predicate<T> {
         boolean test(T t);
+    }
+
+    public static class FaceData<P extends Meta, F extends Meta> {
+        private final P person;
+        private final List<F> faces;
+
+        public FaceData(P person, List<F> faces) {
+            this.person = person;
+            this.faces = faces;
+        }
+
+        public P getPerson() {
+            return person;
+        }
+
+        public List<F> getFaces() {
+            return faces;
+        }
     }
 
     public static class SimplePerson {
