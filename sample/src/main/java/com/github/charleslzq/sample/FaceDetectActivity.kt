@@ -87,7 +87,7 @@ class FaceDetectActivity : AppCompatActivity() {
                     finish()
                 }
             } else {
-                toast("Too much faces!")
+                toast("Too much or no face(s)!")
             }
         }
         bindService(

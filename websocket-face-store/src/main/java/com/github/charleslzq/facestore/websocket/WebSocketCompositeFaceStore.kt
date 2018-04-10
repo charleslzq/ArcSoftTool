@@ -24,7 +24,7 @@ constructor(
     private val TAG = javaClass.name
     private val idListMessageType = object : TypeToken<Message<List<String>>>() {}
     private val client = WebSocketClient(url, ::onMessage)
-    private val onGoingMessages: MutableMap<String, Message<Any>> = mutableMapOf()
+    private val onGoingMessages: MutableMap<String, Message<*>> = mutableMapOf()
     override var url: String
         get() = client.url
         set(value) {
@@ -53,7 +53,7 @@ constructor(
         message.headers[MessageHeaders.TOKEN.value] = token
         message.headers[MessageHeaders.TIMESTAMP.value] = gson.toJson(LocalDateTime.now())
         send(gson.toJson(message))
-        onGoingMessages[token] = message as Message<Any>
+        onGoingMessages[token] = message
     }
 
     override fun refresh() = connect {
@@ -63,7 +63,7 @@ constructor(
                 MessageHeaders.TOKEN.value to token,
                 MessageHeaders.TIMESTAMP.value to gson.toJson(LocalDateTime.now())
         ).toMutableMap()
-        client.send(gson.toJson(Message(headers, "refresh").also { onGoingMessages[token] = it as Message<Any> }))
+        client.send(gson.toJson(Message(headers, "refresh").also { onGoingMessages[token] = it }))
     }
 
     private fun onMessage(message: String) {

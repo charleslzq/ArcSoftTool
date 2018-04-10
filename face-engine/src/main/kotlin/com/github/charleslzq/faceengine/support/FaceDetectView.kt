@@ -12,6 +12,7 @@ import io.fotoapparat.log.logcat
 import io.fotoapparat.parameter.ScaleType
 import io.fotoapparat.preview.Frame
 import io.fotoapparat.preview.FrameProcessor
+import io.fotoapparat.selector.back
 import io.fotoapparat.selector.external
 import io.fotoapparat.selector.firstAvailable
 import io.fotoapparat.selector.front
@@ -45,8 +46,9 @@ constructor(context: Context, attributeSet: AttributeSet? = null, @AttrRes defSt
         fotoapparatBuilder
                 .lensPosition(
                         firstAvailable(
+                                external(),
                                 front(),
-                                external()
+                                back()
                         )
                 )
                 .previewScaleType(ScaleType.CenterInside)
