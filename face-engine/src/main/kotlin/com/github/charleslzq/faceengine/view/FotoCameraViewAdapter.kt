@@ -1,9 +1,10 @@
-package com.github.charleslzq.faceengine.support
+package com.github.charleslzq.faceengine.view
 
 import android.content.Context
 import android.support.annotation.AttrRes
 import android.util.AttributeSet
 import android.util.Log
+import android.view.View
 import android.widget.FrameLayout
 import com.github.charleslzq.faceengine.core.TrackedFace
 import io.fotoapparat.Fotoapparat
@@ -18,31 +19,32 @@ import io.fotoapparat.selector.firstAvailable
 import io.fotoapparat.selector.front
 import io.fotoapparat.view.CameraView
 import io.reactivex.Scheduler
-import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.subjects.PublishSubject
 import java.util.concurrent.atomic.AtomicBoolean
 
-/**
- * Created by charleslzq on 18-3-8.
- */
-open class FaceDetectView
+fun Frame.toPreviewFrame() = CameraPreview.PreviewFrame(size, image, rotation)
+
+internal class FotoCameraViewAdapter
 @JvmOverloads
 constructor(context: Context, attributeSet: AttributeSet? = null, @AttrRes defStyle: Int = 0) :
-        FrameLayout(context, attributeSet, defStyle) {
-    private var _isRunning = AtomicBoolean(false)
-    val isRunning: Boolean
-        get() = _isRunning.get()
+        FrameLayout(context, attributeSet, defStyle), CameraInterface {
 
-    protected val cameraView = CameraView(context, attributeSet, defStyle).also { addView(it) }
-    protected val trackView = TrackView(context, attributeSet, defStyle).also { addView(it) }
-    protected val frameProcessor = FrameToObservableProcessor()
-    protected val fotoapparat by lazy {
+    private val _isRunning = AtomicBoolean(false)
+
+    private val cameraView = CameraView(context, attributeSet, defStyle).also { addView(it) }
+    private val trackView = TrackView(context, attributeSet, defStyle).also { addView(it) }
+    private val frameProcessor = FrameToObservableProcessor()
+    private val fotoapparat by lazy {
         Fotoapparat.with(context)
                 .apply { setup(this) }
                 .build()
     }
 
-    open fun setup(fotoapparatBuilder: FotoapparatBuilder) {
+    init {
+        visibility = View.INVISIBLE
+    }
+
+    private fun setup(fotoapparatBuilder: FotoapparatBuilder) {
         fotoapparatBuilder
                 .lensPosition(
                         firstAvailable(
@@ -60,50 +62,56 @@ constructor(context: Context, attributeSet: AttributeSet? = null, @AttrRes defSt
                 }
     }
 
-    fun start() {
+    override fun start() {
         if (_isRunning.compareAndSet(false, true)) {
             fotoapparat.start()
+            visibility = View.VISIBLE
         }
     }
 
-    fun stop() {
+    override fun pause() {
         if (_isRunning.compareAndSet(true, false)) {
             fotoapparat.stop()
+            visibility = View.INVISIBLE
         }
     }
 
-    fun updateTrackFaces(faces: List<TrackedFace>) {
+    override fun stop() {
+        if (_isRunning.compareAndSet(true, false)) {
+            fotoapparat.stop()
+            visibility = View.INVISIBLE
+        }
+    }
+
+    override fun isRunning() = _isRunning.get()
+
+    override fun updateTrackFaces(faces: List<TrackedFace>) {
         if (trackView.track) {
             trackView.resetRects(faces)
         }
     }
 
-    @JvmOverloads
-    fun onPreviewFrame(
-            scheduler: Scheduler = AndroidSchedulers.mainThread(),
-            processor: (Frame) -> Unit
+    override fun hasAvailableCamera() = fotoapparat.isAvailable(front()) || fotoapparat.isAvailable(back())
+
+    override fun onPreviewFrame(
+            scheduler: Scheduler,
+            processor: (CameraPreview.PreviewFrame) -> Unit
     ) = frameProcessor.publisher.observeOn(scheduler).subscribe(processor)
 
-    @JvmOverloads
-    fun onPreviewFrame(
-            scheduler: Scheduler = AndroidSchedulers.mainThread(),
-            frameConsumer: FrameConsumer
+    override fun onPreviewFrame(
+            scheduler: Scheduler,
+            frameConsumer: CameraPreview.FrameConsumer
     ) = frameProcessor.publisher.observeOn(scheduler).subscribe { frameConsumer.accept(it) }
 
     class FrameToObservableProcessor : FrameProcessor {
-        val publisher = PublishSubject.create<Frame>()
+        val publisher = PublishSubject.create<CameraPreview.PreviewFrame>()
 
         override fun process(frame: Frame) {
-            publisher.onNext(frame)
+            publisher.onNext(frame.toPreviewFrame())
         }
     }
 
-    @FunctionalInterface
-    interface FrameConsumer {
-        fun accept(frame: Frame)
-    }
-
     companion object {
-        const val TAG = "FaceDetectView"
+        const val TAG = "FotoCameraViewAdapter"
     }
 }

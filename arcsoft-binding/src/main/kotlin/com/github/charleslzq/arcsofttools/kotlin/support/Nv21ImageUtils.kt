@@ -3,9 +3,9 @@
 package com.github.charleslzq.arcsofttools.kotlin.support
 
 import android.graphics.Bitmap
+import com.github.charleslzq.faceengine.view.CameraPreview
 import com.guo.android_extend.image.ImageConverter
 import io.fotoapparat.parameter.Resolution
-import io.fotoapparat.preview.Frame
 
 /**
  * Created by charleslzq on 18-3-14.
@@ -19,4 +19,4 @@ fun toNv21Bytes(image: Bitmap) = ByteArray(image.width * image.height * 3 / 2).a
 }
 
 @JvmOverloads
-fun toFrame(image: Bitmap, toBytes: (Bitmap) -> ByteArray = ::toNv21Bytes) = Frame(Resolution(image.width, image.height), toBytes(image), 0)
+fun toFrame(image: Bitmap, toBytes: (Bitmap) -> ByteArray = ::toNv21Bytes) = CameraPreview.PreviewFrame(Resolution(image.width, image.height), toBytes(image), 0)

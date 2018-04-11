@@ -27,20 +27,20 @@ import com.github.charleslzq.faceengine.store.ReadWriteFaceStoreCacheDelegate
 import com.github.charleslzq.faceengine.store.ReadWriteFaceStoreRxDelegate
 import com.github.charleslzq.faceengine.support.BitmapConverter
 import com.github.charleslzq.faceengine.support.toBitmap
+import com.github.charleslzq.faceengine.view.CameraPreview
 import com.github.charleslzq.facestore.FaceFileReadWriteStore
 import com.github.charleslzq.facestore.ReadWriteFaceStore
 import com.github.charleslzq.facestore.websocket.WebSocketCompositeFaceStore
-import io.fotoapparat.preview.Frame
 import java.util.*
 
 /**
  * Created by charleslzq on 18-3-1.
  */
 interface ArcSoftFaceEngine<out D : ReadWriteFaceStore<Person, Face>>
-    : FaceEngine<Frame, Person, Face, Float, D>,
-        AgeDetector<Frame, DetectedAge>,
-        GenderDetector<Frame, DetectedGender>,
-        FaceTracker<Frame>
+    : FaceEngine<CameraPreview.PreviewFrame, Person, Face, Float, D>,
+        AgeDetector<CameraPreview.PreviewFrame, DetectedAge>,
+        GenderDetector<CameraPreview.PreviewFrame, DetectedGender>,
+        FaceTracker<CameraPreview.PreviewFrame>
 
 open class ArcSoftEngineAdapterBase<S : ArcSoftSetting, out D : ReadWriteFaceStore<Person, Face>>(
         keys: ArcSoftSdkKey,
@@ -54,7 +54,7 @@ open class ArcSoftEngineAdapterBase<S : ArcSoftSetting, out D : ReadWriteFaceSto
     val ageDetectEngine = ArcSoftAgeDetectionEngine(keys, setting)
     val genderDetectEngine = ArcSoftGenderDetectionEngine(keys, setting)
 
-    final override fun detect(image: Frame) = if (faceDetectEngine.getEngine() != null && faceRecognitionEngine.getEngine() != null) {
+    final override fun detect(image: CameraPreview.PreviewFrame) = if (faceDetectEngine.getEngine() != null && faceRecognitionEngine.getEngine() != null) {
         val detectResult = mutableListOf<AFD_FSDKFace>()
         val detectCode = faceDetectEngine.getEngine()!!.AFD_FSDK_StillImageFaceDetection(
                 image.image,
@@ -108,7 +108,7 @@ open class ArcSoftEngineAdapterBase<S : ArcSoftSetting, out D : ReadWriteFaceSto
                 0f
             }
 
-    override fun detectAge(image: Frame) = if (ageDetectEngine.initialized()) {
+    override fun detectAge(image: CameraPreview.PreviewFrame) = if (ageDetectEngine.initialized()) {
         val faces = trackFace(image)
         val results = mutableListOf<ASAE_FSDKAge>()
         val errorCode = ageDetectEngine.getEngine()!!.ASAE_FSDK_AgeEstimation_Image(
@@ -128,7 +128,7 @@ open class ArcSoftEngineAdapterBase<S : ArcSoftSetting, out D : ReadWriteFaceSto
         emptyList()
     }
 
-    override fun detectGender(image: Frame) = if (genderDetectEngine.initialized()) {
+    override fun detectGender(image: CameraPreview.PreviewFrame) = if (genderDetectEngine.initialized()) {
         val faces = trackFace(image)
         val results = mutableListOf<ASGE_FSDKGender>()
         val errorCode = genderDetectEngine.getEngine()!!.ASGE_FSDK_GenderEstimation_Image(
@@ -156,7 +156,7 @@ open class ArcSoftEngineAdapterBase<S : ArcSoftSetting, out D : ReadWriteFaceSto
         genderDetectEngine.close()
     }
 
-    override fun trackFace(image: Frame) = if (faceTrackEngine.initialized()) {
+    override fun trackFace(image: CameraPreview.PreviewFrame) = if (faceTrackEngine.initialized()) {
         val result = mutableListOf<AFT_FSDKFace>()
         val errorCode = faceTrackEngine.getEngine()!!.AFT_FSDK_FaceFeatureDetect(
                 image.image,
@@ -177,13 +177,13 @@ open class ArcSoftEngineAdapterBase<S : ArcSoftSetting, out D : ReadWriteFaceSto
 
 class ArcSoftFaceEngineService<out D : ReadWriteFaceStore<Person, Face>>(
         arcSoftFaceEngine: ArcSoftFaceEngine<D>
-) : FaceEngineService<Frame, Person, Face, Float, D>(arcSoftFaceEngine),
-        AgeDetector<Frame, DetectedAge> by arcSoftFaceEngine,
-        GenderDetector<Frame, DetectedGender> by arcSoftFaceEngine,
-        FaceTracker<Frame> by arcSoftFaceEngine
+) : FaceEngineService<CameraPreview.PreviewFrame, Person, Face, Float, D>(arcSoftFaceEngine),
+        AgeDetector<CameraPreview.PreviewFrame, DetectedAge> by arcSoftFaceEngine,
+        GenderDetector<CameraPreview.PreviewFrame, DetectedGender> by arcSoftFaceEngine,
+        FaceTracker<CameraPreview.PreviewFrame> by arcSoftFaceEngine
 
 class LocalArcSoftEngineService :
-        FaceEngineServiceBackground<Frame, Person, Face, Float, ReadWriteFaceStore<Person, Face>>() {
+        FaceEngineServiceBackground<CameraPreview.PreviewFrame, Person, Face, Float, ReadWriteFaceStore<Person, Face>>() {
     override fun createEngineService() =
             ArcSoftFaceEngineService<ReadWriteFaceStore<Person, Face>>(
                     ArcSoftRxDelegate(ArcSoftEngineAdapterBase(ArcSoftSdkKey(), ArcSoftSetting(resources)) {
@@ -208,7 +208,7 @@ class LocalArcSoftEngineService :
 }
 
 class WebSocketArcSoftEngineService :
-        FaceEngineServiceBackground<Frame, Person, Face, Float, WebSocketCompositeFaceStore<Person, Face>>() {
+        FaceEngineServiceBackground<CameraPreview.PreviewFrame, Person, Face, Float, WebSocketCompositeFaceStore<Person, Face>>() {
     override fun createEngineService() = ArcSoftFaceEngineService(
             ArcSoftRxDelegate(ArcSoftEngineAdapterBase(ArcSoftSdkKey(), ArcSoftSettingWithWebSocket(resources)) {
                 WebSocketCompositeFaceStore(

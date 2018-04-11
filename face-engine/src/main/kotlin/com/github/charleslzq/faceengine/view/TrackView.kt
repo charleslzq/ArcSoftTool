@@ -1,4 +1,4 @@
-package com.github.charleslzq.faceengine.support
+package com.github.charleslzq.faceengine.view
 
 import android.content.Context
 import android.content.res.TypedArray

@@ -19,7 +19,7 @@ import com.github.charleslzq.arcsofttools.kotlin.Face;
 import com.github.charleslzq.arcsofttools.kotlin.Person;
 import com.github.charleslzq.arcsofttools.kotlin.WebSocketArcSoftEngineService;
 import com.github.charleslzq.faceengine.core.TrackedFace;
-import com.github.charleslzq.faceengine.support.FaceDetectView;
+import com.github.charleslzq.faceengine.view.FaceDetectView;
 import com.github.charleslzq.facestore.websocket.WebSocketCompositeFaceStore;
 
 import java.util.List;

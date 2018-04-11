@@ -87,7 +87,7 @@ class FaceDetectActivity : AppCompatActivity() {
                     finish()
                 }
             } else {
-                toast("Too much or no face(s)!")
+//                toast("Too much or no face(s)!")
             }
         }
         bindService(
@@ -103,7 +103,7 @@ class FaceDetectActivity : AppCompatActivity() {
     }
 
     override fun onPause() {
-        faceDetectCamera.stop()
+        faceDetectCamera.pause()
         super.onPause()
     }
 
