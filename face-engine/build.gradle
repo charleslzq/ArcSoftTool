@@ -29,24 +29,24 @@ android {
 dependencies {
     api "com.github.charleslzq:face-store:$face_store_version"
     api 'joda-time:joda-time:2.9.9'
-    api 'io.fotoapparat.fotoapparat:library:2.2.0'
+    api('io.fotoapparat.fotoapparat:library:2.2.0') {
+        exclude module: 'support-compat'
+    }
     api "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
     api 'io.reactivex.rxjava2:rxandroid:2.0.1'
     api 'io.reactivex.rxjava2:rxjava:2.1.7'
     api(project(':libuvccamera-release')) {
-        exclude module: 'com.android.support:support-annotations'
+        exclude module: 'support-compat'
     }
     api(project(':usbCameraCommon-release')) {
-        exclude module: 'com.android.support:support-annotations'
+        exclude module: 'support-compat'
     }
     api 'com.android.support:support-compat:27.1.1'
-
     implementation 'com.google.code.gson:gson:2.8.2'
     implementation 'com.fatboyindustrial.gson-jodatime-serialisers:gson-jodatime-serialisers:1.6.0'
     implementation('com.serenegiant:common:1.5.20') {
         exclude module: 'support-v4'
     }
-
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'com.android.support.test:runner:1.0.1'
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.1'

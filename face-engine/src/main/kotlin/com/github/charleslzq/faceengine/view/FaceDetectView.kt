@@ -1,5 +1,6 @@
 package com.github.charleslzq.faceengine.view
 
+import android.app.Activity
 import android.content.Context
 import android.support.annotation.AttrRes
 import android.util.AttributeSet
@@ -24,9 +25,9 @@ constructor(context: Context, attributeSet: AttributeSet? = null, @AttrRes defSt
     }
     private val disposables = mutableListOf<Disposable>()
 
-    override fun start() {
+    override fun start(activity: Activity) {
         pause()
-        select(viewList).start()
+        select(viewList).start(activity)
     }
 
     override fun pause() {

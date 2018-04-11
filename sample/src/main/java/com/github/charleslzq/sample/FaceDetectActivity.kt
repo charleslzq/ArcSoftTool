@@ -99,7 +99,7 @@ class FaceDetectActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
-        faceDetectCamera.start()
+        faceDetectCamera.start(this)
     }
 
     override fun onPause() {

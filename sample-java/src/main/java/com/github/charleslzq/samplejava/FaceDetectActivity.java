@@ -19,6 +19,7 @@ import com.github.charleslzq.arcsofttools.kotlin.Face;
 import com.github.charleslzq.arcsofttools.kotlin.Person;
 import com.github.charleslzq.arcsofttools.kotlin.WebSocketArcSoftEngineService;
 import com.github.charleslzq.faceengine.core.TrackedFace;
+import com.github.charleslzq.faceengine.view.CameraPreview;
 import com.github.charleslzq.faceengine.view.FaceDetectView;
 import com.github.charleslzq.facestore.websocket.WebSocketCompositeFaceStore;
 
@@ -26,7 +27,7 @@ import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
-import io.fotoapparat.preview.Frame;
+import io.reactivex.android.schedulers.AndroidSchedulers;
 import kotlin.Pair;
 
 public class FaceDetectActivity extends AppCompatActivity {
@@ -54,9 +55,9 @@ public class FaceDetectActivity extends AppCompatActivity {
         setContentView(R.layout.activity_face_detect);
         ButterKnife.bind(this);
         bindService(new Intent(this, WebSocketArcSoftEngineService.class), serviceConnection, Context.BIND_AUTO_CREATE);
-        faceDetectCamera.onPreviewFrame(new FaceDetectView.FrameConsumer() {
+        faceDetectCamera.onPreviewFrame(AndroidSchedulers.mainThread(), new FaceDetectView.FrameConsumer() {
             @Override
-            public void accept(@NonNull Frame frame) {
+            public void accept(@NonNull CameraPreview.PreviewFrame frame) {
                 Log.i(TAG, "on frame with size " + frame.getSize().toString() + " and rotation " + frame.getRotation());
                 if (faceEngineService != null) {
                     List<TrackedFace> trackedFaces = faceEngineService.trackFace(frame);
