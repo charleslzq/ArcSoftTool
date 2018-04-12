@@ -1,6 +1,5 @@
 package com.github.charleslzq.faceengine.view
 
-import android.app.Activity
 import com.github.charleslzq.faceengine.core.TrackedFace
 import io.fotoapparat.parameter.Resolution
 import io.reactivex.Scheduler
@@ -8,7 +7,7 @@ import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.Disposable
 
 interface CameraLifeCycle {
-    fun start(activity: Activity)
+    fun start()
     fun pause()
     fun stop()
     fun isRunning(): Boolean

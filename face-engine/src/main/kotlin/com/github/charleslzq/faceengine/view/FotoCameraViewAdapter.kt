@@ -1,6 +1,5 @@
 package com.github.charleslzq.faceengine.view
 
-import android.app.Activity
 import android.content.Context
 import android.support.annotation.AttrRes
 import android.util.AttributeSet
@@ -63,7 +62,7 @@ constructor(context: Context, attributeSet: AttributeSet? = null, @AttrRes defSt
                 }
     }
 
-    override fun start(activity: Activity) {
+    override fun start() {
         if (_isRunning.compareAndSet(false, true)) {
             fotoapparat.start()
             visibility = View.VISIBLE

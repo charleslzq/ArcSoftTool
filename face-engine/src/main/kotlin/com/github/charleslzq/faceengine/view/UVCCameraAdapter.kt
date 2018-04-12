@@ -1,6 +1,5 @@
 package com.github.charleslzq.faceengine.view
 
-import android.app.Activity
 import android.content.Context
 import android.hardware.usb.UsbDevice
 import android.support.annotation.AttrRes
@@ -15,11 +14,12 @@ import com.github.charleslzq.faceengine.support.runOnCompute
 import com.serenegiant.usb.DeviceFilter
 import com.serenegiant.usb.USBMonitor
 import com.serenegiant.usb.UVCCamera
-import com.serenegiant.usbcameracommon.UVCCameraHandler
+import com.serenegiant.widget.CameraViewInterface
 import com.serenegiant.widget.UVCCameraTextureView
 import io.reactivex.Scheduler
 import io.reactivex.disposables.Disposable
 import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.AtomicReference
 
 internal class UVCCameraAdapter
 @JvmOverloads
@@ -33,8 +33,13 @@ constructor(context: Context, attributeSet: AttributeSet? = null, @AttrRes defSt
     private val connectionListener = object : USBMonitor.OnDeviceConnectListener {
         override fun onConnect(usbDevice: UsbDevice, usbControlBlock: USBMonitor.UsbControlBlock, createNew: Boolean) {
             Toast.makeText(context, "Camera Connected", Toast.LENGTH_SHORT).show()
-            initHandler()
-            uvcCameraHandler.startPreview(Surface(uvcCameraTextureView.surfaceTexture))
+            releaseCamera()
+            runOnCompute {
+                val camera = UVCCamera()
+                camera.open(usbControlBlock)
+                startPreview(camera)
+                uvcCamera.set(camera)
+            }
         }
 
         override fun onCancel(usbDevice: UsbDevice) {
@@ -48,7 +53,7 @@ constructor(context: Context, attributeSet: AttributeSet? = null, @AttrRes defSt
 
         override fun onDisconnect(usbDevice: UsbDevice, p1: USBMonitor.UsbControlBlock) {
             Toast.makeText(context, "Camera Disconnected", Toast.LENGTH_SHORT).show()
-            uvcCameraHandler.stopPreview()
+            releaseCamera()
         }
 
         override fun onDettach(usbDevice: UsbDevice) {
@@ -57,25 +62,38 @@ constructor(context: Context, attributeSet: AttributeSet? = null, @AttrRes defSt
 
     }
     private val usbMonitor: USBMonitor = USBMonitor(context, connectionListener)
-    private lateinit var activity: Activity
-    private lateinit var uvcCameraHandler: UVCCameraHandler
+    private val cameraLock = Object()
+    private val uvcCamera = AtomicReference<UVCCamera?>(null)
 
-    override fun start(activity: Activity) {
+    init {
+        uvcCameraTextureView.setCallback(object : CameraViewInterface.Callback {
+            override fun onSurfaceChanged(p0: CameraViewInterface?, p1: Surface?, p2: Int, p3: Int) {
+            }
+
+            override fun onSurfaceCreated(p0: CameraViewInterface?, p1: Surface?) {
+                startPreview()
+            }
+
+            override fun onSurfaceDestroy(p0: CameraViewInterface?, p1: Surface?) {
+            }
+
+        })
+    }
+
+    override fun start() {
         if (_isRunning.compareAndSet(false, true)) {
-            this.activity = activity
             usbMonitor.register()
-            initHandler()
             visibility = View.VISIBLE
             uvcCameraTextureView.onResume()
-            uvcCameraHandler.startPreview(Surface(uvcCameraTextureView.surfaceTexture))
+            startPreview()
         }
     }
 
     override fun pause() {
         if (_isRunning.compareAndSet(true, false)) {
             usbMonitor.unregister()
-            if (uvcCameraHandler.isPreviewing) {
-                uvcCameraHandler.stopPreview()
+            uvcCamera.get()?.run {
+                stopPreview()
             }
             uvcCameraTextureView.onPause()
             visibility = View.INVISIBLE
@@ -85,8 +103,8 @@ constructor(context: Context, attributeSet: AttributeSet? = null, @AttrRes defSt
     override fun stop() {
         if (_isRunning.compareAndSet(true, false)) {
             usbMonitor.destroy()
-            if (uvcCameraHandler.isPreviewing) {
-                uvcCameraHandler.stopPreview()
+            uvcCamera.get()?.run {
+                stopPreview()
             }
             uvcCameraTextureView.onPause()
             visibility = View.INVISIBLE
@@ -111,13 +129,22 @@ constructor(context: Context, attributeSet: AttributeSet? = null, @AttrRes defSt
         return runOnCompute { }
     }
 
-    private fun initHandler() {
-        if (::activity.isInitialized) {
-            if (!::uvcCameraHandler.isInitialized) {
-                uvcCameraHandler = UVCCameraHandler.createHandler(activity, uvcCameraTextureView, 1, width, height, UVCCamera.FRAME_FORMAT_YUYV)
+    private fun releaseCamera() {
+        synchronized(cameraLock) {
+            uvcCamera.get()?.run {
+                setFrameCallback(null, UVCCamera.PIXEL_FORMAT_NV21)
+                close()
+                destroy()
             }
-        } else {
-            throw IllegalStateException("Activity Not Initialized")
+        }
+    }
+
+    private fun startPreview(camera: UVCCamera? = uvcCamera.get()) {
+        if (camera != null) {
+            uvcCameraTextureView.surface?.let {
+                camera.setPreviewDisplay(it)
+                camera.startPreview()
+            }
         }
     }
 }
