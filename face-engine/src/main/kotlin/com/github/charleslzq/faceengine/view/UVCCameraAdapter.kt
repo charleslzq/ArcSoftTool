@@ -44,7 +44,7 @@ constructor(context: Context, attributeSet: AttributeSet? = null, @AttrRes defSt
                 supportedResolution.clear()
                 supportedResolution.addAll(camera.supportedSizeList.map {
                     Resolution(it.width, it.height)
-                }.sortedByDescending { it.area })
+                }.sortedBy { it.area })
                 surface = cameraView.getPreview().let {
                     when (it) {
                         is Preview.Texture -> Surface(it.surfaceTexture)
@@ -55,15 +55,6 @@ constructor(context: Context, attributeSet: AttributeSet? = null, @AttrRes defSt
                 synchronized(cameraLock) {
                     uvcCamera = camera
                 }
-
-//                uvcCameraTextureView.surfaceTexture?.let {
-//                    surface = Surface(it)
-//                    startPreview(camera, surface!!)
-//
-//                    synchronized(cameraLock) {
-//                        uvcCamera = camera
-//                    }
-//                }
             }
         }
 
@@ -198,4 +189,4 @@ constructor(context: Context, attributeSet: AttributeSet? = null, @AttrRes defSt
     }
 }
 
-private fun UVCCamera.setFrameCallback(format: Int = UVCCamera.PIXEL_FORMAT_NV21, callback: (ByteBuffer) -> Unit) = setFrameCallback(callback, format)
+private fun UVCCamera.setFrameCallback(format: Int = UVCCamera.PIXEL_FORMAT_YUV420SP, callback: (ByteBuffer) -> Unit) = setFrameCallback(callback, format)
