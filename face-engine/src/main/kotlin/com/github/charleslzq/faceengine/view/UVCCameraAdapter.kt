@@ -44,7 +44,7 @@ constructor(context: Context, attributeSet: AttributeSet? = null, @AttrRes defSt
                 supportedResolution.clear()
                 supportedResolution.addAll(camera.supportedSizeList.map {
                     Resolution(it.width, it.height)
-                }.sortedBy { it.area })
+                }.sortedByDescending { it.area })
                 surface = cameraView.getPreview().let {
                     when (it) {
                         is Preview.Texture -> Surface(it.surfaceTexture)

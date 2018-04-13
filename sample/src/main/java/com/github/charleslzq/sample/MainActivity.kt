@@ -23,6 +23,7 @@ import com.github.charleslzq.arcsofttools.kotlin.Face
 import com.github.charleslzq.arcsofttools.kotlin.Person
 import com.github.charleslzq.arcsofttools.kotlin.WebSocketArcSoftEngineService
 import com.github.charleslzq.arcsofttools.kotlin.support.toFrame
+import com.github.charleslzq.faceengine.support.runOnUI
 import com.github.charleslzq.facestore.FaceStoreChangeListener
 import com.github.charleslzq.facestore.Meta
 import com.github.charleslzq.facestore.websocket.WebSocketCompositeFaceStore
@@ -31,8 +32,11 @@ import org.joda.time.format.DateTimeFormat
 import java.util.*
 
 
-fun Context.toast(message: CharSequence, duration: Int = Toast.LENGTH_SHORT) =
+fun Context.toast(message: CharSequence, duration: Int = Toast.LENGTH_SHORT) {
+    runOnUI {
         Toast.makeText(this, message, duration).show()
+    }
+}
 
 class MainActivity : AppCompatActivity() {
     private val serviceConnection = object : ServiceConnection {

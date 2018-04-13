@@ -3,8 +3,8 @@ package com.github.charleslzq.faceengine.view
 import com.github.charleslzq.faceengine.core.TrackedFace
 import io.fotoapparat.parameter.Resolution
 import io.reactivex.Scheduler
-import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.Disposable
+import io.reactivex.schedulers.Schedulers
 
 interface CameraLifeCycle {
     fun onResume()
@@ -19,12 +19,12 @@ interface CameraWithFaceTrack {
 
 interface CameraPreview {
     fun onPreviewFrame(
-            scheduler: Scheduler = AndroidSchedulers.mainThread(),
+            scheduler: Scheduler = Schedulers.computation(),
             processor: (PreviewFrame) -> Unit
     ): Disposable
 
     fun onPreviewFrame(
-            scheduler: Scheduler = AndroidSchedulers.mainThread(),
+            scheduler: Scheduler = Schedulers.computation(),
             frameConsumer: FrameConsumer
     ): Disposable
 
