@@ -24,6 +24,7 @@ import com.github.charleslzq.faceengine.view.FaceDetectView;
 import com.github.charleslzq.facestore.websocket.WebSocketCompositeFaceStore;
 
 import java.util.List;
+import java.util.Map;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -61,16 +62,16 @@ public class FaceDetectActivity extends AppCompatActivity {
                 Log.i(TAG, "on frame with size " + frame.getSize().toString() + " and rotation " + frame.getRotation());
                 if (faceEngineService != null) {
                     List<TrackedFace> trackedFaces = faceEngineService.trackFace(frame);
-                    faceDetectCamera.updateTrackFaces(trackedFaces);
                     if (trackedFaces.size() == 1) {
-                        List<Face> detectedFaces = faceEngineService.detect(frame);
+                        Map<TrackedFace, Face> detectedFaces = faceEngineService.detect(frame);
+                        faceDetectCamera.updateTrackFaces(detectedFaces.keySet());
                         List<DetectedAge> detectedAges = faceEngineService.detectAge(frame);
                         List<DetectedGender> detectedGenders = faceEngineService.detectGender(frame);
                         StringBuilder messageBuilder = new StringBuilder();
                         String result = null;
                         if (detectedFaces.size() == 1) {
                             Pair<Person, Float> max = new Pair<>(new Person("", ""), 0f);
-                            for (Face face : detectedFaces) {
+                            for (Face face : detectedFaces.values()) {
                                 Pair<Person, Float> matchResult = faceEngineService.search(face);
                                 if (matchResult != null && matchResult.getSecond() > max.getSecond()) {
                                     max = matchResult;

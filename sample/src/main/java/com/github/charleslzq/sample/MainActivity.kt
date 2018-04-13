@@ -187,7 +187,7 @@ class MainActivity : AppCompatActivity() {
                                         if (selectedPerson == null) {
                                             faceEngineService!!.store.savePerson(Person(personId, personName))
                                         }
-                                        faceEngineService!!.store.saveFace(personId, it)
+                                        faceEngineService!!.store.saveFace(personId, it.value)
                                     })
                                     .setNegativeButton("CANCEL", { dialog, _ -> dialog.dismiss() })
                                     .show()

@@ -14,7 +14,7 @@ interface CameraLifeCycle {
 }
 
 interface CameraWithFaceTrack {
-    fun updateTrackFaces(faces: List<TrackedFace>)
+    fun updateTrackFaces(faces: Collection<TrackedFace>)
 }
 
 interface CameraPreview {

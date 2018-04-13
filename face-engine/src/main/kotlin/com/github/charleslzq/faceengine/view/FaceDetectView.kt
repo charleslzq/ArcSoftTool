@@ -44,7 +44,7 @@ constructor(context: Context, attributeSet: AttributeSet? = null, @AttrRes defSt
 
     override fun isRunning() = select(viewList).isRunning()
 
-    override fun updateTrackFaces(faces: List<TrackedFace>) = select(viewList).updateTrackFaces(faces)
+    override fun updateTrackFaces(faces: Collection<TrackedFace>) = select(viewList).updateTrackFaces(faces)
 
     override fun hasAvailableCamera() = viewList.any { it.hasAvailableCamera() }
 

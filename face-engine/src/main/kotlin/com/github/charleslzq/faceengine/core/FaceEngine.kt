@@ -25,7 +25,7 @@ interface AgeDetector<in I, out A> {
 
 interface FaceEngine<in I, P : Meta, F : Meta, R : Comparable<R>, out S : ReadOnlyFaceStore<P, F>> {
     val store: S
-    fun detect(image: I): List<F> = emptyList()
+    fun detect(image: I): Map<TrackedFace, F> = emptyMap()
     fun calculateSimilarity(savedFace: F, newFace: F): R
     fun search(newFace: F, store: ReadOnlyFaceStore<P, F>) = store.getPersonIds()
             .mapNotNull { store.getPerson(it) }

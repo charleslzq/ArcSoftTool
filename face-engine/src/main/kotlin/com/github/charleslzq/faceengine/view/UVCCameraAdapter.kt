@@ -139,7 +139,7 @@ constructor(context: Context, attributeSet: AttributeSet? = null, @AttrRes defSt
 
     override fun isRunning() = _isRunning.get()
 
-    override fun updateTrackFaces(faces: List<TrackedFace>) {
+    override fun updateTrackFaces(faces: Collection<TrackedFace>) {
         if (trackView.track) {
             trackView.resetRects(faces)
         }

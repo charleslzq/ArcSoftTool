@@ -42,7 +42,7 @@ constructor(context: Context, attributeSet: AttributeSet? = null, @AttrRes defSt
         }
     }
 
-    fun resetRects(newFaces: List<TrackedFace>) {
+    fun resetRects(newFaces: Collection<TrackedFace>) {
         rects.clear()
         rects.addAll(newFaces)
 
@@ -54,7 +54,7 @@ constructor(context: Context, attributeSet: AttributeSet? = null, @AttrRes defSt
 
         rects.forEach {
             canvas.save()
-            canvas.rotate(it.degree.toFloat())
+            canvas.rotate(-it.degree.toFloat())
             canvas.drawRect(it.rect, strokePaint)
             canvas.restore()
         }

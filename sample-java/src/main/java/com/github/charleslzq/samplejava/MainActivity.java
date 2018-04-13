@@ -30,6 +30,7 @@ import com.github.charleslzq.arcsofttools.kotlin.Face;
 import com.github.charleslzq.arcsofttools.kotlin.Person;
 import com.github.charleslzq.arcsofttools.kotlin.WebSocketArcSoftEngineService;
 import com.github.charleslzq.arcsofttools.kotlin.support.Nv21ImageUtils;
+import com.github.charleslzq.faceengine.core.TrackedFace;
 import com.github.charleslzq.facestore.FaceStoreChangeListener;
 import com.github.charleslzq.facestore.Meta;
 import com.github.charleslzq.facestore.websocket.WebSocketCompositeFaceStore;
@@ -41,6 +42,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
@@ -237,8 +239,8 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void registerImage(Intent data) {
-        final List<Face> faceList = faceEngineService.detect(Nv21ImageUtils.toFrame((Bitmap) data.getExtras().get("data")));
-        if (!faceList.isEmpty() && faceList.size() == 1) {
+        final Map<TrackedFace, Face> faces = faceEngineService.detect(Nv21ImageUtils.toFrame((Bitmap) data.getExtras().get("data")));
+        if (!faces.isEmpty() && faces.size() == 1) {
             final AtomicReference<SimplePerson> selectedPerson = new AtomicReference<>(null);
             View dialogLayout = getLayoutInflater().inflate(R.layout.dialog_register, null);
             final AutoCompleteTextView autoCompleteTextView = dialogLayout.findViewById(R.id.personRegister);
@@ -280,7 +282,7 @@ public class MainActivity extends AppCompatActivity {
                             if (selectedPerson.get() == null) {
                                 faceEngineService.getStore().savePerson(new Person(personId, personName));
                             }
-                            faceEngineService.getStore().saveFace(personId, faceList.get(0));
+                            faceEngineService.getStore().saveFace(personId, faces.get(0));
                         }
                     })
                     .setNegativeButton("CANCEL", new DialogInterface.OnClickListener() {
@@ -292,7 +294,7 @@ public class MainActivity extends AppCompatActivity {
                     .show();
             String testPersonId = "test";
             faceEngineService.getStore().savePerson(new Person(testPersonId, "test_name"));
-            for (Face face : faceList) {
+            for (Face face : faces.values()) {
                 faceEngineService.getStore().saveFace(testPersonId, face);
             }
         }

@@ -78,16 +78,16 @@ open class ArcSoftEngineAdapterBase<S : ArcSoftSetting, out D : ReadWriteFaceSto
                         extractResult
                 )
                 if (extractCode.code == AFR_FSDKError.MOK) {
-                    Face(UUID.randomUUID().toString(), pic, extractResult, recognitionVersion)
+                    TrackedFace(it.rect, it.degree) to Face(UUID.randomUUID().toString(), pic, extractResult, recognitionVersion)
                 } else {
                     null
                 }
-            }
+            }.toMap()
         } else {
-            emptyList()
+            emptyMap()
         }
     } else {
-        emptyList()
+        emptyMap()
     }
 
     final override fun calculateSimilarity(savedFace: Face, newFace: Face) =

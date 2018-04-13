@@ -40,15 +40,15 @@ class FaceDetectActivity : AppCompatActivity() {
         faceDetectCamera.onPreviewFrame {
             Log.i(TAG, "on frame with size ${it.size} and rotation ${it.rotation}")
             val trackFaces = faceEngineService?.trackFace(it) ?: emptyList()
-            faceDetectCamera.updateTrackFaces(trackFaces)
             if (trackFaces.size == 1) {
-                val detectResult = faceEngineService?.detect(it) ?: emptyList()
+                val detectResult = faceEngineService?.detect(it) ?: emptyMap()
+                faceDetectCamera.updateTrackFaces(detectResult.keys)
                 val detectedAge = faceEngineService?.detectAge(it)?.takeIf { it.size == 1 }?.get(0)?.age
                 val detectedGender = faceEngineService?.detectGender(it)?.takeIf { it.size == 1 }?.get(0)?.gender
                 var personName: String? = null
                 toast(buildString {
                     if (detectResult.size == 1) {
-                        val result = detectResult.mapNotNull { faceEngineService!!.search(it) }
+                        val result = detectResult.mapNotNull { faceEngineService!!.search(it.value) }
                         if (result.isNotEmpty()) {
                             val person = result.maxBy { it.second } ?: Pair(Person("", ""), 0f)
                             if (person.second > 0.5f) {
