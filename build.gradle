@@ -21,8 +21,10 @@ buildscript {
 
 allprojects {
     repositories {
+        mavenLocal()
         google()
         jcenter()
+        mavenCentral()
         maven { url 'https://jitpack.io' }
         maven { url 'http://raw.github.com/saki4510t/libcommon/master/repository/' }
     }
@@ -33,5 +35,5 @@ task clean(type: Delete) {
 }
 
 ext {
-    face_store_version = '1.0.1-RC1'
+    face_store_version = '1.0.1-RC2'
 }

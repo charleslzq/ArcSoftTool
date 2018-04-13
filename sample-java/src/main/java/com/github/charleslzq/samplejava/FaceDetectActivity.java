@@ -130,19 +130,19 @@ public class FaceDetectActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        faceDetectCamera.start();
+        faceDetectCamera.onResume();
     }
 
     @Override
     protected void onPause() {
-        faceDetectCamera.stop();
+        faceDetectCamera.onDestroy();
         super.onPause();
     }
 
     @Override
     protected void onDestroy() {
         unbindService(serviceConnection);
-        faceDetectCamera.stop();
+        faceDetectCamera.onDestroy();
         super.onDestroy();
     }
 }

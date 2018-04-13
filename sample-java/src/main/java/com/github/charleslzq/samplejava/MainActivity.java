@@ -121,13 +121,17 @@ public class MainActivity extends AppCompatActivity {
         Column<List<Face>> lastUpdateColumn = new Column<>("Last Update", "faces", new IFormat<List<Face>>() {
             @Override
             public String format(List<Face> faces) {
-                Face lastUpdateFace = Collections.max(faces, new Comparator<Face>() {
-                    @Override
-                    public int compare(Face face1, Face face2) {
-                        return face1.getUpdateTime().compareTo(face2.getUpdateTime());
-                    }
-                });
-                return lastUpdateFace == null ? "UNKNOWN" : DATE_TIME_FORMATTER.print(lastUpdateFace.getUpdateTime());
+                if (!faces.isEmpty()) {
+                    Face lastUpdateFace = Collections.max(faces, new Comparator<Face>() {
+                        @Override
+                        public int compare(Face face1, Face face2) {
+                            return face1.getUpdateTime().compareTo(face2.getUpdateTime());
+                        }
+                    });
+                    return lastUpdateFace == null ? "UNKNOWN" : DATE_TIME_FORMATTER.print(lastUpdateFace.getUpdateTime());
+                } else {
+                    return "UNKNOWN";
+                }
             }
         });
         result.add(lastUpdateColumn);

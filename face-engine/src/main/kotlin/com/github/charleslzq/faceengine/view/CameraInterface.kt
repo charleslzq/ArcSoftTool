@@ -7,9 +7,9 @@ import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.Disposable
 
 interface CameraLifeCycle {
-    fun start()
-    fun pause()
-    fun stop()
+    fun onResume()
+    fun onPause()
+    fun onDestroy()
     fun isRunning(): Boolean
 }
 

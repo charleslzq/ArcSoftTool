@@ -24,17 +24,17 @@ constructor(context: Context, attributeSet: AttributeSet? = null, @AttrRes defSt
     }
     private val disposables = mutableListOf<Disposable>()
 
-    override fun start() {
-        pause()
-        select(viewList).start()
+    override fun onResume() {
+        onPause()
+        select(viewList).onResume()
     }
 
-    override fun pause() {
-        viewList.forEach { it.pause() }
+    override fun onPause() {
+        viewList.forEach { it.onPause() }
     }
 
-    override fun stop() {
-        viewList.forEach { it.stop() }
+    override fun onDestroy() {
+        viewList.forEach { it.onDestroy() }
     }
 
     override fun isRunning() = select(viewList).isRunning()

@@ -3,7 +3,7 @@
     <bool name="ArcSoft_useFaceTracking">true</bool>
     <bool name="ArcSoft_useAgeDetection">true</bool>
     <bool name="ArcSoft_useGenderDetection">true</bool>
-    <string name="ArcSoft_faceDirectory">/data/faces</string>
+    <string name="ArcSoft_faceDirectory">/data/faces/sample</string>
     <integer name="ArcSoft_scale">16</integer>
     <integer name="ArcSoft_maxFaceNum">25</integer>
     <string name="ArcSoft_WebSocket_url">ws://192.168.22.147:8080/face-store</string>

@@ -87,7 +87,7 @@ class FaceDetectActivity : AppCompatActivity() {
                     finish()
                 }
             } else {
-                toast("Too much or no face(s)!")
+                toast("Too much or no face(s)! ${++count}")
             }
         }
         bindService(
@@ -99,17 +99,17 @@ class FaceDetectActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
-        faceDetectCamera.start()
+        faceDetectCamera.onResume()
     }
 
     override fun onPause() {
-        faceDetectCamera.pause()
+        faceDetectCamera.onPause()
         super.onPause()
     }
 
     override fun onDestroy() {
         unbindService(serviceConnection)
-        faceDetectCamera.stop()
+        faceDetectCamera.onDestroy()
         super.onDestroy()
     }
 

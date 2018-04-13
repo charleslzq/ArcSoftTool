@@ -62,21 +62,21 @@ constructor(context: Context, attributeSet: AttributeSet? = null, @AttrRes defSt
                 }
     }
 
-    override fun start() {
+    override fun onResume() {
         if (_isRunning.compareAndSet(false, true)) {
             fotoapparat.start()
             visibility = View.VISIBLE
         }
     }
 
-    override fun pause() {
+    override fun onPause() {
         if (_isRunning.compareAndSet(true, false)) {
             fotoapparat.stop()
             visibility = View.INVISIBLE
         }
     }
 
-    override fun stop() {
+    override fun onDestroy() {
         if (_isRunning.compareAndSet(true, false)) {
             fotoapparat.stop()
             visibility = View.INVISIBLE
