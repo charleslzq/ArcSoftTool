@@ -3,6 +3,7 @@ package com.github.charleslzq.faceengine.view
 import android.content.Context
 import android.support.annotation.AttrRes
 import android.util.AttributeSet
+import android.view.View
 import android.widget.FrameLayout
 import com.github.charleslzq.faceengine.core.TrackedFace
 import io.reactivex.Scheduler
@@ -23,6 +24,10 @@ constructor(context: Context, attributeSet: AttributeSet? = null, @AttrRes defSt
         it.first { it.hasAvailableCamera() }
     }
     private val disposables = mutableListOf<Disposable>()
+
+    override fun onLayout(changed: Boolean, left: Int, top: Int, right: Int, bottom: Int) {
+        viewList.forEach { (it as View).layout(left, top, right, bottom) }
+    }
 
     override fun onResume() {
         onPause()

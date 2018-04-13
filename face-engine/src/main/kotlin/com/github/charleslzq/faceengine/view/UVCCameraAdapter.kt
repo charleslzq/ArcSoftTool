@@ -12,11 +12,12 @@ import android.widget.Toast
 import com.github.charleslzq.faceengine.core.R
 import com.github.charleslzq.faceengine.core.TrackedFace
 import com.github.charleslzq.faceengine.support.runOnCompute
-import com.github.charleslzq.faceengine.support.runOnUI
 import com.serenegiant.usb.DeviceFilter
 import com.serenegiant.usb.USBMonitor
 import com.serenegiant.usb.UVCCamera
 import io.fotoapparat.parameter.Resolution
+import io.fotoapparat.view.CameraView
+import io.fotoapparat.view.Preview
 import io.reactivex.Scheduler
 import io.reactivex.subjects.PublishSubject
 import java.nio.ByteBuffer
@@ -26,9 +27,7 @@ internal class UVCCameraAdapter
 @JvmOverloads
 constructor(context: Context, attributeSet: AttributeSet? = null, @AttrRes defStyle: Int = 0) :
         FrameLayout(context, attributeSet, defStyle), CameraInterface {
-    private val uvcCameraTextureView = UVCCameraTextureView(context, attributeSet, defStyle).also {
-        addView(it)
-    }
+    private val cameraView = CameraView(context, attributeSet, defStyle).also { addView(it) }
     private var surface: Surface? = null
     private val trackView = TrackView(context, attributeSet, defStyle).also { addView(it) }
 
@@ -46,14 +45,25 @@ constructor(context: Context, attributeSet: AttributeSet? = null, @AttrRes defSt
                 supportedResolution.addAll(camera.supportedSizeList.map {
                     Resolution(it.width, it.height)
                 }.sortedByDescending { it.area })
-                uvcCameraTextureView.surfaceTexture?.let {
-                    surface = Surface(it)
-                    startPreview(camera, surface!!)
-
-                    synchronized(cameraLock) {
-                        uvcCamera = camera
+                surface = cameraView.getPreview().let {
+                    when (it) {
+                        is Preview.Texture -> Surface(it.surfaceTexture)
+                        is Preview.Surface -> it.surfaceHolder.surface
                     }
                 }
+                startPreview(camera, surface!!)
+                synchronized(cameraLock) {
+                    uvcCamera = camera
+                }
+
+//                uvcCameraTextureView.surfaceTexture?.let {
+//                    surface = Surface(it)
+//                    startPreview(camera, surface!!)
+//
+//                    synchronized(cameraLock) {
+//                        uvcCamera = camera
+//                    }
+//                }
             }
         }
 
@@ -86,6 +96,16 @@ constructor(context: Context, attributeSet: AttributeSet? = null, @AttrRes defSt
     private val supportedResolution = mutableListOf<Resolution>()
     private var selectedResolution = Resolution(UVCCamera.DEFAULT_PREVIEW_WIDTH, UVCCamera.DEFAULT_PREVIEW_HEIGHT)
     private val publisher = PublishSubject.create<CameraPreview.PreviewFrame>()
+
+    override fun onLayout(changed: Boolean, left: Int, top: Int, right: Int, bottom: Int) {
+        cameraView.layout(left, top, right, bottom)
+        trackView.layout(
+                cameraView.textureView.left,
+                cameraView.textureView.top,
+                cameraView.textureView.right,
+                cameraView.textureView.bottom
+        )
+    }
 
     override fun onResume() {
         if (_isRunning.compareAndSet(false, true)) {
@@ -141,10 +161,8 @@ constructor(context: Context, attributeSet: AttributeSet? = null, @AttrRes defSt
         Log.i("Camera", "Start Camera Preview")
         if (supportedResolution.isNotEmpty()) {
             selectedResolution = supportedResolution[0]
+            cameraView.setPreviewResolution(selectedResolution)
             selectedResolution.run {
-                runOnUI {
-                    uvcCameraTextureView.setAspectRatio(width, height)
-                }
                 camera.setPreviewSize(width, height, UVCCamera.FRAME_FORMAT_YUYV)
             }
         }

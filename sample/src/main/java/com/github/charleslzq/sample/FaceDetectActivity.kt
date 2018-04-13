@@ -78,16 +78,16 @@ class FaceDetectActivity : AppCompatActivity() {
                     append(", ")
                     append("${++count}")
                 }.also {
-                    Log.i("Check Result", it)
+                    Log.i(TAG, it)
                 })
                 personName?.let {
                     setResult(Activity.RESULT_OK, Intent().apply {
                         putExtra("personName", it)
                     })
-                    finish()
+//                    finish()
                 }
             } else {
-                toast("Too much or no face(s)! ${++count}")
+                toast("${trackFaces.size} face(s) detected! ${++count}")
             }
         }
         bindService(

@@ -4,6 +4,7 @@ import android.content.Context
 import android.support.annotation.AttrRes
 import android.util.AttributeSet
 import android.util.Log
+import android.view.TextureView
 import android.view.View
 import android.widget.FrameLayout
 import com.github.charleslzq.faceengine.core.TrackedFace
@@ -23,6 +24,9 @@ import io.reactivex.subjects.PublishSubject
 import java.util.concurrent.atomic.AtomicBoolean
 
 fun Frame.toPreviewFrame() = CameraPreview.PreviewFrame(size, image, rotation)
+
+val CameraView.textureView
+    get() = getChildAt(0) as TextureView
 
 internal class FotoCameraViewAdapter
 @JvmOverloads
@@ -60,6 +64,16 @@ constructor(context: Context, attributeSet: AttributeSet? = null, @AttrRes defSt
                 .cameraErrorCallback {
                     Log.e(TAG, "Error with fotoapparat", it)
                 }
+    }
+
+    override fun onLayout(changed: Boolean, left: Int, top: Int, right: Int, bottom: Int) {
+        cameraView.layout(left, top, right, bottom)
+        trackView.layout(
+                cameraView.textureView.left,
+                cameraView.textureView.top,
+                cameraView.textureView.right,
+                cameraView.textureView.bottom
+        )
     }
 
     override fun onResume() {
