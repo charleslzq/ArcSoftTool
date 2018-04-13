@@ -170,8 +170,8 @@ constructor(context: Context, attributeSet: AttributeSet? = null, @AttrRes defSt
         camera.setFrameCallback {
             runOnCompute {
                 Log.i("Camera", "Received ${it.remaining()} data")
-                val bytes = ByteArray(selectedResolution.area * 3 / 2)
-                it.deepCopy().get(bytes)
+                val bytes = ByteArray(it.limit())
+                it.get(bytes)
                 publisher.onNext(CameraPreview.PreviewFrame(selectedResolution, bytes, 0))
             }
         }
@@ -199,15 +199,3 @@ constructor(context: Context, attributeSet: AttributeSet? = null, @AttrRes defSt
 }
 
 private fun UVCCamera.setFrameCallback(format: Int = UVCCamera.PIXEL_FORMAT_NV21, callback: (ByteBuffer) -> Unit) = setFrameCallback(callback, format)
-
-fun ByteBuffer.deepCopy(): ByteBuffer {
-    val newBuffer = if (isDirect) {
-        ByteBuffer.allocateDirect(remaining())
-    } else {
-        ByteBuffer.allocate(remaining())
-    }
-    val readOnlyBuffer = asReadOnlyBuffer()
-    readOnlyBuffer.flip()
-    newBuffer.put(readOnlyBuffer)
-    return newBuffer
-}
