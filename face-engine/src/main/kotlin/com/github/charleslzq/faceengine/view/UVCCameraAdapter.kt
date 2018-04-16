@@ -22,6 +22,7 @@ import io.reactivex.Scheduler
 import io.reactivex.subjects.PublishSubject
 import java.nio.ByteBuffer
 import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.AtomicInteger
 
 internal class UVCCameraAdapter
 @JvmOverloads
@@ -87,6 +88,7 @@ constructor(context: Context, attributeSet: AttributeSet? = null, @AttrRes defSt
     private val supportedResolution = mutableListOf<Resolution>()
     private var selectedResolution = Resolution(UVCCamera.DEFAULT_PREVIEW_WIDTH, UVCCamera.DEFAULT_PREVIEW_HEIGHT)
     private val publisher = PublishSubject.create<CameraPreview.PreviewFrame>()
+    private val count = AtomicInteger(0)
 
     override fun onLayout(changed: Boolean, left: Int, top: Int, right: Int, bottom: Int) {
         cameraView.layout(left, top, right, bottom)
@@ -163,7 +165,10 @@ constructor(context: Context, attributeSet: AttributeSet? = null, @AttrRes defSt
                 Log.i("Camera", "Received ${it.remaining()} data")
                 val bytes = ByteArray(it.limit())
                 it.get(bytes)
-                publisher.onNext(CameraPreview.PreviewFrame(selectedResolution, bytes, 0))
+                publisher.onNext(CameraPreview.PreviewFrame(selectedResolution, bytes, 0, count.getAndIncrement()))
+                if (count.get() > 1000) {
+                    count.set(0)
+                }
             }
         }
         camera.startPreview()

@@ -22,8 +22,9 @@ import io.fotoapparat.view.CameraView
 import io.reactivex.Scheduler
 import io.reactivex.subjects.PublishSubject
 import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.AtomicInteger
 
-fun Frame.toPreviewFrame() = CameraPreview.PreviewFrame(size, image, rotation)
+fun Frame.toPreviewFrame(seq: Int? = null) = CameraPreview.PreviewFrame(size, image, rotation, seq)
 
 val CameraView.textureView
     get() = getChildAt(0) as TextureView
@@ -119,9 +120,13 @@ constructor(context: Context, attributeSet: AttributeSet? = null, @AttrRes defSt
 
     class FrameToObservableProcessor : FrameProcessor {
         val publisher = PublishSubject.create<CameraPreview.PreviewFrame>()
+        private val count = AtomicInteger(0)
 
         override fun process(frame: Frame) {
-            publisher.onNext(frame.toPreviewFrame())
+            publisher.onNext(frame.toPreviewFrame(count.getAndIncrement()))
+            if (count.get() > 1000) {
+                count.set(0)
+            }
         }
     }
 

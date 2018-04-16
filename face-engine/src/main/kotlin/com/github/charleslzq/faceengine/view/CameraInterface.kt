@@ -31,7 +31,8 @@ interface CameraPreview {
     data class PreviewFrame(
             val size: Resolution,
             val image: ByteArray,
-            val rotation: Int
+            val rotation: Int,
+            val sequence: Int? = null
     )
 
     @FunctionalInterface
