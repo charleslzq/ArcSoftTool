@@ -31,7 +31,6 @@ import com.github.charleslzq.faceengine.view.CameraPreview
 import com.github.charleslzq.facestore.FaceFileReadWriteStore
 import com.github.charleslzq.facestore.ReadWriteFaceStore
 import com.github.charleslzq.facestore.websocket.WebSocketCompositeFaceStore
-import com.github.charleslzq.pacsdemo.support.MemCache
 import java.util.*
 
 /**
@@ -54,8 +53,6 @@ open class ArcSoftEngineAdapterBase<S : ArcSoftSetting, out D : ReadWriteFaceSto
     val faceTrackEngine = ArcSoftFaceTrackingEngine(keys, setting)
     val ageDetectEngine = ArcSoftAgeDetectionEngine(keys, setting)
     val genderDetectEngine = ArcSoftGenderDetectionEngine(keys, setting)
-
-    private val facesCache = MemCache(TrackResult::class.java, 5)
 
     final override fun detect(image: CameraPreview.PreviewFrame) = if (faceDetectEngine.getEngine() != null && faceRecognitionEngine.getEngine() != null) {
         val detectResult = mutableListOf<AFD_FSDKFace>()
@@ -160,37 +157,22 @@ open class ArcSoftEngineAdapterBase<S : ArcSoftSetting, out D : ReadWriteFaceSto
     }
 
     override fun trackFace(image: CameraPreview.PreviewFrame) = if (faceTrackEngine.initialized()) {
-        val process: (() -> List<TrackedFace>) -> List<TrackedFace> = if (image.sequence == null) {
-            {
-                it()
-            }
+        val result = mutableListOf<AFT_FSDKFace>()
+        val errorCode = faceTrackEngine.getEngine()!!.AFT_FSDK_FaceFeatureDetect(
+                image.image,
+                image.size.width,
+                image.size.height,
+                AFT_FSDKEngine.CP_PAF_NV21,
+                result
+        )
+        if (errorCode.code == AFT_FSDKError.MOK) {
+            result.map { TrackedFace(it.rect, it.degree) }
         } else {
-            {
-                facesCache.load(image.sequence.toString()) {
-                    TrackResult(it())
-                }?.faces ?: emptyList()
-            }
-        }
-        process {
-            val result = mutableListOf<AFT_FSDKFace>()
-            val errorCode = faceTrackEngine.getEngine()!!.AFT_FSDK_FaceFeatureDetect(
-                    image.image,
-                    image.size.width,
-                    image.size.height,
-                    AFT_FSDKEngine.CP_PAF_NV21,
-                    result
-            )
-            if (errorCode.code == AFT_FSDKError.MOK) {
-                result.map { TrackedFace(it.rect, it.degree) }
-            } else {
-                emptyList()
-            }
+            emptyList()
         }
     } else {
         emptyList()
     }
-
-    data class TrackResult(val faces: List<TrackedFace>)
 }
 
 class ArcSoftFaceEngineService<out D : ReadWriteFaceStore<Person, Face>>(
