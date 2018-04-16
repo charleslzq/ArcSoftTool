@@ -10,6 +10,7 @@ import android.util.AttributeSet
 import android.view.View
 import com.github.charleslzq.faceengine.core.R
 import com.github.charleslzq.faceengine.core.TrackedFace
+import com.github.charleslzq.faceengine.support.runOnUI
 import java.util.concurrent.atomic.AtomicBoolean
 
 /**
@@ -46,7 +47,9 @@ constructor(context: Context, attributeSet: AttributeSet? = null, @AttrRes defSt
         rects.clear()
         rects.addAll(newFaces)
 
-        invalidate()
+        runOnUI {
+            invalidate()
+        }
     }
 
     override fun onDraw(canvas: Canvas) {
