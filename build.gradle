@@ -36,4 +36,5 @@ task clean(type: Delete) {
 
 ext {
     face_store_version = '1.0.1-RC2'
+    logger_version = '2.2.0'
 }

@@ -39,6 +39,11 @@ fun Context.toast(message: CharSequence, duration: Int = Toast.LENGTH_SHORT) {
 }
 
 class MainActivity : AppCompatActivity() {
+
+    init {
+        System.setProperty("rx2.buffer-size", "5")
+    }
+
     private val serviceConnection = object : ServiceConnection {
         override fun onServiceDisconnected(name: ComponentName) {
             faceEngineService!!.store.apply {

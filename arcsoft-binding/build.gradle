@@ -42,6 +42,8 @@ dependencies {
     implementation files('libs/genderestimation.jar')
     implementation 'com.guo.android_extend:android-extend:1.0.1'
 
+    implementation "com.orhanobut:logger:$logger_version"
+
     testImplementation 'junit:junit:4.12'
 }
 repositories {

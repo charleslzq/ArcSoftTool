@@ -32,4 +32,5 @@ dependencies {
     }
     implementation 'com.android.support.constraint:constraint-layout:1.0.2'
     implementation 'com.github.huangyanbin:SmartTable:2.0'
+    implementation "com.orhanobut:logger:$logger_version"
 }
