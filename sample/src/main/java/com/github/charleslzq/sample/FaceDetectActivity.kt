@@ -124,7 +124,7 @@ class FaceDetectActivity : AppCompatActivity() {
 
     override fun onDestroy() {
         unbindService(serviceConnection)
-        faceDetectCamera.pause()
+        faceDetectCamera.close()
         super.onDestroy()
     }
 

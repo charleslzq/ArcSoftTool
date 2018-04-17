@@ -22,7 +22,7 @@ import java.util.concurrent.atomic.AtomicInteger
 
 fun Frame.toPreviewFrame(seq: Int? = null) = CameraPreview.PreviewFrame(size, image, rotation, seq)
 
-class FotoCameraSource(context: Context, cameraView: CameraView, parent: CameraSource? = null) : SeletableCameraSource() {
+class FotoCameraSource(context: Context, cameraView: CameraView) : SeletableCameraSource() {
     private val frameProcessor = FrameToObservableProcessor()
     private val fotoapparat by lazy {
         Fotoapparat.with(context)
@@ -31,7 +31,7 @@ class FotoCameraSource(context: Context, cameraView: CameraView, parent: CameraS
     }
     private val cameraOperators = listOf(LensPosition.Front, LensPosition.Back)
             .filter { fotoapparat.isAvailable(single(it)) }
-            .map { FotoCameraPreviewOperator(it::class.java.simpleName, fotoapparat, cameraView, InternalCamera.fromLensSelector(it)) }
+            .map { FotoCameraPreviewOperator(it::class.java.simpleName, fotoapparat, InternalCamera.fromLensSelector(it)) }
 
     override fun getCameras() = cameraOperators
 
@@ -48,6 +48,10 @@ class FotoCameraSource(context: Context, cameraView: CameraView, parent: CameraS
             scheduler: Scheduler,
             frameConsumer: CameraPreview.FrameConsumer
     ) = frameProcessor.publisher.observeOn(scheduler).subscribe { frameConsumer.accept(it) }
+
+    override fun close() {
+        selectedCamera?.stopPreview()
+    }
 
     private fun setup(fotoapparatBuilder: FotoapparatBuilder, cameraView: CameraView) {
         fotoapparatBuilder
@@ -69,7 +73,6 @@ class FotoCameraSource(context: Context, cameraView: CameraView, parent: CameraS
     class FotoCameraPreviewOperator(
             override val id: String,
             private val fotoapparat: Fotoapparat,
-            private val cameraView: CameraView,
             private val camera: InternalCamera
     ) : CameraPreviewOperator {
         private val _isPreviewing = AtomicBoolean(false)

@@ -28,7 +28,8 @@ constructor(context: Context, attributeSet: AttributeSet? = null, @AttrRes defSt
     private val trackView = TrackView(context, attributeSet, defStyle).also { addView(it) }
 
     private val cameraSources = listOf(
-            FotoCameraSource(context, cameraView, this)
+            UVCCameraSource(context, cameraView),
+            FotoCameraSource(context, cameraView)
     )
     override val selectedCamera: CameraPreviewOperator?
         get() = sourceSelector(cameraSources)?.selectedCamera
@@ -69,12 +70,17 @@ constructor(context: Context, attributeSet: AttributeSet? = null, @AttrRes defSt
 
     fun updateTrackFaces(faces: Collection<TrackedFace>) = trackView.resetRects(faces)
 
-    fun start() {
+    override fun start() {
+        cameraSources.forEach { it.start() }
         selectedCamera?.startPreview()
     }
 
     fun pause() {
         selectedCamera?.stopPreview()
+    }
+
+    override fun close() = cameraSources.forEach {
+        it.close()
     }
 
     fun getCurrentSource() = sourceSelector(cameraSources)

@@ -38,8 +38,9 @@ interface CameraPreviewOperator {
     fun takePicture(): Bitmap
 }
 
-interface CameraSource : CameraPreview {
+interface CameraSource : CameraPreview, AutoCloseable {
     val selectedCamera: CameraPreviewOperator?
+    fun start() {}
     fun getCameras(): List<CameraPreviewOperator>
 }
 
