@@ -130,6 +130,7 @@ constructor(context: Context, attributeSet: AttributeSet? = null, @AttrRes defSt
 
     fun selectNext() {
         if (selectedSource != null && selectedCamera != null) {
+            faceEngineTaskExecutor.cancelTasks()
             selectedSource!!.getCameras().run {
                 val index = indexOf(selectedCamera!!)
                 if (index + 1 < size) {

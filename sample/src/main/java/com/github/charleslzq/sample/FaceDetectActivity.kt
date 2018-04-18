@@ -46,7 +46,7 @@ class FaceDetectActivity : AppCompatActivity() {
         faceDetectCamera.onPreview {
             val startTime = System.currentTimeMillis()
             try {
-                Logger.i("on frame with size ${it.size} and rotation ${it.rotation}, ${it.sequence}")
+                Logger.i("on frame with size ${it.size} and rotation ${it.rotation}, ${it.sequence}/${it.source}")
                 val detectResult = faceEngineService?.detect(it) ?: emptyMap()
                 faceDetectCamera.updateTrackFaces(detectResult.keys)
                 val detectedAge = faceEngineService?.detectAge(it)?.takeIf { it.size == 1 }?.get(0)?.age
@@ -82,7 +82,7 @@ class FaceDetectActivity : AppCompatActivity() {
                         append("fail to detect gender")
                     }
                     append(", ")
-                    append("${it.sequence}")
+                    append("${it.sequence}/${it.source}")
                 }.also {
                     Logger.i(it)
                 })

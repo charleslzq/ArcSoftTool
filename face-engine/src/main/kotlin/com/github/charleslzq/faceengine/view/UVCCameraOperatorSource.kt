@@ -138,7 +138,7 @@ class UVCCameraOperatorSource(
                                 buffer = ByteArray(it.limit())
                             }
                             it.get(buffer)
-                            frameObserver.onNext(CameraPreview.PreviewFrame(selectedResolution, buffer, 0, count.getAndIncrement()))
+                            frameObserver.onNext(CameraPreview.PreviewFrame("UVC-$id", selectedResolution, buffer, 0, count.getAndIncrement()))
                         }
                         if (count.get() > 1000) {
                             count.set(0)

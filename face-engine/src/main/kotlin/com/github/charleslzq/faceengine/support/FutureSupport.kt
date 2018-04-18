@@ -24,12 +24,19 @@ class FaceEngineTaskExecutor(
     fun <V> submit(callable: () -> V) = executor.submit(callable)
 
     @JvmOverloads
-    fun <V> executeInTimeout(timeout: Long = 500, timeUnit: TimeUnit = TimeUnit.MILLISECONDS, callable: () -> V?): V? = submit(callable).run {
-        taskList.add(this)
-        try {
-            get(timeout, timeUnit)
-        } catch (exception: Exception) {
-            cancel(true)
+    fun <V> executeInTimeout(timeout: Long = 500, timeUnit: TimeUnit = TimeUnit.MILLISECONDS, callable: () -> V?): V? {
+        taskList.removeAll { !it.isPending }
+        return if (taskList.size < DEFAULT_THREAD_SIZE) {
+            submit(callable).run {
+                taskList.add(this)
+                try {
+                    get(timeout, timeUnit)
+                } catch (exception: Exception) {
+                    cancel(true)
+                    null
+                }
+            }
+        } else {
             null
         }
     }

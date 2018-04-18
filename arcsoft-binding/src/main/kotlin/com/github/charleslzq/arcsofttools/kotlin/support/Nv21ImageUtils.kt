@@ -19,4 +19,4 @@ fun toNv21Bytes(image: Bitmap) = ByteArray(image.width * image.height * 3 / 2).a
 }
 
 @JvmOverloads
-fun toFrame(image: Bitmap, toBytes: (Bitmap) -> ByteArray = ::toNv21Bytes) = CameraPreview.PreviewFrame(Resolution(image.width, image.height), toBytes(image), 0)
+fun toFrame(image: Bitmap, toBytes: (Bitmap) -> ByteArray = ::toNv21Bytes) = CameraPreview.PreviewFrame("UNKNOWN", Resolution(image.width, image.height), toBytes(image), 0)

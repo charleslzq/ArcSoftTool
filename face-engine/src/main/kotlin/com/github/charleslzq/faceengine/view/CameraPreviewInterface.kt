@@ -18,6 +18,7 @@ interface CameraPreview {
     ): Disposable
 
     data class PreviewFrame(
+            val source: String,
             val size: Resolution,
             val image: ByteArray,
             val rotation: Int,

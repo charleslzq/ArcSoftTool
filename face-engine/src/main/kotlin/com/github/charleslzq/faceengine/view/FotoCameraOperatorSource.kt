@@ -21,7 +21,7 @@ import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
 
-fun Frame.toPreviewFrame(seq: Int? = null) = CameraPreview.PreviewFrame(size, image, rotation, seq)
+fun Frame.toPreviewFrame(source: String, seq: Int? = null) = CameraPreview.PreviewFrame(source, size, image, rotation, seq)
 
 class FotoCameraOperatorSource(
         context: Context,
@@ -37,7 +37,7 @@ class FotoCameraOperatorSource(
     }
     private val cameraOperators = listOf(LensPosition.Front, LensPosition.Back)
             .filter { fotoapparat.isAvailable(single(it)) }
-            .map { FotoCameraPreviewOperator(it::class.java.simpleName, fotoapparat, InternalCamera.fromLensSelector(it)) }
+            .map { FotoCameraPreviewOperator(it::class.java.simpleName, fotoapparat, InternalCamera.fromLensSelector(it), frameProcessor) }
 
     override fun getCameras() = cameraOperators
 
@@ -79,7 +79,8 @@ class FotoCameraOperatorSource(
     class FotoCameraPreviewOperator(
             override val id: String,
             private val fotoapparat: Fotoapparat,
-            private val camera: InternalCamera
+            private val camera: InternalCamera,
+            private val frameProcessor: FrameToObservableProcessor
     ) : CameraPreviewOperator {
         private val _isPreviewing = AtomicBoolean(false)
 
@@ -100,7 +101,11 @@ class FotoCameraOperatorSource(
         override fun takePicture() = fotoapparat.takePicture().toBitmap(originalResolution()).transform { it.bitmap }.await()
 
         fun switchToThis() {
-            fotoapparat.switchTo(camera.lensPosition, camera.configuration)
+            fotoapparat.switchTo(camera.lensPosition, camera.configuration.copy(
+                    frameProcessor = {
+                        frameProcessor.process(it)
+                    }
+            ))
         }
     }
 
@@ -110,7 +115,7 @@ class FotoCameraOperatorSource(
 
         override fun process(frame: Frame) {
             count.getAndIncrement().let {
-                publisher.onNext(frame.toPreviewFrame(it))
+                publisher.onNext(frame.toPreviewFrame("FOTO", it))
             }
             if (count.get() > 1000) {
                 count.set(0)
