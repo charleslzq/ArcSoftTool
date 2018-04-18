@@ -19,17 +19,16 @@ import com.github.charleslzq.arcsofttools.kotlin.Face;
 import com.github.charleslzq.arcsofttools.kotlin.Person;
 import com.github.charleslzq.arcsofttools.kotlin.WebSocketArcSoftEngineService;
 import com.github.charleslzq.faceengine.core.TrackedFace;
+import com.github.charleslzq.faceengine.support.FutureSupport;
 import com.github.charleslzq.faceengine.view.CameraPreview;
 import com.github.charleslzq.faceengine.view.FaceDetectView;
 import com.github.charleslzq.facestore.websocket.WebSocketCompositeFaceStore;
 
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
-import io.reactivex.schedulers.Schedulers;
 import kotlin.Pair;
 
 public class FaceDetectActivity extends AppCompatActivity {
@@ -57,7 +56,7 @@ public class FaceDetectActivity extends AppCompatActivity {
         setContentView(R.layout.activity_face_detect);
         ButterKnife.bind(this);
         bindService(new Intent(this, WebSocketArcSoftEngineService.class), serviceConnection, Context.BIND_AUTO_CREATE);
-        faceDetectCamera.onPreview(2000, TimeUnit.MILLISECONDS, Schedulers.computation(), new FaceDetectView.FrameConsumer() {
+        faceDetectCamera.onPreview(new FaceDetectView.FrameConsumer() {
             @Override
             public void accept(@NonNull CameraPreview.PreviewFrame frame) {
                 Log.i(TAG, "on frame with size " + frame.getSize().toString() + " and rotation " + frame.getRotation());
@@ -100,7 +99,7 @@ public class FaceDetectActivity extends AppCompatActivity {
                             messageBuilder.append("fail to detect age");
                         }
                         messageBuilder.append(", ");
-                        if (detectedGenders.size() == 1 && detectedGenders.get(0) != null && detectedGenders.get(0).getGender() != null) {
+                        if (detectedGenders.size() == 1 && detectedGenders.get(0) != null) {
                             messageBuilder.append("detected gender ");
                             messageBuilder.append(detectedGenders.get(0).getGender());
                         } else {
@@ -150,6 +149,7 @@ public class FaceDetectActivity extends AppCompatActivity {
     protected void onDestroy() {
         unbindService(serviceConnection);
         faceDetectCamera.pause();
+        FutureSupport.getFaceEngineTaskExecutor().cancelTasks();
         super.onDestroy();
     }
 }

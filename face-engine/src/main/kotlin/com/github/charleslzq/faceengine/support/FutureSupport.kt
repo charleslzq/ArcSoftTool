@@ -1,3 +1,5 @@
+@file:JvmName("FutureSupport")
+
 package com.github.charleslzq.faceengine.support
 
 import android.util.Log
