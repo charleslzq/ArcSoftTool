@@ -81,7 +81,7 @@ constructor(context: Context, attributeSet: AttributeSet? = null, @AttrRes defSt
 
     @JvmOverloads
     fun onPreview(
-            timeout: Long = 5000,
+            timeout: Long = 2000,
             timeUnit: TimeUnit = TimeUnit.MILLISECONDS,
             scheduler: Scheduler = Schedulers.computation(),
             processor: (CameraPreview.PreviewFrame) -> Unit
@@ -96,7 +96,7 @@ constructor(context: Context, attributeSet: AttributeSet? = null, @AttrRes defSt
 
     @JvmOverloads
     fun onPreview(
-            timeout: Long = 1000,
+            timeout: Long = 2000,
             timeUnit: TimeUnit = TimeUnit.MILLISECONDS,
             scheduler: Scheduler = Schedulers.computation(),
             frameConsumer: CameraPreview.FrameConsumer
