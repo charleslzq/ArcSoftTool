@@ -9,13 +9,13 @@ import android.os.Bundle
 import android.os.Environment
 import android.os.IBinder
 import android.support.v7.app.AppCompatActivity
-import android.util.Log
 import com.github.charleslzq.arcsofttools.kotlin.ArcSoftFaceEngineService
 import com.github.charleslzq.arcsofttools.kotlin.Face
 import com.github.charleslzq.arcsofttools.kotlin.Person
 import com.github.charleslzq.arcsofttools.kotlin.WebSocketArcSoftEngineService
-import com.github.charleslzq.faceengine.core.TrackedFace
+import com.github.charleslzq.faceengine.support.faceEngineTaskExecutor
 import com.github.charleslzq.facestore.websocket.WebSocketCompositeFaceStore
+import com.orhanobut.logger.Logger
 import kotlinx.android.synthetic.main.activity_face_detect.*
 
 class FaceDetectActivity : AppCompatActivity() {
@@ -36,7 +36,6 @@ class FaceDetectActivity : AppCompatActivity() {
     }
     private var faceEngineService: ArcSoftFaceEngineService<WebSocketCompositeFaceStore<Person, Face>>? =
             null
-    private var count = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -45,65 +44,60 @@ class FaceDetectActivity : AppCompatActivity() {
             val originalId = faceDetectCamera.selectedCamera?.id
             faceDetectCamera.getCurrentSource()?.operatorSelector = { it.firstOrNull { it.id != originalId } }
         }
-        faceDetectCamera.onPreviewFrame {
+        faceDetectCamera.onPreview {
+            val startTime = System.currentTimeMillis()
             try {
-                Log.i(TAG, "on frame with size ${it.size} and rotation ${it.rotation}, ${it.sequence}")
-                if (it.sequence == 7) {
-                    Log.i(TAG, "limit reached")
-                }
-                val trackFaces = emptyList<TrackedFace>()
-                if (trackFaces.size == 1) {
-                    val detectResult = faceEngineService?.detect(it) ?: emptyMap()
-                    faceDetectCamera.updateTrackFaces(detectResult.keys)
-                    val detectedAge = faceEngineService?.detectAge(it)?.takeIf { it.size == 1 }?.get(0)?.age
-                    val detectedGender = faceEngineService?.detectGender(it)?.takeIf { it.size == 1 }?.get(0)?.gender
-                    var personName: String? = null
-                    toast(buildString {
-                        if (detectResult.size == 1) {
-                            val result = detectResult.mapNotNull { faceEngineService!!.search(it.value) }
-                            if (result.isNotEmpty()) {
-                                val person = result.maxBy { it.second } ?: Pair(Person("", ""), 0f)
-                                if (person.second > 0.5f) {
-                                    personName = person.first.name
-                                    append("Match Result $personName score ${person.second}")
-                                } else {
-                                    append("No Match Face")
-                                }
+                Logger.i("on frame with size ${it.size} and rotation ${it.rotation}, ${it.sequence}")
+                val detectResult = faceEngineService?.detect(it) ?: emptyMap()
+                faceDetectCamera.updateTrackFaces(detectResult.keys)
+                val detectedAge = faceEngineService?.detectAge(it)?.takeIf { it.size == 1 }?.get(0)?.age
+                val detectedGender = faceEngineService?.detectGender(it)?.takeIf { it.size == 1 }?.get(0)?.gender
+                var personName: String? = null
+                toast(buildString {
+                    if (detectResult.size == 1) {
+                        val result = detectResult.mapNotNull { faceEngineService!!.search(it.value) }
+                        if (result.isNotEmpty()) {
+                            val person = result.maxBy { it.second } ?: Pair(Person("", ""), 0f)
+                            if (person.second > 0.5f) {
+                                personName = person.first.name
+                                append("Match Result $personName score ${person.second}")
                             } else {
-                                append("No Match Result")
+                                append("No Match Face")
                             }
                         } else {
-                            append("No or too much (${detectResult.size}) Face(s) Detected")
+                            append("No Match Result")
                         }
-                        append(", ")
-                        if (detectedAge != null) {
-                            append("detected age $detectedAge")
-                        } else {
-                            append("fail to detect age")
-                        }
-                        append(", ")
-                        if (detectedGender != null) {
-                            append("gender $detectedGender")
-                        } else {
-                            append("fail to detect gender")
-                        }
-                        append(", ")
-                        append("${++count}")
-                    }.also {
-                        Log.i(TAG, it)
-                    })
-                    personName?.let {
-                        setResult(Activity.RESULT_OK, Intent().apply {
-                            putExtra("personName", it)
-                        })
-//                    finish()
+                    } else {
+                        append("No or too much (${detectResult.size}) Face(s) Detected")
                     }
-                } else {
-                    toast("0 face(s) detected! ${it.sequence}")
+                    append(", ")
+                    if (detectedAge != null) {
+                        append("detected age $detectedAge")
+                    } else {
+                        append("fail to detect age")
+                    }
+                    append(", ")
+                    if (detectedGender != null) {
+                        append("gender $detectedGender")
+                    } else {
+                        append("fail to detect gender")
+                    }
+                    append(", ")
+                    append("${it.sequence}")
+                }.also {
+                    Logger.i(it)
+                })
+                personName?.let {
+                    setResult(Activity.RESULT_OK, Intent().apply {
+                        putExtra("personName", it)
+                    })
+//                    finish()
                 }
             } catch (throwable: Throwable) {
-                Log.i(TAG, "Exception occur", throwable)
+                Logger.e(throwable, "Exception occur with frame ${it.sequence}")
             }
+            val endTime = System.currentTimeMillis()
+            Logger.i("Handle completed for frame ${it.sequence}, use time ${endTime - startTime}")
         }
         bindService(
                 Intent(this, WebSocketArcSoftEngineService::class.java),
@@ -125,10 +119,7 @@ class FaceDetectActivity : AppCompatActivity() {
     override fun onDestroy() {
         unbindService(serviceConnection)
         faceDetectCamera.close()
+        faceEngineTaskExecutor.cancelTasks()
         super.onDestroy()
-    }
-
-    companion object {
-        const val TAG = "FaceDetectActivity"
     }
 }

@@ -17,12 +17,17 @@ import io.fotoapparat.selector.single
 import io.fotoapparat.view.CameraView
 import io.reactivex.Scheduler
 import io.reactivex.subjects.PublishSubject
+import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
 
 fun Frame.toPreviewFrame(seq: Int? = null) = CameraPreview.PreviewFrame(size, image, rotation, seq)
 
-class FotoCameraSource(context: Context, cameraView: CameraView) : SeletableCameraSource() {
+class FotoCameraOperatorSource(
+        context: Context,
+        cameraView: CameraView,
+        override val sampleInterval: Long
+) : CameraOperatorSource() {
     private val frameProcessor = FrameToObservableProcessor()
     private val fotoapparat by lazy {
         Fotoapparat.with(context)
@@ -42,12 +47,12 @@ class FotoCameraSource(context: Context, cameraView: CameraView) : SeletableCame
     override fun onPreviewFrame(
             scheduler: Scheduler,
             processor: (CameraPreview.PreviewFrame) -> Unit
-    ) = frameProcessor.publisher.observeOn(scheduler).subscribe(processor)
+    ) = frameProcessor.publisher.sample(sampleInterval, TimeUnit.MILLISECONDS).observeOn(scheduler).subscribe(processor)
 
     override fun onPreviewFrame(
             scheduler: Scheduler,
             frameConsumer: CameraPreview.FrameConsumer
-    ) = frameProcessor.publisher.observeOn(scheduler).subscribe { frameConsumer.accept(it) }
+    ) = frameProcessor.publisher.sample(sampleInterval, TimeUnit.MILLISECONDS).observeOn(scheduler).subscribe { frameConsumer.accept(it) }
 
     override fun close() {
         selectedCamera?.stopPreview()
@@ -104,7 +109,6 @@ class FotoCameraSource(context: Context, cameraView: CameraView) : SeletableCame
 
         override fun process(frame: Frame) {
             count.getAndIncrement().let {
-                Log.i(TAG, "Publishing frame with seq $it")
                 publisher.onNext(frame.toPreviewFrame(it))
             }
             if (count.get() > 1000) {

@@ -42,9 +42,11 @@ interface CameraSource : CameraPreview, AutoCloseable {
     val selectedCamera: CameraPreviewOperator?
     fun start() {}
     fun getCameras(): List<CameraPreviewOperator>
+
+
 }
 
-abstract class SeletableCameraSource : CameraSource {
+abstract class CameraOperatorSource : CameraSource {
     var operatorSelector: (Iterable<CameraPreviewOperator>) -> CameraPreviewOperator? = { it.firstOrNull() }
         set(value) {
             val oldSelection = field(getCameras())
@@ -58,6 +60,7 @@ abstract class SeletableCameraSource : CameraSource {
         }
     override val selectedCamera: CameraPreviewOperator?
         get() = operatorSelector(getCameras())
+    abstract val sampleInterval: Long
 
     abstract fun onSelected(operator: CameraPreviewOperator?)
 }

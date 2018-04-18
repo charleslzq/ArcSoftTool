@@ -17,10 +17,15 @@ import io.reactivex.Scheduler
 import io.reactivex.subjects.PublishSubject
 import java.nio.ByteBuffer
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
 
-class UVCCameraSource(context: Context, cameraView: CameraView) : SeletableCameraSource() {
+class UVCCameraOperatorSource(
+        context: Context,
+        cameraView: CameraView,
+        override val sampleInterval: Long
+) : CameraOperatorSource() {
     private val connectionListener = object : USBMonitor.OnDeviceConnectListener {
         override fun onAttach(usbDevice: UsbDevice) {
             Toast.makeText(context, "Camera Attached", Toast.LENGTH_SHORT).show()
@@ -73,12 +78,12 @@ class UVCCameraSource(context: Context, cameraView: CameraView) : SeletableCamer
     override fun onPreviewFrame(
             scheduler: Scheduler,
             processor: (CameraPreview.PreviewFrame) -> Unit
-    ) = publisher.observeOn(scheduler).subscribe(processor)
+    ) = publisher.sample(sampleInterval, TimeUnit.MILLISECONDS).observeOn(scheduler).subscribe(processor)
 
     override fun onPreviewFrame(
             scheduler: Scheduler,
             frameConsumer: CameraPreview.FrameConsumer
-    ) = publisher.observeOn(scheduler).subscribe { frameConsumer.accept(it) }
+    ) = publisher.sample(sampleInterval, TimeUnit.MILLISECONDS).observeOn(scheduler).subscribe { frameConsumer.accept(it) }
 
     override fun getCameras() = cameras.values.toList()
 
@@ -127,7 +132,6 @@ class UVCCameraSource(context: Context, cameraView: CameraView) : SeletableCamer
                 uvcCamera.setPreviewDisplay(surface)
                 uvcCamera.setFrameCallback {
                     runOnCompute {
-                        Log.i("Camera", "Received ${it.remaining()} data")
                         synchronized(buffer) {
                             if (it.limit() > buffer.size) {
                                 buffer = ByteArray(it.limit())

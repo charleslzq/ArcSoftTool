@@ -4,5 +4,6 @@
         <attr name="showTrackRect" format="boolean" />
         <attr name="rectColor" format="color" />
         <attr name="rectWidth" format="dimension" />
+        <attr name="sampleInterval" format="integer" />
     </declare-styleable>
 </resources>

@@ -25,10 +25,11 @@ import com.github.charleslzq.facestore.websocket.WebSocketCompositeFaceStore;
 
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
-import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.schedulers.Schedulers;
 import kotlin.Pair;
 
 public class FaceDetectActivity extends AppCompatActivity {
@@ -56,7 +57,7 @@ public class FaceDetectActivity extends AppCompatActivity {
         setContentView(R.layout.activity_face_detect);
         ButterKnife.bind(this);
         bindService(new Intent(this, WebSocketArcSoftEngineService.class), serviceConnection, Context.BIND_AUTO_CREATE);
-        faceDetectCamera.onPreviewFrame(AndroidSchedulers.mainThread(), new FaceDetectView.FrameConsumer() {
+        faceDetectCamera.onPreview(2000, TimeUnit.MILLISECONDS, Schedulers.computation(), new FaceDetectView.FrameConsumer() {
             @Override
             public void accept(@NonNull CameraPreview.PreviewFrame frame) {
                 Log.i(TAG, "on frame with size " + frame.getSize().toString() + " and rotation " + frame.getRotation());
@@ -114,7 +115,7 @@ public class FaceDetectActivity extends AppCompatActivity {
                             Intent intent = new Intent();
                             intent.putExtra("personName", result);
                             setResult(Activity.RESULT_OK, intent);
-                            finish();
+//                            finish();
                         }
                     }
                 } else {
@@ -124,8 +125,13 @@ public class FaceDetectActivity extends AppCompatActivity {
         });
     }
 
-    private void toast(String message) {
-        Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
+    private void toast(final String message) {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                Toast.makeText(FaceDetectActivity.this, message, Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
     @Override
