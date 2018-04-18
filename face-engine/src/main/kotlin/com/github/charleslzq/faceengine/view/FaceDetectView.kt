@@ -55,6 +55,8 @@ constructor(context: Context, attributeSet: AttributeSet? = null, @AttrRes defSt
             }
         }
 
+    private val disposables = mutableListOf<Disposable>()
+
     override fun onLayout(changed: Boolean, left: Int, top: Int, right: Int, bottom: Int) {
         cameraView.layout(left, top, right, bottom)
         trackView.layout(
@@ -69,13 +71,13 @@ constructor(context: Context, attributeSet: AttributeSet? = null, @AttrRes defSt
             cameraSources.map {
                 it.onPreviewFrame(scheduler, processor)
             }
-    )
+    ).also { disposables.add(it) }
 
     override fun onPreviewFrame(scheduler: Scheduler, frameConsumer: CameraPreview.FrameConsumer) = CompositeDisposable(
             cameraSources.map {
                 it.onPreviewFrame(scheduler, frameConsumer)
             }
-    )
+    ).also { disposables.add(it) }
 
     @JvmOverloads
     fun onPreview(
@@ -124,8 +126,12 @@ constructor(context: Context, attributeSet: AttributeSet? = null, @AttrRes defSt
         selectedCamera?.stopPreview()
     }
 
-    override fun close() = cameraSources.forEach {
-        it.close()
+    override fun close() {
+        cameraSources.forEach {
+            it.close()
+        }
+        disposables.filter { !it.isDisposed }.forEach { it.dispose() }
+        disposables.clear()
     }
 
     fun getCurrentSource() = operatorSourceSelector(cameraSources)

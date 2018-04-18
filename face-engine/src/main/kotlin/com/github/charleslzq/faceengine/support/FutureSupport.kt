@@ -6,7 +6,7 @@ import java.util.concurrent.Future
 import java.util.concurrent.ThreadPoolExecutor
 import java.util.concurrent.TimeUnit
 
-const val DEFAULT_THREAD_SIZE = 20
+const val DEFAULT_THREAD_SIZE = 5
 
 fun getThreadPoolService(size: Int = DEFAULT_THREAD_SIZE) = Executors.newFixedThreadPool(size) as ThreadPoolExecutor
 
