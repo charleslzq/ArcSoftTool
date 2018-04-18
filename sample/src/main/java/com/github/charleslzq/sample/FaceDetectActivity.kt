@@ -41,8 +41,7 @@ class FaceDetectActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_face_detect)
         faceDetectCamera.setOnClickListener {
-            val originalId = faceDetectCamera.selectedCamera?.id
-            faceDetectCamera.getCurrentSource()?.operatorSelector = { it.firstOrNull { it.id != originalId } }
+            faceDetectCamera.selectNext()
         }
         faceDetectCamera.onPreview {
             val startTime = System.currentTimeMillis()

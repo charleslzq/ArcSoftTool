@@ -26,6 +26,7 @@ class UVCCameraOperatorSource(
         cameraView: CameraView,
         override val sampleInterval: Long
 ) : CameraOperatorSource() {
+    override var selected = false
     private val connectionListener = object : USBMonitor.OnDeviceConnectListener {
         override fun onAttach(usbDevice: UsbDevice) {
             Toast.makeText(context, "Camera Attached", Toast.LENGTH_SHORT).show()
@@ -48,7 +49,7 @@ class UVCCameraOperatorSource(
                     operatorSelector = {
                         it.first { it.id == usbDevice.deviceName }
                     }
-                    if (!selectedCamera!!.isPreviewing()) {
+                    if (!selectedCamera!!.isPreviewing() && selected) {
                         selectedCamera!!.startPreview()
                     }
                 } catch (throwable: Throwable) {

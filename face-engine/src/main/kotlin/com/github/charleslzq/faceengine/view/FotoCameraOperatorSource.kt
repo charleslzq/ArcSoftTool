@@ -28,6 +28,7 @@ class FotoCameraOperatorSource(
         cameraView: CameraView,
         override val sampleInterval: Long
 ) : CameraOperatorSource() {
+    override var selected = false
     private val frameProcessor = FrameToObservableProcessor()
     private val fotoapparat by lazy {
         Fotoapparat.with(context)

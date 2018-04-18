@@ -42,18 +42,23 @@ constructor(context: Context, attributeSet: AttributeSet? = null, @AttrRes defSt
             UVCCameraOperatorSource(context, cameraView, sampleInterval),
             FotoCameraOperatorSource(context, cameraView, sampleInterval)
     )
-    override val selectedCamera: CameraPreviewOperator?
-        get() = operatorSourceSelector(cameraSources)?.selectedCamera
+
     var operatorSourceSelector: (Iterable<CameraOperatorSource>) -> CameraOperatorSource? = { it.firstOrNull { it.getCameras().isNotEmpty() } }
         set(value) {
             val oldSelection = field(cameraSources)
             val newSelection = value(cameraSources)
             if (oldSelection != newSelection) {
                 oldSelection?.getCameras()?.forEach { it.stopPreview() }
+                oldSelection?.selected = false
                 field = value
+                newSelection?.selected = true
                 newSelection?.selectedCamera?.startPreview()
             }
         }
+    val selectedSource: CameraOperatorSource?
+        get() = operatorSourceSelector(cameraSources)
+    override val selectedCamera: CameraPreviewOperator?
+        get() = operatorSourceSelector(cameraSources)?.selectedCamera
 
     private val disposables = mutableListOf<Disposable>()
 
@@ -118,8 +123,35 @@ constructor(context: Context, attributeSet: AttributeSet? = null, @AttrRes defSt
     }
 
     override fun start() {
+        operatorSourceSelector(cameraSources)?.selected = true
         cameraSources.forEach { it.start() }
         selectedCamera?.startPreview()
+    }
+
+    fun selectNext() {
+        if (selectedSource != null && selectedCamera != null) {
+            selectedSource!!.getCameras().run {
+                val index = indexOf(selectedCamera!!)
+                if (index + 1 < size) {
+                    selectedSource!!.operatorSelector = {
+                        it.elementAt(index + 1)
+                    }
+                } else {
+                    val sourceIndex = cameraSources.indexOf(selectedSource!!)
+                    val availableSourceIndex = cameraSources.indices.firstOrNull {
+                        it > sourceIndex && cameraSources[it].getCameras().isNotEmpty()
+                    }
+                    operatorSourceSelector = if (availableSourceIndex != null) {
+                        { it.elementAt(availableSourceIndex) }
+                    } else {
+                        { it.firstOrNull { it.getCameras().isNotEmpty() } }
+                    }
+                    selectedSource!!.operatorSelector = {
+                        it.elementAt(0)
+                    }
+                }
+            }
+        }
     }
 
     fun pause() {
