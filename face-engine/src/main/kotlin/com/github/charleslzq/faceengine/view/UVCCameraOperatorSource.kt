@@ -97,6 +97,7 @@ class UVCCameraOperatorSource(
     }
 
     override fun close() {
+        cameras.values.forEach { it.release() }
         usbMonitor.unregister()
     }
 
