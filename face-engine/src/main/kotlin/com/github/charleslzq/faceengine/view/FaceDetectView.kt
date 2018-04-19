@@ -124,10 +124,12 @@ constructor(context: Context, attributeSet: AttributeSet? = null, @AttrRes defSt
 
     override fun start() {
         cameraSources.forEach { it.start() }
-        cameraSources.firstOrNull { it.getCameras().isNotEmpty() }?.let {
-            val sourceId = it.id
-            operatorSourceSelector = {
-                it.firstOrNull { it.id == sourceId }
+        if (selectedCamera == null || !selectedCamera!!.isPreviewing()) {
+            cameraSources.firstOrNull { it.getCameras().isNotEmpty() }?.let {
+                val sourceId = it.id
+                operatorSourceSelector = {
+                    it.firstOrNull { it.id == sourceId }
+                }
             }
         }
     }
