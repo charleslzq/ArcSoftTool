@@ -36,7 +36,7 @@ interface CameraPreviewOperator {
     fun startPreview()
     fun stopPreview()
     fun isPreviewing(): Boolean
-    fun takePicture(): Bitmap
+    fun takePicture(): Bitmap?
 }
 
 interface CameraSource : CameraPreview, AutoCloseable {

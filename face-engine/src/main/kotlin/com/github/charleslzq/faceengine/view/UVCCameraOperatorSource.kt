@@ -7,6 +7,7 @@ import android.util.Log
 import android.view.Surface
 import android.widget.Toast
 import com.github.charleslzq.faceengine.support.runOnCompute
+import com.github.charleslzq.faceengine.support.toBitmap
 import com.serenegiant.usb.USBMonitor
 import com.serenegiant.usb.UVCCamera
 import io.fotoapparat.parameter.Resolution
@@ -17,6 +18,7 @@ import io.reactivex.Scheduler
 import io.reactivex.subjects.PublishSubject
 import java.nio.ByteBuffer
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.SynchronousQueue
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
@@ -80,12 +82,12 @@ class UVCCameraOperatorSource(
     override fun onPreviewFrame(
             scheduler: Scheduler,
             processor: (CameraPreview.PreviewFrame) -> Unit
-    ) = publisher.sample(sampleInterval, TimeUnit.MILLISECONDS).observeOn(scheduler).subscribe(processor)
+    ) = publisher.observeOn(scheduler).sample(sampleInterval, TimeUnit.MILLISECONDS).subscribe(processor)
 
     override fun onPreviewFrame(
             scheduler: Scheduler,
             frameConsumer: CameraPreview.FrameConsumer
-    ) = publisher.sample(sampleInterval, TimeUnit.MILLISECONDS).observeOn(scheduler).subscribe { frameConsumer.accept(it) }
+    ) = publisher.observeOn(scheduler).sample(sampleInterval, TimeUnit.MILLISECONDS).subscribe { frameConsumer.accept(it) }
 
     override fun getCameras() = cameras.values.toList()
 
@@ -125,6 +127,9 @@ class UVCCameraOperatorSource(
         private var buffer = ByteArray(selectedResolution.area * 3 / 2)
         private val _isPreviewing = AtomicBoolean(false)
 
+        private var requireTakePicture = false
+        private val pictureQueue = SynchronousQueue<Bitmap>()
+
         override fun startPreview() {
             if (_isPreviewing.compareAndSet(false, true)) {
                 selectedResolution.run {
@@ -140,7 +145,12 @@ class UVCCameraOperatorSource(
                                 buffer = ByteArray(it.limit())
                             }
                             it.get(buffer)
-                            frameObserver.onNext(CameraPreview.PreviewFrame("UVC-$id", selectedResolution, buffer, 0, count.getAndIncrement()))
+                            val frame = CameraPreview.PreviewFrame("UVC-$id", selectedResolution, buffer, 0, count.getAndIncrement())
+                            if (requireTakePicture && pictureQueue.isEmpty()) {
+                                requireTakePicture = false
+                                pictureQueue.offer(toBitmap(frame))
+                            }
+                            frameObserver.onNext(frame)
                         }
                         if (count.get() > 1000) {
                             count.set(0)
@@ -160,8 +170,13 @@ class UVCCameraOperatorSource(
 
         override fun isPreviewing() = _isPreviewing.get()
 
-        override fun takePicture(): Bitmap {
-            throw UnsupportedOperationException("Image Capture not supported currently")
+        override fun takePicture(): Bitmap? {
+            requireTakePicture = true
+            return try {
+                pictureQueue.poll(500, TimeUnit.MILLISECONDS)
+            } catch (e: InterruptedException) {
+                null
+            }
         }
 
         fun release() = uvcCamera.run {

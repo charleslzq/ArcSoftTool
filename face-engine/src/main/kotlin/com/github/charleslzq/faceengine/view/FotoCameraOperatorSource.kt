@@ -50,12 +50,12 @@ class FotoCameraOperatorSource(
     override fun onPreviewFrame(
             scheduler: Scheduler,
             processor: (CameraPreview.PreviewFrame) -> Unit
-    ) = frameProcessor.publisher.sample(sampleInterval, TimeUnit.MILLISECONDS).observeOn(scheduler).subscribe(processor)
+    ) = frameProcessor.publisher.observeOn(scheduler).sample(sampleInterval, TimeUnit.MILLISECONDS).subscribe(processor)
 
     override fun onPreviewFrame(
             scheduler: Scheduler,
             frameConsumer: CameraPreview.FrameConsumer
-    ) = frameProcessor.publisher.sample(sampleInterval, TimeUnit.MILLISECONDS).observeOn(scheduler).subscribe { frameConsumer.accept(it) }
+    ) = frameProcessor.publisher.observeOn(scheduler).sample(sampleInterval, TimeUnit.MILLISECONDS).subscribe { frameConsumer.accept(it) }
 
     override fun close() {
         selectedCamera?.stopPreview()
