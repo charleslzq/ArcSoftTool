@@ -187,6 +187,6 @@ constructor(context: Context, attributeSet: AttributeSet? = null, @AttrRes defSt
 
     companion object {
         const val TAG = "FaceDetectView"
-        const val DEFAULT_INTERVAL = 100
+        const val DEFAULT_INTERVAL = 500
     }
 }
