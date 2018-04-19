@@ -6,10 +6,8 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.ServiceConnection
-import android.graphics.Bitmap
 import android.os.Bundle
 import android.os.IBinder
-import android.provider.MediaStore
 import android.support.v7.app.AppCompatActivity
 import android.text.Editable
 import android.text.TextWatcher
@@ -123,7 +121,7 @@ class MainActivity : AppCompatActivity() {
         })
         captureImageButton.setOnClickListener {
             startActivityForResult(
-                    Intent(MediaStore.ACTION_IMAGE_CAPTURE),
+                    Intent(this, FaceRegisterActivity::class.java),
                     RequestCodes.IMAGE_CAMERA.code
             )
         }
@@ -153,7 +151,7 @@ class MainActivity : AppCompatActivity() {
 
         when (RequestCodes.fromCode(requestCode)) {
             RequestCodes.IMAGE_CAMERA -> if (resultCode == Activity.RESULT_OK && data != null && faceEngineService != null) {
-                faceEngineService!!.detect(toFrame(data.extras["data"] as Bitmap)).run {
+                faceEngineService!!.detect(toFrame(BitmapFileHelper.load(data.extras["picPath"] as String))).run {
                     if (isNotEmpty() && size == 1) {
                         forEach {
                             var selectedPerson: SimplePerson? = null

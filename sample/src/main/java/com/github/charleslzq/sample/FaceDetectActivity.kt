@@ -6,7 +6,6 @@ import android.content.Context
 import android.content.Intent
 import android.content.ServiceConnection
 import android.os.Bundle
-import android.os.Environment
 import android.os.IBinder
 import android.support.v7.app.AppCompatActivity
 import com.github.charleslzq.arcsofttools.kotlin.ArcSoftFaceEngineService
@@ -19,8 +18,6 @@ import com.orhanobut.logger.Logger
 import kotlinx.android.synthetic.main.activity_face_detect.*
 
 class FaceDetectActivity : AppCompatActivity() {
-    private val fileBase = Environment.getExternalStorageDirectory().absolutePath + "/tmp_pics/"
-
     private val serviceConnection = object : ServiceConnection {
         override fun onServiceDisconnected(name: ComponentName) {
             faceEngineService = null
