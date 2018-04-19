@@ -151,6 +151,7 @@ class UVCCameraOperatorSource(
 
         override fun stopPreview() {
             if (_isPreviewing.compareAndSet(true, false)) {
+                surface.release()
                 uvcCamera.stopPreview()
             }
         }
