@@ -39,11 +39,11 @@ constructor(context: Context, attributeSet: AttributeSet? = null, @AttrRes defSt
         } ?: DEFAULT_INTERVAL
     }.invoke().toLong()
     private val cameraSources = listOf(
-            UVCCameraOperatorSource(context, cameraView, sampleInterval),
-            FotoCameraOperatorSource(context, cameraView, sampleInterval)
+            UVCCameraOperatorSource(context, cameraView, sampleInterval, this::switchTo),
+            FotoCameraOperatorSource(context, cameraView, sampleInterval, this::switchTo)
     )
 
-    var operatorSourceSelector: (Iterable<CameraOperatorSource>) -> CameraOperatorSource? = { it.firstOrNull { it.getCameras().isNotEmpty() } }
+    var operatorSourceSelector: (Iterable<CameraOperatorSource>) -> CameraOperatorSource? = { null }
         set(value) {
             val oldSelection = field(cameraSources)
             val newSelection = value(cameraSources)
@@ -123,9 +123,13 @@ constructor(context: Context, attributeSet: AttributeSet? = null, @AttrRes defSt
     }
 
     override fun start() {
-        operatorSourceSelector(cameraSources)?.selected = true
         cameraSources.forEach { it.start() }
-        selectedCamera?.startPreview()
+        cameraSources.firstOrNull { it.getCameras().isNotEmpty() }?.let {
+            val sourceId = it.id
+            operatorSourceSelector = {
+                it.firstOrNull { it.id == sourceId }
+            }
+        }
     }
 
     fun selectNext() {
@@ -167,7 +171,11 @@ constructor(context: Context, attributeSet: AttributeSet? = null, @AttrRes defSt
         disposables.clear()
     }
 
-    fun getCurrentSource() = operatorSourceSelector(cameraSources)
+    private fun switchTo(id: String) {
+        operatorSourceSelector = {
+            it.firstOrNull { it.id == id }
+        }
+    }
 
     class CompositeDisposable(private val disposables: List<Disposable>) : Disposable {
         override fun isDisposed() = disposables.all { it.isDisposed }

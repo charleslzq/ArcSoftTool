@@ -24,37 +24,38 @@ import java.util.concurrent.atomic.AtomicInteger
 class UVCCameraOperatorSource(
         context: Context,
         cameraView: CameraView,
-        override val sampleInterval: Long
+        override val sampleInterval: Long,
+        override val switchToThis: (String) -> Unit
 ) : CameraOperatorSource() {
+    override val id: String = "UVC"
     override var selected = false
     private val connectionListener = object : USBMonitor.OnDeviceConnectListener {
         override fun onAttach(usbDevice: UsbDevice) {
-            Toast.makeText(context, "Camera Attached", Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, "External Camera Attached", Toast.LENGTH_SHORT).show()
             usbMonitor.requestPermission(usbDevice)
         }
 
         override fun onConnect(usbDevice: UsbDevice, usbControlBlock: USBMonitor.UsbControlBlock, createNew: Boolean) {
-            Toast.makeText(context, "Camera Connected", Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, "External Camera Connected", Toast.LENGTH_SHORT).show()
             cameras.values.forEach { it.stopPreview() }
-            runOnCompute {
-                val camera = UVCCamera()
-                try {
-                    camera.open(usbControlBlock)
-                    cameras[usbDevice.deviceName] = UVCCameraOperator(
-                            usbDevice.deviceName,
-                            cameraView,
-                            camera,
-                            publisher
-                    )
-                    operatorSelector = {
-                        it.first { it.id == usbDevice.deviceName }
-                    }
-                    if (!selectedCamera!!.isPreviewing() && selected) {
-                        selectedCamera!!.startPreview()
-                    }
-                } catch (throwable: Throwable) {
-                    throwable.printStackTrace()
+            val camera = UVCCamera()
+            try {
+                camera.open(usbControlBlock)
+                cameras[usbDevice.deviceName] = UVCCameraOperator(
+                        usbDevice.deviceName,
+                        cameraView,
+                        camera,
+                        publisher
+                )
+                switchToThis(id)
+                operatorSelector = {
+                    it.first { it.id == usbDevice.deviceName }
                 }
+                if (!selectedCamera!!.isPreviewing() && selected) {
+                    selectedCamera!!.startPreview()
+                }
+            } catch (throwable: Throwable) {
+                throwable.printStackTrace()
             }
         }
 
@@ -62,13 +63,13 @@ class UVCCameraOperatorSource(
         }
 
         override fun onDisconnect(usbDevice: UsbDevice, p1: USBMonitor.UsbControlBlock) {
-            Toast.makeText(context, "Camera Disconnected", Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, "External Camera Disconnected", Toast.LENGTH_SHORT).show()
             cameras[usbDevice.deviceName]?.release()
             cameras.remove(usbDevice.deviceName)
         }
 
         override fun onDettach(usbDevice: UsbDevice) {
-            Toast.makeText(context, "Camera Detached", Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, "External Camera Detached", Toast.LENGTH_SHORT).show()
         }
 
     }

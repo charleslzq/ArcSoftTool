@@ -26,8 +26,10 @@ fun Frame.toPreviewFrame(source: String, seq: Int? = null) = CameraPreview.Previ
 class FotoCameraOperatorSource(
         context: Context,
         cameraView: CameraView,
-        override val sampleInterval: Long
+        override val sampleInterval: Long,
+        override val switchToThis: (String) -> Unit
 ) : CameraOperatorSource() {
+    override val id: String = "FOTO"
     override var selected = false
     private val frameProcessor = FrameToObservableProcessor()
     private val fotoapparat by lazy {

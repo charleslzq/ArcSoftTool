@@ -65,6 +65,8 @@ abstract class CameraOperatorSource : CameraSource {
         get() = operatorSelector(getCameras())
     abstract val sampleInterval: Long
     abstract var selected: Boolean
+    abstract val id: String
+    abstract val switchToThis: (String) -> Unit
 
     abstract fun onSelected(operator: CameraPreviewOperator?)
 }
