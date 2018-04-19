@@ -40,7 +40,6 @@ public class FaceDetectActivity extends AppCompatActivity {
         @Override
         public void onServiceConnected(ComponentName componentName, IBinder iBinder) {
             faceEngineService = (ArcSoftFaceEngineService<WebSocketCompositeFaceStore<Person, Face>>) iBinder;
-            faceEngineService.getStore().refresh();
         }
 
         @Override
