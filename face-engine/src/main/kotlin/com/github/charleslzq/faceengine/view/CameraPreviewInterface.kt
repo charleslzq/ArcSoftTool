@@ -1,6 +1,5 @@
 package com.github.charleslzq.faceengine.view
 
-import android.graphics.Bitmap
 import io.fotoapparat.parameter.Resolution
 import io.reactivex.Scheduler
 import io.reactivex.disposables.Disposable
@@ -36,7 +35,6 @@ interface CameraPreviewOperator {
     fun startPreview()
     fun stopPreview()
     fun isPreviewing(): Boolean
-    fun takePicture(): Bitmap?
 }
 
 interface CameraSource : CameraPreview, AutoCloseable {

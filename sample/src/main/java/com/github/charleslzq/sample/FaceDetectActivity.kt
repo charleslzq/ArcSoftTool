@@ -5,7 +5,6 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.ServiceConnection
-import android.graphics.Bitmap
 import android.os.Bundle
 import android.os.Environment
 import android.os.IBinder
@@ -18,9 +17,6 @@ import com.github.charleslzq.faceengine.support.faceEngineTaskExecutor
 import com.github.charleslzq.facestore.websocket.WebSocketCompositeFaceStore
 import com.orhanobut.logger.Logger
 import kotlinx.android.synthetic.main.activity_face_detect.*
-import org.joda.time.LocalDateTime
-import java.io.File
-import java.io.FileOutputStream
 
 class FaceDetectActivity : AppCompatActivity() {
     private val fileBase = Environment.getExternalStorageDirectory().absolutePath + "/tmp_pics/"
@@ -45,18 +41,7 @@ class FaceDetectActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_face_detect)
         faceDetectCamera.setOnClickListener {
-            //            faceDetectCamera.selectNext()
-            faceDetectCamera.selectedCamera?.takePicture()?.let { pic ->
-                File(Environment.getExternalStorageDirectory().absolutePath + "/pic_taken/${LocalDateTime.now()}.png").run {
-                    parentFile.mkdirs()
-                    if (!exists()) {
-                        createNewFile()
-                    }
-                    FileOutputStream(this).use {
-                        pic.compress(Bitmap.CompressFormat.PNG, 100, it)
-                    }
-                }
-            }
+            faceDetectCamera.selectNext()
         }
         faceDetectCamera.onPreview {
             val startTime = System.currentTimeMillis()
@@ -105,7 +90,7 @@ class FaceDetectActivity : AppCompatActivity() {
                     setResult(Activity.RESULT_OK, Intent().apply {
                         putExtra("personName", it)
                     })
-//                    finish()
+                    finish()
                 }
             } catch (throwable: Throwable) {
                 Logger.e(throwable, "Exception occur with frame ${it.sequence}")

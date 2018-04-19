@@ -120,7 +120,7 @@ public class FaceDetectActivity extends AppCompatActivity {
                         Intent intent = new Intent();
                         intent.putExtra("personName", result);
                         setResult(Activity.RESULT_OK, intent);
-//                            finish();
+                        finish();
                     }
                 }
                 Logger.i("Handle Completed for frame " + frame.getSequence());

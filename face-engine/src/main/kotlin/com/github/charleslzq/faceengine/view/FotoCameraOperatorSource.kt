@@ -9,7 +9,6 @@ import io.fotoapparat.log.logcat
 import io.fotoapparat.parameter.ScaleType
 import io.fotoapparat.preview.Frame
 import io.fotoapparat.preview.FrameProcessor
-import io.fotoapparat.result.transformer.originalResolution
 import io.fotoapparat.selector.back
 import io.fotoapparat.selector.firstAvailable
 import io.fotoapparat.selector.front
@@ -99,8 +98,6 @@ class FotoCameraOperatorSource(
         }
 
         override fun isPreviewing() = _isPreviewing.get()
-
-        override fun takePicture() = fotoapparat.takePicture().toBitmap(originalResolution()).transform { it.bitmap }.await()
 
         fun switchToThis() {
             fotoapparat.switchTo(camera.lensPosition, camera.configuration.copy(
