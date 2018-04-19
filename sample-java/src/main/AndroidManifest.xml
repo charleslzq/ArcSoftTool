@@ -10,7 +10,6 @@
     <uses-permission android:name="android.permission.INTERNET" />
 
     <uses-feature android:name="android.hardware.camera" />
-
     <uses-feature android:name="android.hardware.usb.host" />
 
     <application
@@ -20,8 +19,8 @@
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:windowSoftInputMode="stateHidden"
-        android:theme="@style/AppTheme">
+        android:theme="@style/AppTheme"
+        android:windowSoftInputMode="stateHidden">
         <activity
             android:name=".MainActivity"
             android:windowSoftInputMode="stateHidden">
@@ -48,6 +47,7 @@
                 android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED"
                 android:resource="@xml/usb_device_filter" />
         </activity>
+        <activity android:name=".FaceRegisterActivity" />
     </application>
 
 </manifest>

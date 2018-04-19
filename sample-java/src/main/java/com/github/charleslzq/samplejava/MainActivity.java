@@ -7,7 +7,6 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.ServiceConnection;
-import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.provider.MediaStore;
@@ -239,7 +238,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void registerImage(Intent data) {
-        final Map<TrackedFace, Face> faces = faceEngineService.detect(Nv21ImageUtils.toFrame((Bitmap) data.getExtras().get("data")));
+        final Map<TrackedFace, Face> faces = faceEngineService.detect(Nv21ImageUtils.toFrame(BitmapFileHelper.load(data.getExtras().getString("picPath"))));
         if (!faces.isEmpty() && faces.size() == 1) {
             final AtomicReference<SimplePerson> selectedPerson = new AtomicReference<>(null);
             View dialogLayout = getLayoutInflater().inflate(R.layout.dialog_register, null);
