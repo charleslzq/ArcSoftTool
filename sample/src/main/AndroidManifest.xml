@@ -29,27 +29,13 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".FaceDetectActivity">
-            <intent-filter>
-                <action android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED" />
-            </intent-filter>
-            <intent-filter>
-                <action android:name="android.hardware.usb.action.USB_DEVICE_DETACHED" />
-            </intent-filter>
-
-            <meta-data
-                android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED"
-                android:resource="@xml/usb_device_filter" />
-            <meta-data
-                android:name="android.hardware.usb.action.USB_DEVICE_DETACHED"
-                android:resource="@xml/usb_device_filter" />
-        </activity>
+        <activity android:name=".FaceDetectActivity" />
 
         <service
             android:name="com.github.charleslzq.arcsofttools.kotlin.WebSocketArcSoftEngineService"
             android:enabled="true" />
 
-        <activity android:name=".FaceRegisterActivity"></activity>
+        <activity android:name=".FaceRegisterActivity" />
     </application>
 
 </manifest>
