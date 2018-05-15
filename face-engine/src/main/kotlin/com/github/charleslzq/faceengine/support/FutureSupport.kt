@@ -15,7 +15,7 @@ fun getThreadPoolService(size: Int = DEFAULT_THREAD_SIZE) = Executors.newFixedTh
 class FaceEngineTaskExecutor(
         private val executor: ThreadPoolExecutor = getThreadPoolService()
 ) {
-    private val taskList = mutableListOf<Future<*>>()
+    private val taskList = mutableListOf<Pair<String, Future<*>>>()
 
     fun logStatus() {
         Log.d(TAG, executor.toString())
@@ -24,11 +24,11 @@ class FaceEngineTaskExecutor(
     fun <V> submit(callable: () -> V) = executor.submit(callable)
 
     @JvmOverloads
-    fun <V> executeInTimeout(timeout: Long = 500, timeUnit: TimeUnit = TimeUnit.MILLISECONDS, callable: () -> V?): V? {
-        taskList.removeAll { !it.isPending }
+    fun <V> executeInTimeout(cameraId: String, timeout: Long = 500, timeUnit: TimeUnit = TimeUnit.MILLISECONDS, callable: () -> V?): V? {
+        taskList.removeAll { !it.second.isPending }
         return if (taskList.size < DEFAULT_THREAD_SIZE) {
             submit(callable).run {
-                taskList.add(this)
+                taskList.add(Pair(cameraId, this))
                 try {
                     get(timeout, timeUnit)
                 } catch (exception: Exception) {
@@ -41,8 +41,10 @@ class FaceEngineTaskExecutor(
         }
     }
 
-    fun cancelTasks() {
-        taskList.filter { it.isPending }.forEach { it.cancel(true) }
+    fun cancelTasks(cameraId: String? = null) {
+        taskList.filter {
+            (cameraId?.run { this == it.first } ?: true) && it.second.isPending
+        }.forEach { it.second.cancel(true) }
         taskList.clear()
     }
 

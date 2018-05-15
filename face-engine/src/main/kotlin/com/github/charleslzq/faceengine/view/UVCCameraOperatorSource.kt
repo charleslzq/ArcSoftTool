@@ -5,6 +5,7 @@ import android.hardware.usb.UsbDevice
 import android.util.Log
 import android.view.Surface
 import android.widget.Toast
+import com.github.charleslzq.faceengine.support.faceEngineTaskExecutor
 import com.github.charleslzq.faceengine.support.runOnCompute
 import com.serenegiant.usb.USBMonitor
 import com.serenegiant.usb.UVCCamera
@@ -153,6 +154,7 @@ class UVCCameraOperatorSource(
             if (_isPreviewing.compareAndSet(true, false)) {
                 surface.release()
                 uvcCamera.stopPreview()
+                faceEngineTaskExecutor.cancelTasks(id)
             }
         }
 

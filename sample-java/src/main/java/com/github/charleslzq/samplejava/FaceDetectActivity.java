@@ -18,7 +18,6 @@ import com.github.charleslzq.arcsofttools.kotlin.Face;
 import com.github.charleslzq.arcsofttools.kotlin.Person;
 import com.github.charleslzq.arcsofttools.kotlin.WebSocketArcSoftEngineService;
 import com.github.charleslzq.faceengine.core.TrackedFace;
-import com.github.charleslzq.faceengine.support.FutureSupport;
 import com.github.charleslzq.faceengine.view.CameraPreview;
 import com.github.charleslzq.faceengine.view.CameraPreviewOperator;
 import com.github.charleslzq.faceengine.view.FaceDetectView;
@@ -153,7 +152,6 @@ public class FaceDetectActivity extends AppCompatActivity {
     protected void onDestroy() {
         unbindService(serviceConnection);
         faceDetectCamera.close();
-        FutureSupport.getFaceEngineTaskExecutor().cancelTasks();
         super.onDestroy();
     }
 }

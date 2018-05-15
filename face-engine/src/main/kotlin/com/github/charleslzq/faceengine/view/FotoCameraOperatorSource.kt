@@ -2,6 +2,7 @@ package com.github.charleslzq.faceengine.view
 
 import android.content.Context
 import android.util.Log
+import com.github.charleslzq.faceengine.support.faceEngineTaskExecutor
 import io.fotoapparat.Fotoapparat
 import io.fotoapparat.FotoapparatBuilder
 import io.fotoapparat.characteristic.LensPosition
@@ -94,6 +95,7 @@ class FotoCameraOperatorSource(
         override fun stopPreview() {
             if (_isPreviewing.compareAndSet(true, false)) {
                 fotoapparat.stop()
+                faceEngineTaskExecutor.cancelTasks(id)
             }
         }
 

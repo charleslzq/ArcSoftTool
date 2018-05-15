@@ -4,7 +4,6 @@ import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
-import com.github.charleslzq.faceengine.support.faceEngineTaskExecutor
 import com.github.charleslzq.faceengine.support.toBitmap
 import kotlinx.android.synthetic.main.activity_face_register.*
 import java.util.concurrent.atomic.AtomicBoolean
@@ -40,7 +39,6 @@ class FaceRegisterActivity : AppCompatActivity() {
 
     override fun onDestroy() {
         faceRegisterCamera.close()
-        faceEngineTaskExecutor.cancelTasks()
         super.onDestroy()
     }
 }

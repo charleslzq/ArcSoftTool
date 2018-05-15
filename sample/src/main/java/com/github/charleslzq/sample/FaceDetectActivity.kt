@@ -12,7 +12,6 @@ import com.github.charleslzq.arcsofttools.kotlin.ArcSoftFaceEngineService
 import com.github.charleslzq.arcsofttools.kotlin.Face
 import com.github.charleslzq.arcsofttools.kotlin.Person
 import com.github.charleslzq.arcsofttools.kotlin.WebSocketArcSoftEngineService
-import com.github.charleslzq.faceengine.support.faceEngineTaskExecutor
 import com.github.charleslzq.facestore.websocket.WebSocketCompositeFaceStore
 import com.orhanobut.logger.Logger
 import kotlinx.android.synthetic.main.activity_face_detect.*
@@ -114,7 +113,6 @@ class FaceDetectActivity : AppCompatActivity() {
     override fun onDestroy() {
         unbindService(serviceConnection)
         faceDetectCamera.close()
-        faceEngineTaskExecutor.cancelTasks()
         super.onDestroy()
     }
 }

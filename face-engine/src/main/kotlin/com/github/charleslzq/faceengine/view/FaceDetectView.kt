@@ -92,7 +92,7 @@ constructor(context: Context, attributeSet: AttributeSet? = null, @AttrRes defSt
             processor: (CameraPreview.PreviewFrame) -> Unit
     ) = onPreviewFrame(scheduler) {
         faceEngineTaskExecutor.run {
-            executeInTimeout(timeout, timeUnit) {
+            executeInTimeout(selectedCamera!!.id, timeout, timeUnit) {
                 processor(it)
             }
             logStatus()
@@ -107,7 +107,7 @@ constructor(context: Context, attributeSet: AttributeSet? = null, @AttrRes defSt
             frameConsumer: CameraPreview.FrameConsumer
     ) = onPreviewFrame(scheduler) {
         faceEngineTaskExecutor.run {
-            executeInTimeout(timeout, timeUnit) {
+            executeInTimeout(selectedCamera!!.id, timeout, timeUnit) {
                 frameConsumer.accept(it)
             }
             logStatus()
@@ -171,6 +171,7 @@ constructor(context: Context, attributeSet: AttributeSet? = null, @AttrRes defSt
         }
         disposables.filter { !it.isDisposed }.forEach { it.dispose() }
         disposables.clear()
+        faceEngineTaskExecutor.cancelTasks()
     }
 
     private fun switchTo(id: String) {
