@@ -48,5 +48,4 @@ repositories {
     mavenCentral()
 }
 
-apply from: 'pom.gradle'
-apply from: '../maven-publish.gradle'
+apply from: rootProject.file('gradle/gradle-mvn-push.gradle')

@@ -9,7 +9,6 @@
 .externalNativeBuild
 
 .idea
-gradle
 gradlew
 gradlew.bat
 .idea/
