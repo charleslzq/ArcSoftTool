@@ -54,3 +54,8 @@ computation线程) . 收到的数据类型为CameraPreview.PreviewFrame, 各字�
     1. ImageUtils, 其toBitmap方法可将包含NV21编码的图像原始数据转换成Bitmap
     2. Nv21ImageUtils, 其toNv21Bytes方法提供相反的转换,即bitmap转换成Nv21编码的byte数组
 
+### ArcSoft的配置
+项目根目录下有一个sample.local.properties, 将其中Arcsoft开头的配置项拷到使用该库项目根目录下的
+local.properties中, 填上从arcsoft官网获取到的app id, key等即可. 具体参数的配置在sample资源
+values目录的ArcSoftSetting.xml里面, 参照它以及arcsoft官网的说明进行配置即可.
+
