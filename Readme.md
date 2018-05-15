@@ -3,6 +3,23 @@
 自带摄像头或者外接UVC摄像头中获取相片流.后者用于对图片进行处理, 提取相关信息等, 是个通用的接口, 本
 项目已经提供了arcsoft的人脸识别引擎对该接口的实现, 并计划加入百度人脸识别引擎的实现.
 
+##### 使用
+在项目根目录下的build.gradle里面加入maven中央仓库, 如下所示
+
+    allprojects {
+        repositories {
+            // 其它仓库, 如google()等
+            mavenCentral()
+        }
+    }
+
+在要使用该库的模块的build.gradle中加入如下依赖:
+
+    dependencies {
+        // 其它依赖
+        implementation 'com.github.charleslzq:arcsoft-binding:1.0.0-RC1'
+    }
+
 ### FaceDetectView
 该组件有其生命周期, 一般跟包含它的activity或者fragment同步. 在xml中有如下配置参数
 
