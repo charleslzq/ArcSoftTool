@@ -22,10 +22,13 @@ android {
         }
     }
 
-    sourceSets{
+    sourceSets {
         main.java.srcDirs += 'src/main/kotlin'
     }
 
+    lintOptions {
+        abortOnError false
+    }
 }
 
 apply from: 'readLocalProperties.gradle'
@@ -43,9 +46,6 @@ dependencies {
     implementation 'com.guo.android_extend:android-extend:1.0.1'
 
     testImplementation 'junit:junit:4.12'
-}
-repositories {
-    mavenCentral()
 }
 
 apply from: rootProject.file('gradle/gradle-mvn-push.gradle')

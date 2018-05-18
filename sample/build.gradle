@@ -22,15 +22,24 @@ android {
         }
     }
 
+    lintOptions {
+        abortOnError false
+    }
+
+
 }
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
-    implementation project(':arcsoft-binding')
-    implementation('com.android.support:appcompat-v7:27.1.0') {
+    implementation 'com.github.charleslzq:arcsoft-binding:1.0.0-SNAPSHOT'
+//    implementation project(':arcsoft-binding')
+    implementation 'com.jakewharton.rxbinding2:rxbinding-support-v4:2.1.1'
+    implementation('com.android.support:appcompat-v7:27.1.1') {
         force = true
     }
     implementation 'com.android.support.constraint:constraint-layout:1.0.2'
     implementation 'com.github.huangyanbin:SmartTable:2.0'
     implementation "com.orhanobut:logger:$logger_version"
+
+    testImplementation 'junit:junit:4.12'
 }
