@@ -4,7 +4,7 @@ ext {
     compileSdkVersion = 27
 
     faceStore = 'com.github.charleslzq:face-store:1.0.1-RC2'
-    arcsoftBinding = 'com.github.charleslzq:arcsoft-binding:1.0.0-RC2'
+    arcsoftBinding = 'com.github.charleslzq:arcsoft-binding:1.0.0-RC3'
     jodaTime = 'joda-time:joda-time:2.9.9'
     gson = 'com.google.code.gson:gson:2.8.2'
     gsonJodaSerialiser = 'com.fatboyindustrial.gson-jodatime-serialisers:gson-jodatime-serialisers:1.6.0'

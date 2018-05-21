@@ -17,7 +17,17 @@
 
     dependencies {
         // 其它依赖
-        implementation 'com.github.charleslzq:arcsoft-binding:1.0.0-RC1'
+        implementation 'com.github.charleslzq:arcsoft-binding:1.0.0-RC3'
+    }
+
+另外还需要加入以下代码避免报错:
+
+    android {
+        //其它配置, 如sdk版本等
+
+        packagingOptions {
+            exclude 'META-INF/rxjava.properties'
+        }
     }
 
 ### FaceDetectView
@@ -72,7 +82,7 @@ computation线程) . 收到的数据类型为CameraPreview.PreviewFrame, 各字�
     2. Nv21ImageUtils, 其toNv21Bytes方法提供相反的转换,即bitmap转换成Nv21编码的byte数组
 
 ### ArcSoft的配置
-项目根目录下有一个sample.local.properties, 将其中Arcsoft开头的配置项拷到使用该库项目根目录下的
-local.properties中, 填上从arcsoft官网获取到的app id, key等即可. 具体参数的配置在sample资源
+sample和sample-java项目assets目录下有一个sample.arcsoft.keys, 将其拷到项目的assets文件夹
+下并更名为arcsoft.keys, 填上从arcsoft官网获取到的app id, key等即可. 具体参数的配置在sample/sample-java资源
 values目录的ArcSoftSetting.xml里面, 参照它以及arcsoft官网的说明进行配置即可.
 
