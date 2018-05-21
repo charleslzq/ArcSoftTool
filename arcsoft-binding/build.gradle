@@ -2,12 +2,12 @@ apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
 
 android {
-    compileSdkVersion 27
+    compileSdkVersion rootProject.ext.compileSdkVersion
     buildToolsVersion "26.0.2"
 
     defaultConfig {
-        minSdkVersion 19
-        targetSdkVersion 27
+        minSdkVersion rootProject.ext.minSdkVersion
+        targetSdkVersion rootProject.ext.compileSdkVersion
         versionCode 1
         versionName "1.0"
         sourceSets.main {
@@ -36,7 +36,7 @@ apply from: 'readLocalProperties.gradle'
 dependencies {
     api project(':face-engine')
     api project(':websocket-face-store')
-    api "com.github.charleslzq:face-store:$face_store_version"
+    api rootProject.ext.faceStore
 
     implementation files('libs/facedetection.jar')
     implementation files('libs/facerecognition.jar')
@@ -45,7 +45,7 @@ dependencies {
     implementation files('libs/genderestimation.jar')
     implementation 'com.guo.android_extend:android-extend:1.0.1'
 
-    testImplementation 'junit:junit:4.12'
+    testImplementation rootProject.ext.junit
 }
 
 apply from: rootProject.file('gradle/gradle-mvn-push.gradle')

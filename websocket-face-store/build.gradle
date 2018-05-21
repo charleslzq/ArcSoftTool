@@ -2,13 +2,13 @@ apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
 
 android {
-    compileSdkVersion 26
+    compileSdkVersion rootProject.ext.compileSdkVersion
 
 
 
     defaultConfig {
-        minSdkVersion 19
-        targetSdkVersion 26
+        minSdkVersion rootProject.ext.minSdkVersion
+        targetSdkVersion rootProject.ext.compileSdkVersion
         versionCode 1
         versionName "1.0"
 
@@ -27,14 +27,14 @@ android {
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
-    api "com.github.charleslzq:face-store:$face_store_version"
+    api rootProject.ext.faceStore
     api project(':face-engine')
-    implementation 'com.koushikdutta.async:androidasync:2.2.1'
-    implementation 'com.google.code.gson:gson:2.8.2'
-    implementation 'com.fatboyindustrial.gson-jodatime-serialisers:gson-jodatime-serialisers:1.6.0'
-    implementation "org.jetbrains.kotlin:kotlin-stdlib-jre7:$kotlin_version"
+    implementation rootProject.ext.androidSync
+    implementation rootProject.ext.gson
+    implementation rootProject.ext.gsonJodaSerialiser
+    implementation rootProject.ext.kotlinStdlib
 
-    testImplementation 'junit:junit:4.12'
+    testImplementation rootProject.ext.junit
 }
 repositories {
     mavenCentral()

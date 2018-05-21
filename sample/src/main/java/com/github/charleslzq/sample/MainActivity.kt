@@ -208,17 +208,17 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun reload(newPageSize: Int? = null): Boolean =
-        faceEngineService?.store?.run {
-            getPersonIds().mapNotNull { getPerson(it) }.filter(tableFilter).takeIf { it.isNotEmpty() }?.let {
-                faceStoreTable.tableData = PageTableData<FaceData<Person, Face>>("Registered Persons And Faces",
-                        it.map { FaceData(it, getFaceIdList(it.id).mapNotNull { faceId -> getFace(it.id, faceId) }) },
-                        columns
-                ).apply {
-                    newPageSize?.let { pageSize = it }
-                }
-                true
+            faceEngineService?.store?.run {
+                getPersonIds().mapNotNull { getPerson(it) }.filter(tableFilter).takeIf { it.isNotEmpty() }?.let {
+                    faceStoreTable.tableData = PageTableData<FaceData<Person, Face>>("Registered Persons And Faces",
+                            it.map { FaceData(it, getFaceIdList(it.id).mapNotNull { faceId -> getFace(it.id, faceId) }) },
+                            columns
+                    ).apply {
+                        newPageSize?.let { pageSize = it }
+                    }
+                    true
+                } ?: false
             } ?: false
-        } ?: false
 
     enum class RequestCodes {
         IMAGE_CAMERA,

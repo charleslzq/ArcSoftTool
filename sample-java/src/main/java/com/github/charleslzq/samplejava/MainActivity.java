@@ -66,21 +66,6 @@ public class MainActivity extends AppCompatActivity {
         }
     };
     private Predicate<Person> tableFilter = defaultFilter;
-    private ServiceConnection serviceConnection = new ServiceConnection() {
-        @Override
-        public void onServiceConnected(ComponentName componentName, IBinder iBinder) {
-            faceEngineService = (ArcSoftFaceEngineService<WebSocketCompositeFaceStore<Person, Face>>) iBinder;
-            faceEngineService.getStore().getListeners().add(storeListener);
-            faceEngineService.getStore().refresh();
-            reload();
-        }
-
-        @Override
-        public void onServiceDisconnected(ComponentName componentName) {
-            faceEngineService.getStore().getListeners().remove(storeListener);
-            faceEngineService = null;
-        }
-    };
     private final FaceStoreChangeListener<Person, Face> storeListener = new FaceStoreChangeListener<Person, Face>() {
         @Override
         public void onFaceDelete(String s, String s1) {
@@ -100,6 +85,21 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void onPersonUpdate(Person person) {
             reload();
+        }
+    };
+    private ServiceConnection serviceConnection = new ServiceConnection() {
+        @Override
+        public void onServiceConnected(ComponentName componentName, IBinder iBinder) {
+            faceEngineService = (ArcSoftFaceEngineService<WebSocketCompositeFaceStore<Person, Face>>) iBinder;
+            faceEngineService.getStore().getListeners().add(storeListener);
+            faceEngineService.getStore().refresh();
+            reload();
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName componentName) {
+            faceEngineService.getStore().getListeners().remove(storeListener);
+            faceEngineService = null;
         }
     };
 

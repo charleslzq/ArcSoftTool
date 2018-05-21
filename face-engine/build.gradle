@@ -2,11 +2,11 @@ apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
 
 android {
-    compileSdkVersion 27
+    compileSdkVersion rootProject.ext.compileSdkVersion
 
     defaultConfig {
-        minSdkVersion 19
-        targetSdkVersion 27
+        minSdkVersion rootProject.ext.minSdkVersion
+        targetSdkVersion rootProject.ext.compileSdkVersion
         versionCode 1
         versionName "1.0"
 
@@ -21,36 +21,33 @@ android {
         }
     }
 
-    sourceSets{
+    sourceSets {
         main.java.srcDirs += 'src/main/kotlin'
     }
+
     lintOptions {
         abortOnError false
     }
-
 }
 
 dependencies {
-    api "com.github.charleslzq:face-store:$face_store_version"
-    api 'joda-time:joda-time:2.9.9'
+    api rootProject.ext.faceStore
+    api rootProject.ext.jodaTime
     api('io.fotoapparat.fotoapparat:library:2.2.0') {
         exclude module: 'support-compat'
     }
-    api "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
-    api 'io.reactivex.rxjava2:rxandroid:2.0.1'
-    api 'io.reactivex.rxjava2:rxjava:2.1.7'
+    api rootProject.ext.kotlinStdlib
+    api rootProject.ext.rxAndroid
+    api rootProject.ext.rxJava
     api 'com.github.charleslzq:TP-libuvccamera:1.0.0'
     api 'com.github.charleslzq:TP-usbCameraCommon:1.0.0'
-    api files('../aars/usbCameraCommon-release.aar')
-    api 'com.android.support:support-compat:27.1.1'
-    implementation 'com.google.code.gson:gson:2.8.2'
-    implementation 'com.fatboyindustrial.gson-jodatime-serialisers:gson-jodatime-serialisers:1.6.0'
-    implementation('com.serenegiant:common:1.5.20') {
-        exclude module: 'support-v4'
-    }
-    testImplementation 'junit:junit:4.12'
-    androidTestImplementation 'com.android.support.test:runner:1.0.1'
-    androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.1'
+    api rootProject.ext.supportCompat
+    implementation rootProject.ext.gson
+    implementation rootProject.ext.gsonJodaSerialiser
+    implementation 'com.serenegiant:common:1.5.20'
+    testImplementation rootProject.ext.junit
+    androidTestImplementation rootProject.ext.supportTestRunner
+    androidTestImplementation rootProject.ext.supportTestEspresso
 }
 
 apply from: rootProject.file('gradle/gradle-mvn-push.gradle')

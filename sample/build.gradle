@@ -7,12 +7,12 @@ configurations.all {
 }
 
 android {
-    compileSdkVersion 27
+    compileSdkVersion rootProject.ext.compileSdkVersion
 
     defaultConfig {
         applicationId "com.github.charleslzq.sample"
-        minSdkVersion 19
-        targetSdkVersion 27
+        minSdkVersion rootProject.ext.minSdkVersion
+        targetSdkVersion rootProject.ext.compileSdkVersion
         versionCode 1
         versionName "1.0"
 
@@ -30,17 +30,18 @@ android {
     lintOptions {
         abortOnError false
     }
+
+    packagingOptions {
+        exclude 'META-INF/rxjava.properties'
+    }
 }
 
 dependencies {
     implementation fileTree(include: ['*.jar'], dir: 'libs')
-    implementation 'com.github.charleslzq:arcsoft-binding:1.0.0-SNAPSHOT'
-    implementation 'com.jakewharton.rxbinding2:rxbinding-support-v4:2.1.1'
-    implementation('com.android.support:appcompat-v7:27.1.1') {
-        force = true
-    }
-    implementation 'com.android.support.constraint:constraint-layout:1.0.2'
-    implementation 'com.github.huangyanbin:SmartTable:2.0'
-    implementation "com.orhanobut:logger:$logger_version"
-    testImplementation 'junit:junit:4.12'
+    implementation rootProject.ext.arcsoftBinding
+    implementation rootProject.ext.supportAppCompat
+    implementation rootProject.ext.supportConstraintLayout
+    implementation rootProject.ext.smartTable
+    implementation rootProject.ext.orhanobutLogger
+    testImplementation rootProject.ext.junit
 }
