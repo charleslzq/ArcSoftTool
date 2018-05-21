@@ -3,8 +3,6 @@ apply plugin: 'com.android.application'
 android {
     compileSdkVersion 27
 
-
-
     defaultConfig {
         applicationId "com.github.charleslzq.samplejava"
         minSdkVersion 19
@@ -26,13 +24,11 @@ android {
     lintOptions {
         abortOnError false
     }
-
-
 }
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
-    implementation project(':arcsoft-binding')
+    implementation 'com.github.charleslzq:arcsoft-binding:1.0.0-SNAPSHOT'
     implementation('com.android.support:appcompat-v7:27.1.0') {
         force = true
     }

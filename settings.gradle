@@ -1,5 +1,3 @@
-include ':libuvccamera-release'
-include ':usbCameraCommon-release'
 include ':face-engine'
 include ':websocket-face-store'
 include ':arcsoft-binding'

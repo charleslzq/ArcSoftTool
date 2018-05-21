@@ -1,9 +1,9 @@
 package com.github.charleslzq.faceengine.store
 
+import com.github.charleslzq.faceengine.support.MemCache
 import com.github.charleslzq.facestore.ListenableReadWriteFaceStore
 import com.github.charleslzq.facestore.Meta
 import com.github.charleslzq.facestore.ReadOnlyFaceStore
-import com.github.charleslzq.pacsdemo.support.MemCache
 
 /**
  * Created by charleslzq on 18-3-13.

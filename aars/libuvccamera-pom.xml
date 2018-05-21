@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns="http://maven.apache.org/POM/4.0.0"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.github.charleslzq</groupId>
+    <artifactId>TP-libuvccamera</artifactId>
+    <version>1.0.0</version>
+    <packaging>aar</packaging>
+
+    <name>TP-libuvccamera</name>
+    <description>package third party library libuvccamera
+    </description>
+    <url>https://github.com/saki4510t/UVCCamera</url>
+    <licenses>
+        <license>
+            <name>The Apache Software License, Version 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+        </license>
+    </licenses>
+    <developers>
+        <developer>
+            <name>saki</name>
+            <email>t_saki@serenegiant.com</email>
+        </developer>
+    </developers>
+    <scm>
+        <connection>scm:git:git@github.com:saki4510t/UVCCamera.git</connection>
+        <developerConnection>scm:git:git@github.com:saki4510t/UVCCamera.git</developerConnection>
+        <url>git@github.com:saki4510t/UVCCamera.git</url>
+    </scm>
+</project>
