@@ -186,7 +186,7 @@ class LocalArcSoftEngineService :
         FaceEngineServiceBackground<CameraPreview.PreviewFrame, Person, Face, Float, ReadWriteFaceStore<Person, Face>>() {
     override fun createEngineService() =
             ArcSoftFaceEngineService<ReadWriteFaceStore<Person, Face>>(
-                    ArcSoftRxDelegate(ArcSoftEngineAdapterBase(ArcSoftSdkKey(), ArcSoftSetting(resources)) {
+                    ArcSoftRxDelegate(ArcSoftEngineAdapterBase(ArcSoftSdkKey.read(applicationContext), ArcSoftSetting(resources)) {
                         ReadWriteFaceStoreCacheDelegate(
                                 ReadWriteFaceStoreRxDelegate(
                                         FaceFileReadWriteStore(
@@ -210,7 +210,7 @@ class LocalArcSoftEngineService :
 class WebSocketArcSoftEngineService :
         FaceEngineServiceBackground<CameraPreview.PreviewFrame, Person, Face, Float, WebSocketCompositeFaceStore<Person, Face>>() {
     override fun createEngineService() = ArcSoftFaceEngineService(
-            ArcSoftRxDelegate(ArcSoftEngineAdapterBase(ArcSoftSdkKey(), ArcSoftSettingWithWebSocket(resources)) {
+            ArcSoftRxDelegate(ArcSoftEngineAdapterBase(ArcSoftSdkKey.read(applicationContext), ArcSoftSettingWithWebSocket(resources)) {
                 WebSocketCompositeFaceStore(
                         it.webSocketUrl,
                         ReadWriteFaceStoreCacheDelegate(

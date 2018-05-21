@@ -31,8 +31,6 @@ android {
     }
 }
 
-apply from: 'readLocalProperties.gradle'
-
 dependencies {
     api project(':face-engine')
     api project(':websocket-face-store')

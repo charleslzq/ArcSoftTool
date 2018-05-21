@@ -1,16 +1,33 @@
 package com.github.charleslzq.arcsofttools.kotlin.support
 
-import com.github.charleslzq.arcsofttools.BuildConfig
+import android.content.Context
+import java.util.*
 
 /**
  * Created by charleslzq on 18-2-28.
  */
-// todo BuildConfig需要加密
-class ArcSoftSdkKey {
-    val appId = BuildConfig.ARCSOFT_APPID
-    val faceTrackingKey = BuildConfig.ARCSOFT_FACE_TRACKING_KEY
-    val faceDetectionKey = BuildConfig.ARCSOFT_FACE_DETECTION_KEY
-    val faceRecognitionKey = BuildConfig.ARCSOFT_FACE_RECOGNITION_KEY
-    val ageKey = BuildConfig.ARCSOFT_AGE_KEY
-    val genderKey = BuildConfig.ARCSOFT_GENDER_KEY
+data class ArcSoftSdkKey(
+        val appId: String = "",
+        val faceTrackingKey: String = "",
+        val faceDetectionKey: String = "",
+        val faceRecognitionKey: String = "",
+        val ageKey: String = "",
+        val genderKey: String = ""
+) {
+    companion object {
+        fun read(context: Context, fileName: String = "arcsoft.keys") = Properties().run {
+            context.assets.open(fileName).use {
+                load(it).run {
+                    ArcSoftSdkKey(
+                            getProperty("ArcSoft.appId"),
+                            getProperty("ArcSoft.faceTrackingKey"),
+                            getProperty("ArcSoft.faceDetectionKey"),
+                            getProperty("ArcSoft.faceRecognitionKey"),
+                            getProperty("ArcSoft.ageKey"),
+                            getProperty("ArcSoft.genderKey")
+                    )
+                }
+            }
+        }
+    }
 }
