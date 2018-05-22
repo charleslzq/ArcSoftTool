@@ -36,17 +36,18 @@ import java.util.*
 /**
  * Created by charleslzq on 18-3-1.
  */
-interface ArcSoftFaceEngine<out D : ReadWriteFaceStore<Person, Face>>
-    : FaceEngine<CameraPreview.PreviewFrame, Person, Face, Float, D>,
+interface ArcSoftFaceOfflineEngine<out D : ReadWriteFaceStore<Person, Face>>
+    : FaceOfflineEngine<CameraPreview.PreviewFrame, Person, Face, Float, D>,
         AgeDetector<CameraPreview.PreviewFrame, DetectedAge>,
         GenderDetector<CameraPreview.PreviewFrame, DetectedGender>,
         FaceTracker<CameraPreview.PreviewFrame>
 
-open class ArcSoftEngineAdapterBase<S : ArcSoftSetting, out D : ReadWriteFaceStore<Person, Face>>(
+open class ArcSoftOfflineEngineAdapterBase<S : ArcSoftSetting, out D : ReadWriteFaceStore<Person, Face>>(
         keys: ArcSoftSdkKey,
         setting: S,
         createStore: (S) -> D
-) : AutoCloseable, ArcSoftFaceEngine<D> {
+) : AutoCloseable, ArcSoftFaceOfflineEngine<D> {
+    final override var threshold: Float = 0.5f
     final override val store = createStore(setting)
     val faceRecognitionEngine = ArcSoftFaceRecognitionEngine(keys)
     val faceDetectEngine = ArcSoftFaceDetectionEngine(keys, setting)
@@ -175,18 +176,18 @@ open class ArcSoftEngineAdapterBase<S : ArcSoftSetting, out D : ReadWriteFaceSto
     }
 }
 
-class ArcSoftFaceEngineService<out D : ReadWriteFaceStore<Person, Face>>(
-        arcSoftFaceEngine: ArcSoftFaceEngine<D>
-) : FaceEngineService<CameraPreview.PreviewFrame, Person, Face, Float, D>(arcSoftFaceEngine),
+class ArcSoftFaceEngineService<D : ReadWriteFaceStore<Person, Face>>(
+        arcSoftFaceEngine: ArcSoftFaceOfflineEngine<D>
+) : FaceEngineService<CameraPreview.PreviewFrame, Person, Face, ArcSoftFaceOfflineEngine<D>>(arcSoftFaceEngine),
         AgeDetector<CameraPreview.PreviewFrame, DetectedAge> by arcSoftFaceEngine,
         GenderDetector<CameraPreview.PreviewFrame, DetectedGender> by arcSoftFaceEngine,
         FaceTracker<CameraPreview.PreviewFrame> by arcSoftFaceEngine
 
 class LocalArcSoftEngineService :
-        FaceEngineServiceBackground<CameraPreview.PreviewFrame, Person, Face, Float, ReadWriteFaceStore<Person, Face>>() {
+        FaceEngineServiceBackground<CameraPreview.PreviewFrame, Person, Face, ArcSoftFaceOfflineEngine<ReadWriteFaceStore<Person, Face>>>() {
     override fun createEngineService() =
             ArcSoftFaceEngineService<ReadWriteFaceStore<Person, Face>>(
-                    ArcSoftRxDelegate(ArcSoftEngineAdapterBase(ArcSoftSdkKey.read(applicationContext), ArcSoftSetting(resources)) {
+                    ArcSoftRxDelegate(ArcSoftOfflineEngineAdapterBase(ArcSoftSdkKey.read(applicationContext), ArcSoftSetting(resources)) {
                         ReadWriteFaceStoreCacheDelegate(
                                 ReadWriteFaceStoreRxDelegate(
                                         FaceFileReadWriteStore(
@@ -208,9 +209,9 @@ class LocalArcSoftEngineService :
 }
 
 class WebSocketArcSoftEngineService :
-        FaceEngineServiceBackground<CameraPreview.PreviewFrame, Person, Face, Float, WebSocketCompositeFaceStore<Person, Face>>() {
+        FaceEngineServiceBackground<CameraPreview.PreviewFrame, Person, Face, ArcSoftFaceOfflineEngine<WebSocketCompositeFaceStore<Person, Face>>>() {
     override fun createEngineService() = ArcSoftFaceEngineService(
-            ArcSoftRxDelegate(ArcSoftEngineAdapterBase(ArcSoftSdkKey.read(applicationContext), ArcSoftSettingWithWebSocket(resources)) {
+            ArcSoftRxDelegate(ArcSoftOfflineEngineAdapterBase(ArcSoftSdkKey.read(applicationContext), ArcSoftSettingWithWebSocket(resources)) {
                 WebSocketCompositeFaceStore(
                         it.webSocketUrl,
                         ReadWriteFaceStoreCacheDelegate(

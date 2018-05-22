@@ -4,16 +4,15 @@ import android.app.Service
 import android.content.Intent
 import android.os.Binder
 import com.github.charleslzq.facestore.Meta
-import com.github.charleslzq.facestore.ReadOnlyFaceStore
 
 /**
  * Created by charleslzq on 18-3-6.
  */
-open class FaceEngineService<in I, P : Meta, F : Meta, R : Comparable<R>, out S : ReadOnlyFaceStore<P, F>>(
-        val engine: FaceEngine<I, P, F, R, S>
-) : Binder(), FaceEngine<I, P, F, R, S> by engine
+open class FaceEngineService<in I, P : Meta, F : Meta, FE : FaceEngine<I, P, F>>(
+        val engine: FE
+) : Binder(), FaceEngine<I, P, F> by engine
 
-abstract class FaceEngineServiceBackground<in I, P : Meta, F : Meta, R : Comparable<R>, out S : ReadOnlyFaceStore<P, F>> :
+abstract class FaceEngineServiceBackground<in I, P : Meta, F : Meta, FE : FaceEngine<I, P, F>> :
         Service() {
     protected val engineService by lazy {
         createEngineService()
@@ -26,5 +25,5 @@ abstract class FaceEngineServiceBackground<in I, P : Meta, F : Meta, R : Compara
         super.onDestroy()
     }
 
-    abstract fun createEngineService(): FaceEngineService<I, P, F, R, S>
+    abstract fun createEngineService(): FaceEngineService<I, P, F, FE>
 }

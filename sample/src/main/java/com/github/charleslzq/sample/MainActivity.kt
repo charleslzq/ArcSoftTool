@@ -40,7 +40,7 @@ class MainActivity : AppCompatActivity() {
 
     private val serviceConnection = object : ServiceConnection {
         override fun onServiceDisconnected(name: ComponentName) {
-            faceEngineService!!.store.apply {
+            faceEngineService!!.engine.store.apply {
                 listeners.remove(storeListener)
             }
             faceEngineService = null
@@ -50,7 +50,7 @@ class MainActivity : AppCompatActivity() {
             @Suppress("UNCHECKED_CAST")
             faceEngineService =
                     service as ArcSoftFaceEngineService<WebSocketCompositeFaceStore<Person, Face>>
-            faceEngineService!!.store.apply {
+            faceEngineService!!.engine.store.apply {
                 listeners.add(storeListener)
                 refresh()
             }
@@ -132,7 +132,7 @@ class MainActivity : AppCompatActivity() {
             )
         }
         refreshButton.setOnClickListener {
-            faceEngineService?.store?.refresh()
+            faceEngineService?.engine?.store?.refresh()
         }
         bindService(
                 Intent(this, WebSocketArcSoftEngineService::class.java),
@@ -188,9 +188,9 @@ class MainActivity : AppCompatActivity() {
                                         val personName = selectedPerson?.name
                                                 ?: autoCompleteTexts.text.toString()
                                         if (selectedPerson == null) {
-                                            faceEngineService!!.store.savePerson(Person(personId, personName))
+                                            faceEngineService!!.engine.store.savePerson(Person(personId, personName))
                                         }
-                                        faceEngineService!!.store.saveFace(personId, it.value)
+                                        faceEngineService!!.engine.store.saveFace(personId, it.value)
                                     })
                                     .setNegativeButton("CANCEL", { dialog, _ -> dialog.dismiss() })
                                     .show()
@@ -208,7 +208,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun reload(newPageSize: Int? = null): Boolean =
-            faceEngineService?.store?.run {
+            faceEngineService?.engine?.store?.run {
                 getPersonIds().mapNotNull { getPerson(it) }.filter(tableFilter).takeIf { it.isNotEmpty() }?.let {
                     faceStoreTable.tableData = PageTableData<FaceData<Person, Face>>("Registered Persons And Faces",
                             it.map { FaceData(it, getFaceIdList(it.id).mapNotNull { faceId -> getFace(it.id, faceId) }) },

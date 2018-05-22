@@ -23,9 +23,14 @@ interface AgeDetector<in I, out A> {
     fun detectAge(image: I): List<A>
 }
 
-interface FaceEngine<in I, P : Meta, F : Meta, R : Comparable<R>, out S : ReadOnlyFaceStore<P, F>> {
-    val store: S
+interface FaceEngine<in I, P : Meta, F : Meta> {
     fun detect(image: I): Map<TrackedFace, F> = emptyMap()
+    fun search(face: F): P?
+}
+
+interface FaceOfflineEngine<in I, P : Meta, F : Meta, R : Comparable<R>, out S : ReadOnlyFaceStore<P, F>> : FaceEngine<I, P, F> {
+    val store: S
+    var threshold: R
     fun calculateSimilarity(savedFace: F, newFace: F): R
     fun search(newFace: F, store: ReadOnlyFaceStore<P, F>) = store.getPersonIds()
             .mapNotNull { store.getPerson(it) }
@@ -36,12 +41,18 @@ interface FaceEngine<in I, P : Meta, F : Meta, R : Comparable<R>, out S : ReadOn
                 }.max()?.run { it to this }
             }.maxBy { it.second }
 
-    fun search(face: F) = search(face, store)
+    fun searchForScore(face: F) = search(face, store)
+    override fun search(face: F) = searchForScore(face)?.takeIf { it.second >= threshold }?.first
 }
 
-open class FaceEngineRxDelegate<in I, P : Meta, F : Meta, R : Comparable<R>, out S : ReadOnlyFaceStore<P, F>>(
-        protected val delegate: FaceEngine<I, P, F, R, S>
-) : FaceEngine<I, P, F, R, S> {
+open class FaceOfflineEngineRxDelegate<in I, P : Meta, F : Meta, R : Comparable<R>, out S : ReadOnlyFaceStore<P, F>>(
+        protected val delegate: FaceOfflineEngine<I, P, F, R, S>
+) : FaceOfflineEngine<I, P, F, R, S> {
+    final override var threshold: R
+        get() = delegate.threshold
+        set(value) {
+            delegate.threshold = value
+        }
     final override val store: S
         get() = delegate.store
 
@@ -52,6 +63,8 @@ open class FaceEngineRxDelegate<in I, P : Meta, F : Meta, R : Comparable<R>, out
 
     final override fun search(newFace: F, store: ReadOnlyFaceStore<P, F>) =
             callNullableOnIo { delegate.search(newFace, store) }
+
+    final override fun searchForScore(face: F) = callNullableOnIo { delegate.searchForScore(face) }
 
     final override fun search(face: F) =
             callNullableOnIo { delegate.search(face) }

@@ -91,14 +91,14 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void onServiceConnected(ComponentName componentName, IBinder iBinder) {
             faceEngineService = (ArcSoftFaceEngineService<WebSocketCompositeFaceStore<Person, Face>>) iBinder;
-            faceEngineService.getStore().getListeners().add(storeListener);
-            faceEngineService.getStore().refresh();
+            faceEngineService.getEngine().getStore().getListeners().add(storeListener);
+            faceEngineService.getEngine().getStore().refresh();
             reload();
         }
 
         @Override
         public void onServiceDisconnected(ComponentName componentName) {
-            faceEngineService.getStore().getListeners().remove(storeListener);
+            faceEngineService.getEngine().getStore().getListeners().remove(storeListener);
             faceEngineService = null;
         }
     };
@@ -205,13 +205,13 @@ public class MainActivity extends AppCompatActivity {
     private boolean reload() {
         if (faceEngineService != null) {
             List<FaceData<Person, Face>> faceDataList = new ArrayList<>();
-            for (String id : faceEngineService.getStore().getPersonIds()) {
-                Person person = faceEngineService.getStore().getPerson(id);
+            for (String id : faceEngineService.getEngine().getStore().getPersonIds()) {
+                Person person = faceEngineService.getEngine().getStore().getPerson(id);
                 if (tableFilter.test(person)) {
-                    List<String> faceIdList = faceEngineService.getStore().getFaceIdList(id);
+                    List<String> faceIdList = faceEngineService.getEngine().getStore().getFaceIdList(id);
                     List<Face> faces = new ArrayList<>();
                     for (String faceId : faceIdList) {
-                        Face face = faceEngineService.getStore().getFace(id, faceId);
+                        Face face = faceEngineService.getEngine().getStore().getFace(id, faceId);
                         if (face != null) {
                             faces.add(face);
                         }
@@ -279,9 +279,9 @@ public class MainActivity extends AppCompatActivity {
                             String personId = selectedPerson.get() != null ? selectedPerson.get().getId() : UUID.randomUUID().toString();
                             String personName = selectedPerson.get() != null ? selectedPerson.get().getName() : autoCompleteTextView.getText().toString();
                             if (selectedPerson.get() == null) {
-                                faceEngineService.getStore().savePerson(new Person(personId, personName));
+                                faceEngineService.getEngine().getStore().savePerson(new Person(personId, personName));
                             }
-                            faceEngineService.getStore().saveFace(personId, faces.get(0));
+                            faceEngineService.getEngine().getStore().saveFace(personId, faces.get(0));
                         }
                     })
                     .setNegativeButton("CANCEL", new DialogInterface.OnClickListener() {
@@ -292,9 +292,9 @@ public class MainActivity extends AppCompatActivity {
                     })
                     .show();
             String testPersonId = "test";
-            faceEngineService.getStore().savePerson(new Person(testPersonId, "test_name"));
+            faceEngineService.getEngine().getStore().savePerson(new Person(testPersonId, "test_name"));
             for (Face face : faces.values()) {
-                faceEngineService.getStore().saveFace(testPersonId, face);
+                faceEngineService.getEngine().getStore().saveFace(testPersonId, face);
             }
         }
     }
@@ -318,7 +318,7 @@ public class MainActivity extends AppCompatActivity {
     @OnClick(R.id.refreshButton)
     public void onRefreshButtonClicked() {
         if (faceEngineService != null) {
-            faceEngineService.getStore().refresh();
+            faceEngineService.getEngine().getStore().refresh();
         }
     }
 
@@ -335,8 +335,8 @@ public class MainActivity extends AppCompatActivity {
     private List<SimplePerson> constructAutoCompleteData() {
         if (faceEngineService != null) {
             List<SimplePerson> result = new ArrayList<>();
-            for (String id : faceEngineService.getStore().getPersonIds()) {
-                Person person = faceEngineService.getStore().getPerson(id);
+            for (String id : faceEngineService.getEngine().getStore().getPersonIds()) {
+                Person person = faceEngineService.getEngine().getStore().getPerson(id);
                 if (person != null) {
                     result.add(SimplePerson.fromPerson(person));
                 }

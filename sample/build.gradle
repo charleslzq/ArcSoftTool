@@ -38,8 +38,8 @@ android {
 
 dependencies {
     implementation fileTree(include: ['*.jar'], dir: 'libs')
-//    implementation project(':arcsoft-binding')
-    implementation rootProject.ext.arcsoftBinding
+    implementation project(':arcsoft-binding')
+//    implementation rootProject.ext.arcsoftBinding
     implementation rootProject.ext.supportAppCompat
     implementation rootProject.ext.supportConstraintLayout
     implementation rootProject.ext.smartTable

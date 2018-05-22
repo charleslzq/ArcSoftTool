@@ -49,7 +49,7 @@ class FaceDetectActivity : AppCompatActivity() {
                 var personName: String? = null
                 toast(buildString {
                     if (detectResult.size == 1) {
-                        val result = detectResult.mapNotNull { faceEngineService!!.search(it.value) }
+                        val result = detectResult.mapNotNull { faceEngineService!!.engine.searchForScore(it.value) }
                         if (result.isNotEmpty()) {
                             val person = result.maxBy { it.second } ?: Pair(Person("", ""), 0f)
                             if (person.second > 0.5f) {
