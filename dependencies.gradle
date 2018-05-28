@@ -12,9 +12,19 @@ ext {
     smartTable = 'com.github.huangyanbin:SmartTable:2.0'
     orhanobutLogger = 'com.orhanobut:logger:2.2.0'
 
+    retrofit_version = '2.4.0'
+    retrofit = "com.squareup.retrofit2:retrofit:$retrofit_version"
+    retrofitGson = "com.squareup.retrofit2:converter-gson:$retrofit_version"
+    retrofitCoroutine = 'ru.gildor.coroutines:kotlin-coroutines-retrofit:0.10.0'
+
     kotlinPlugin = "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
     kotlinStdlib = "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
     kotlinPoet = 'com.squareup:kotlinpoet:0.6.0'
+    kotlinXCoroutine = 'org.jetbrains.kotlinx:kotlinx-coroutines-core:0.22.5'
+
+    koin_version = '0.9.3'
+    koinCore = "org.koin:koin-core:$koin_version"
+    koinAndroid = "org.koin:koin-android:$koin_version"
 
     supportVersion = '27.1.1'
     supportCompat = "com.android.support:support-compat:$supportVersion"

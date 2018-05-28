@@ -1,6 +1,8 @@
 include ':face-engine'
 include ':websocket-face-store'
 include ':arcsoft-binding'
+include ':baidu-binding'
 include ':sample'
 include ':sample-java'
+include ':sample-baidu'
 

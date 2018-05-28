@@ -23,9 +23,9 @@ interface AgeDetector<in I, out A> {
     fun detectAge(image: I): List<A>
 }
 
-interface FaceEngine<in I, P : Meta, F : Meta> {
+interface FaceEngine<in I, P, F> {
     fun detect(image: I): Map<TrackedFace, F> = emptyMap()
-    fun search(face: F): P?
+    fun search(image: I): P?
 }
 
 interface FaceOfflineEngine<in I, P : Meta, F : Meta, R : Comparable<R>, out S : ReadOnlyFaceStore<P, F>> : FaceEngine<I, P, F> {
@@ -42,7 +42,8 @@ interface FaceOfflineEngine<in I, P : Meta, F : Meta, R : Comparable<R>, out S :
             }.maxBy { it.second }
 
     fun searchForScore(face: F) = search(face, store)
-    override fun search(face: F) = searchForScore(face)?.takeIf { it.second >= threshold }?.first
+    fun search(face: F) = searchForScore(face)?.takeIf { it.second >= threshold }?.first
+    override fun search(image: I) = detect(image).values.mapNotNull { searchForScore(it) }.maxBy { it.second }?.takeIf { it.second >= threshold }?.first
 }
 
 open class FaceOfflineEngineRxDelegate<in I, P : Meta, F : Meta, R : Comparable<R>, out S : ReadOnlyFaceStore<P, F>>(

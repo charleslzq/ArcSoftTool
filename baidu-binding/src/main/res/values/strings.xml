@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">baidu-binding</string>
+    <string name="Baidu_Base">localhost:8080/baidu-faces</string>
+</resources>
