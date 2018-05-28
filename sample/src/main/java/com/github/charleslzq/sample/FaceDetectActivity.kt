@@ -1,36 +1,17 @@
 package com.github.charleslzq.sample
 
 import android.app.Activity
-import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
-import android.content.ServiceConnection
 import android.os.Bundle
-import android.os.IBinder
 import android.support.v7.app.AppCompatActivity
-import com.github.charleslzq.arcsofttools.kotlin.ArcSoftFaceEngineService
-import com.github.charleslzq.arcsofttools.kotlin.Face
 import com.github.charleslzq.arcsofttools.kotlin.Person
 import com.github.charleslzq.arcsofttools.kotlin.WebSocketArcSoftEngineService
-import com.github.charleslzq.facestore.websocket.WebSocketCompositeFaceStore
 import com.orhanobut.logger.Logger
 import kotlinx.android.synthetic.main.activity_face_detect.*
 
 class FaceDetectActivity : AppCompatActivity() {
-    private val serviceConnection = object : ServiceConnection {
-        override fun onServiceDisconnected(name: ComponentName) {
-            faceEngineService = null
-        }
-
-        override fun onServiceConnected(name: ComponentName, service: IBinder) {
-            @Suppress("UNCHECKED_CAST")
-            faceEngineService =
-                    service as ArcSoftFaceEngineService<WebSocketCompositeFaceStore<Person, Face>>
-        }
-
-    }
-    private var faceEngineService: ArcSoftFaceEngineService<WebSocketCompositeFaceStore<Person, Face>>? =
-            null
+    private val connection = WebSocketArcSoftEngineService.getBuilder().build()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -42,14 +23,14 @@ class FaceDetectActivity : AppCompatActivity() {
             val startTime = System.currentTimeMillis()
             try {
                 Logger.i("on frame with size ${it.size} and rotation ${it.rotation}, ${it.sequence}/${it.source}")
-                val detectResult = faceEngineService?.detect(it) ?: emptyMap()
+                val detectResult = connection.getEngine()?.detect(it) ?: emptyMap()
                 faceDetectCamera.updateTrackFaces(detectResult.keys)
-                val detectedAge = faceEngineService?.detectAge(it)?.takeIf { it.size == 1 }?.get(0)?.age
-                val detectedGender = faceEngineService?.detectGender(it)?.takeIf { it.size == 1 }?.get(0)?.gender
+                val detectedAge = connection.getEngine()?.detectAge(it)?.takeIf { it.size == 1 }?.get(0)?.age
+                val detectedGender = connection.getEngine()?.detectGender(it)?.takeIf { it.size == 1 }?.get(0)?.gender
                 var personName: String? = null
                 toast(buildString {
                     if (detectResult.size == 1) {
-                        val result = detectResult.mapNotNull { faceEngineService!!.engine.searchForScore(it.value) }
+                        val result = detectResult.mapNotNull { connection.getEngine()!!.searchForScore(it.value) }
                         if (result.isNotEmpty()) {
                             val person = result.maxBy { it.second } ?: Pair(Person("", ""), 0f)
                             if (person.second > 0.5f) {
@@ -95,7 +76,7 @@ class FaceDetectActivity : AppCompatActivity() {
         }
         bindService(
                 Intent(this, WebSocketArcSoftEngineService::class.java),
-                serviceConnection,
+                connection,
                 Context.BIND_AUTO_CREATE
         )
     }
@@ -111,7 +92,7 @@ class FaceDetectActivity : AppCompatActivity() {
     }
 
     override fun onDestroy() {
-        unbindService(serviceConnection)
+        unbindService(connection)
         faceDetectCamera.close()
         super.onDestroy()
     }

@@ -206,6 +206,8 @@ class LocalArcSoftEngineService :
                         )
                     })
             )
+
+    companion object : ConnectionBuilder<CameraPreview.PreviewFrame, Person, Face, ArcSoftFaceOfflineEngine<ReadWriteFaceStore<Person, Face>>, ArcSoftFaceEngineService<ReadWriteFaceStore<Person, Face>>>
 }
 
 class WebSocketArcSoftEngineService :
@@ -237,4 +239,6 @@ class WebSocketArcSoftEngineService :
         super.onDestroy()
         engineService.engine.store.disconnect()
     }
+
+    companion object : ConnectionBuilder<CameraPreview.PreviewFrame, Person, Face, ArcSoftFaceOfflineEngine<WebSocketCompositeFaceStore<Person, Face>>, ArcSoftFaceEngineService<WebSocketCompositeFaceStore<Person, Face>>>
 }

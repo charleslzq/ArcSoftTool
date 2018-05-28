@@ -148,4 +148,6 @@ class BaiduFaceEngineService(
 
 class BaiduFaceEngineServiceBackground : FaceEngineServiceBackground<CameraPreview.PreviewFrame, BaiduFaceEngine.User, DetectedFace, BaiduFaceEngine>() {
     override fun createEngineService() = BaiduFaceEngineService(BaiduFaceEngine(BaiduSetting(resources).baseUrl))
+
+    companion object : ConnectionBuilder<CameraPreview.PreviewFrame, BaiduFaceEngine.User, DetectedFace, BaiduFaceEngine, BaiduFaceEngineService>
 }
