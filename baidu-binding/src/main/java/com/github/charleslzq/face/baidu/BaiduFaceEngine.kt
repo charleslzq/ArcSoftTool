@@ -40,18 +40,16 @@ fun UserSearchResult.toUser() = BaiduFaceEngine.User(
 )
 
 class BaiduFaceEngine(
-        baseUrl: String,
-        private var retrofit: Retrofit = Retrofit.Builder().baseUrl(baseUrl).addConverterFactory(GsonConverterFactory.create()).build(),
-        private var groupApi: BaiduUserGroupApi = retrofit.create(BaiduUserGroupApi::class.java),
-        private var userApi: BaiduUserApi = retrofit.create(BaiduUserApi::class.java),
-        private var faceApi: BaiduFaceApi = retrofit.create(BaiduFaceApi::class.java),
-        private var imageApi: BaiduImageApi = retrofit.create(BaiduImageApi::class.java)
-) : BaiduUserGroupApi by groupApi, BaiduUserApi by userApi, BaiduFaceApi by faceApi, BaiduImageApi by imageApi,
+        baseUrl: String
+) : BaiduUserGroupApi, BaiduUserApi, BaiduFaceApi, BaiduImageApi,
         FaceEngine<CameraPreview.PreviewFrame, BaiduFaceEngine.User, DetectedFace> {
     var url = baseUrl
         set(value) {
             if (value != field) {
-                retrofit = Retrofit.Builder().baseUrl(value).addConverterFactory(GsonConverterFactory.create()).build()
+                retrofit = Retrofit.Builder()
+                        .baseUrl(value.toSafeRetrofitUrl())
+                        .addConverterFactory(GsonConverterFactory.create())
+                        .build()
                 groupApi = retrofit.create(BaiduUserGroupApi::class.java)
                 userApi = retrofit.create(BaiduUserApi::class.java)
                 faceApi = retrofit.create(BaiduFaceApi::class.java)
@@ -59,6 +57,11 @@ class BaiduFaceEngine(
                 field = value
             }
         }
+    private var retrofit: Retrofit = Retrofit.Builder().baseUrl(baseUrl.toSafeRetrofitUrl()).addConverterFactory(GsonConverterFactory.create()).build()
+    private var groupApi: BaiduUserGroupApi = retrofit.create(BaiduUserGroupApi::class.java)
+    private var userApi: BaiduUserApi = retrofit.create(BaiduUserApi::class.java)
+    private var faceApi: BaiduFaceApi = retrofit.create(BaiduFaceApi::class.java)
+    private var imageApi: BaiduImageApi = retrofit.create(BaiduImageApi::class.java)
 
     override fun detect(image: CameraPreview.PreviewFrame) = runBlocking(CommonPool) {
         detect(image.toImage()).awaitResult().let {
@@ -86,6 +89,36 @@ class BaiduFaceEngine(
         }
     }
 
+    override fun list(start: Int, length: Int) = groupApi.list(start, length)
+
+    override fun add(groupId: String) = groupApi.add(groupId)
+
+    override fun delete(id: String) = groupApi.delete(id)
+
+    override fun copy(id: String, srcGroupId: String, userId: String) = groupApi.copy(id, srcGroupId, userId)
+
+    override fun list(groupId: String, start: Int, length: Int) = userApi.list(groupId, start, length)
+
+    override fun add(groupId: String, image: BaiduUserApi.RegisterImage, quality: QualityControl, liveness: LivenessControl) = userApi.add(groupId, image, quality, liveness)
+
+    override fun update(groupId: String, id: String, image: BaiduUserApi.UpdateImage, quality: QualityControl, liveness: LivenessControl) = userApi.update(groupId, id, image, quality, liveness)
+
+    override fun get(groupId: String, id: String) = userApi.get(groupId, id)
+
+    override fun delete(groupId: String, id: String) = userApi.delete(groupId, id)
+
+    override fun list(groupId: String, userId: String) = faceApi.list(groupId, userId)
+
+    override fun delete(groupId: String, userId: String, faceToken: String) = faceApi.delete(groupId, userId, faceToken)
+
+    override fun detect(image: Image, maxCount: Int, source: FaceSource, fields: Array<FaceField>, complete: Boolean) = imageApi.detect(image, maxCount, source, fields, complete)
+
+    override fun search(image: Image, groups: Array<String>, userId: String?, maxUser: Int, quality: QualityControl, liveness: LivenessControl) = imageApi.search(image, groups, userId, maxUser, quality, liveness)
+
+    override fun match(images: Array<MatchReq>) = imageApi.match(images)
+
+    override fun verify(images: Array<FaceVerifyReq>) = imageApi.verify(images)
+
 
     data class User(
             val groupId: String,
@@ -106,6 +139,11 @@ class BaiduFaceEngineService(
         set(value) {
             engine.url = value
         }
+
+    fun setUrlWithCallback(newUrl: String, callback: () -> Unit) {
+        url = newUrl
+        callback()
+    }
 }
 
 class BaiduFaceEngineServiceBackground : FaceEngineServiceBackground<CameraPreview.PreviewFrame, BaiduFaceEngine.User, DetectedFace, BaiduFaceEngine>() {

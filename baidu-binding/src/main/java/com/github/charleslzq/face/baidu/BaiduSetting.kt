@@ -9,3 +9,5 @@ class BaiduSetting(resources: Resources) {
             R.string.Baidu_Base
     )
 }
+
+fun String.toSafeRetrofitUrl() = takeIf { endsWith("/") } ?: this+"/"
