@@ -165,6 +165,14 @@ constructor(context: Context, attributeSet: AttributeSet? = null, @AttrRes defSt
         selectedCamera?.stopPreview()
     }
 
+    fun selectSource(selector: (Iterable<CameraOperatorSource>) -> CameraOperatorSource?) {
+        operatorSourceSelector = selector
+    }
+
+    fun selectSource(selector: SourceSelector) {
+        operatorSourceSelector = { selector.select(it) }
+    }
+
     override fun close() {
         cameraSources.forEach {
             it.close()
@@ -184,6 +192,11 @@ constructor(context: Context, attributeSet: AttributeSet? = null, @AttrRes defSt
         override fun isDisposed() = disposables.all { it.isDisposed }
 
         override fun dispose() = disposables.forEach { it.dispose() }
+    }
+
+    @FunctionalInterface
+    interface SourceSelector {
+        fun select(choices: Iterable<CameraOperatorSource>): CameraOperatorSource?
     }
 
     companion object {

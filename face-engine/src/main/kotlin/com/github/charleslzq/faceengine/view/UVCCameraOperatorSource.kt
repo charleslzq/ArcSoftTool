@@ -109,11 +109,9 @@ class UVCCameraOperatorSource(
         private val supportedResolution = uvcCamera.supportedSizeList.map {
             Resolution(it.width, it.height)
         }.sortedByDescending { it.area }
-        private var selectedResolution = if (supportedResolution.isNotEmpty()) {
-            supportedResolution[0]
-        } else {
-            Resolution(UVCCamera.DEFAULT_PREVIEW_WIDTH, UVCCamera.DEFAULT_PREVIEW_HEIGHT)
-        }
+        var resolutionSelector: (Iterable<Resolution>) -> Resolution? = HIGHEST_RESOLUTION
+        private var selectedResolution = resolutionSelector(supportedResolution)
+                ?: Resolution(UVCCamera.DEFAULT_PREVIEW_WIDTH, UVCCamera.DEFAULT_PREVIEW_HEIGHT)
         private val surface = cameraView.getPreview().let {
             when (it) {
                 is Preview.Texture -> Surface(it.surfaceTexture)
@@ -169,6 +167,23 @@ class UVCCameraOperatorSource(
             }
         }
 
+        fun selectResolution(selector: (Iterable<Resolution>) -> Resolution?) {
+            resolutionSelector = selector
+        }
+
+        fun selectResolution(selector: ResolutionSelector) {
+            resolutionSelector = { selector.select(it) }
+        }
+
+        @FunctionalInterface
+        interface ResolutionSelector {
+            fun select(choices: Iterable<Resolution>): Resolution?
+        }
+
+        companion object {
+            val HIGHEST_RESOLUTION: (Iterable<Resolution>) -> Resolution? = { it.firstOrNull() }
+            val LOWEST_RESOLUTION: (Iterable<Resolution>) -> Resolution? = { it.lastOrNull() }
+        }
     }
 }
 

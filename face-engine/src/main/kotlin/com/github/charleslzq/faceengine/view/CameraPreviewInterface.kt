@@ -67,4 +67,17 @@ abstract class CameraOperatorSource : CameraSource {
     abstract val switchToThis: (String) -> Unit
 
     abstract fun onSelected(operator: CameraPreviewOperator?)
+
+    fun selectCamera(selector: (Iterable<CameraPreviewOperator>) -> CameraPreviewOperator?) {
+        operatorSelector = selector
+    }
+
+    fun selctCamera(selector: CameraSelector) {
+        operatorSelector = { selector.select(it) }
+    }
+
+    @FunctionalInterface
+    interface CameraSelector {
+        fun select(choices: Iterable<CameraPreviewOperator>): CameraPreviewOperator?
+    }
 }

@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">sample-baidu</string>
+    <string name="Baidu_Base">http://192.168.22.147:8080/baidu-faces</string>
 </resources>

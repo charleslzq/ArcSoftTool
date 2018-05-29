@@ -33,7 +33,8 @@ abstract class FaceEngineServiceBackground<in I, P, F, FE : FaceEngine<I, P, F>>
             private val afterConnected: (T) -> Unit = {},
             private val beforeDisconnect: (T) -> Unit = {}
     ) : ServiceConnection {
-        private var instance: T? = null
+        var instance: T? = null
+            private set
         val isConnected = instance != null
 
         fun getEngine() = instance?.engine
