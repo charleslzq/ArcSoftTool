@@ -22,7 +22,7 @@ interface BaiduUserGroupApi {
             @Path("id") id: String,
             @Query("srcGroupId") srcGroupId: String,
             @Query("userId") userId: String
-    )
+    ): Deferred<BaiduResponse<Any>>
 }
 
 interface BaiduUserApi {
