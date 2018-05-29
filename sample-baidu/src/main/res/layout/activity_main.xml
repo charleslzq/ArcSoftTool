@@ -10,7 +10,7 @@
         android:id="@+id/baiduServerUrl"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        app:layout_constraintBottom_toTopOf="@id/groups"
+        app:layout_constraintBottom_toTopOf="@id/tableContainer"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toLeftOf="@id/resetButton"
         app:layout_constraintTop_toTopOf="parent" />
@@ -20,19 +20,24 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="RESET"
-        app:layout_constraintBottom_toTopOf="@id/groups"
-        app:layout_constraintLeft_toRightOf="@id/groups"
+        app:layout_constraintBottom_toTopOf="@id/tableContainer"
+        app:layout_constraintLeft_toRightOf="@id/baiduServerUrl"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <TextView
-        android:id="@+id/groups"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Hello World!"
+    <FrameLayout
+        android:id="@+id/tableContainer"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/baiduServerUrl" />
+        app:layout_constraintTop_toBottomOf="@id/baiduServerUrl">
+
+        <com.bin.david.form.core.SmartTable
+            android:id="@+id/userInfoTable"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+    </FrameLayout>
 
 </android.support.constraint.ConstraintLayout>

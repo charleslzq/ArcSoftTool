@@ -6,19 +6,19 @@ import retrofit2.http.*
 
 interface BaiduUserGroupApi {
     @GET("groups")
-    fun list(
+    fun listGroup(
             @Query("start") start: Int = 0,
             @Query("length") length: Int = 100
     ): Deferred<BaiduResponse<GroupIdList>>
 
     @POST("groups")
-    fun add(@Body groupId: String): Deferred<BaiduResponse<*>>
+    fun addGroup(@Body groupId: String): Deferred<BaiduResponse<*>>
 
     @DELETE("groups/{id}")
-    fun delete(@Path("id") id: String): Deferred<BaiduResponse<*>>
+    fun deleteGroup(@Path("id") id: String): Deferred<BaiduResponse<*>>
 
     @PUT("groups/{id}")
-    fun copy(
+    fun copyUser(
             @Path("id") id: String,
             @Query("srcGroupId") srcGroupId: String,
             @Query("userId") userId: String
@@ -27,14 +27,14 @@ interface BaiduUserGroupApi {
 
 interface BaiduUserApi {
     @GET("groups/{groupId}/users")
-    fun list(
+    fun listUser(
             @Path("groupId") groupId: String,
             @Query("start") start: Int = 0,
             @Query("length") length: Int = 100
     ): Deferred<BaiduResponse<UserIdList>>
 
     @POST("groups/{groupId}/users")
-    fun add(
+    fun addUser(
             @Path("groupId") groupId: String,
             @Body image: RegisterImage,
             @Query("quality") quality: QualityControl = QualityControl.NONE,
@@ -42,7 +42,7 @@ interface BaiduUserApi {
     ): Deferred<BaiduResponse<FaceOperationResult>>
 
     @PUT("groups/{groupId}/users/{id}")
-    fun update(
+    fun updateUser(
             @Path("groupId") groupId: String,
             @Path("id") id: String,
             @Body image: UpdateImage,
@@ -51,13 +51,13 @@ interface BaiduUserApi {
     ): Deferred<BaiduResponse<FaceOperationResult>>
 
     @GET("groups/{groupId}/users/{id}")
-    fun get(
+    fun queryUser(
             @Path("groupId") groupId: String,
             @Path("id") id: String
     ): Deferred<BaiduResponse<UserQueryResult>>
 
     @DELETE("groups/{groupId}/users/{id}")
-    fun delete(
+    fun deleteUser(
             @Path("groupId") groupId: String,
             @Path("id") id: String
     ): Deferred<BaiduResponse<*>>
@@ -76,13 +76,13 @@ interface BaiduUserApi {
 
 interface BaiduFaceApi {
     @GET("groups/{groupId}/users/{userId}/faces")
-    fun list(
+    fun listFace(
             @Path("groupId") groupId: String,
             @Path("userId") userId: String
     ): Deferred<BaiduResponse<FaceListResult>>
 
     @DELETE("groups/{groupId}/users/{userId}/faces/{faceToken}")
-    fun delete(
+    fun deleteFace(
             @Path("groupId") groupId: String,
             @Path("userId") userId: String,
             @Path("faceToken") faceToken: String

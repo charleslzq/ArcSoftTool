@@ -34,6 +34,8 @@ dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
 
     implementation project(':baidu-binding')
+    implementation rootProject.ext.smartTable
+
     implementation rootProject.ext.supportAppCompat
     implementation rootProject.ext.supportConstraintLayout
     testImplementation rootProject.ext.junit

@@ -84,7 +84,7 @@ class BaiduFaceEngine(
         var result: User? = null
         async(CommonPool) {
             try {
-                result = list().await().result?.groupIdList?.toTypedArray()?.let {
+                result = listGroup().await().result?.groupIdList?.toTypedArray()?.let {
                     search(image.toImage(), it).await().result?.userList?.maxBy { it.score }?.toUser()
                 }
             } catch (throwable: Throwable) {
@@ -94,27 +94,27 @@ class BaiduFaceEngine(
         return result
     }
 
-    override fun list(start: Int, length: Int) = groupApi.list(start, length)
+    override fun listGroup(start: Int, length: Int) = groupApi.listGroup(start, length)
 
-    override fun add(groupId: String) = groupApi.add(groupId)
+    override fun addGroup(groupId: String) = groupApi.addGroup(groupId)
 
-    override fun delete(id: String) = groupApi.delete(id)
+    override fun deleteGroup(id: String) = groupApi.deleteGroup(id)
 
-    override fun copy(id: String, srcGroupId: String, userId: String) = groupApi.copy(id, srcGroupId, userId)
+    override fun copyUser(id: String, srcGroupId: String, userId: String) = groupApi.copyUser(id, srcGroupId, userId)
 
-    override fun list(groupId: String, start: Int, length: Int) = userApi.list(groupId, start, length)
+    override fun listUser(groupId: String, start: Int, length: Int) = userApi.listUser(groupId, start, length)
 
-    override fun add(groupId: String, image: BaiduUserApi.RegisterImage, quality: QualityControl, liveness: LivenessControl) = userApi.add(groupId, image, quality, liveness)
+    override fun addUser(groupId: String, image: BaiduUserApi.RegisterImage, quality: QualityControl, liveness: LivenessControl) = userApi.addUser(groupId, image, quality, liveness)
 
-    override fun update(groupId: String, id: String, image: BaiduUserApi.UpdateImage, quality: QualityControl, liveness: LivenessControl) = userApi.update(groupId, id, image, quality, liveness)
+    override fun updateUser(groupId: String, id: String, image: BaiduUserApi.UpdateImage, quality: QualityControl, liveness: LivenessControl) = userApi.updateUser(groupId, id, image, quality, liveness)
 
-    override fun get(groupId: String, id: String) = userApi.get(groupId, id)
+    override fun queryUser(groupId: String, id: String) = userApi.queryUser(groupId, id)
 
-    override fun delete(groupId: String, id: String) = userApi.delete(groupId, id)
+    override fun deleteUser(groupId: String, id: String) = userApi.deleteUser(groupId, id)
 
-    override fun list(groupId: String, userId: String) = faceApi.list(groupId, userId)
+    override fun listFace(groupId: String, userId: String) = faceApi.listFace(groupId, userId)
 
-    override fun delete(groupId: String, userId: String, faceToken: String) = faceApi.delete(groupId, userId, faceToken)
+    override fun deleteFace(groupId: String, userId: String, faceToken: String) = faceApi.deleteFace(groupId, userId, faceToken)
 
     override fun detect(image: Image, maxCount: Int, source: FaceSource, fields: Array<FaceField>, complete: Boolean) = imageApi.detect(image, maxCount, source, fields, complete)
 
