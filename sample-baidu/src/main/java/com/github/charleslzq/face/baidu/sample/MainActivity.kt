@@ -12,6 +12,7 @@ import com.github.charleslzq.face.baidu.BaiduFaceEngineServiceBackground
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.coroutines.experimental.android.UI
 import kotlinx.coroutines.experimental.launch
+import java.util.*
 
 class MainActivity : AppCompatActivity() {
 
@@ -23,6 +24,22 @@ class MainActivity : AppCompatActivity() {
                 }
                 resetButton.setOnClickListener {
                     refresh(service)
+                }
+                addFab.setOnClickListener {
+                    launch(UI) {
+                        val groupId = UUID.randomUUID().toString().toUpperCase().replace('-', '_')
+                        val result = service.addGroup(groupId).await()
+                        print(result.toString())
+                        refresh(service)
+                    }
+                }
+                removeFab.setOnClickListener {
+                    launch(UI) {
+                        service.listGroup().await().result?.groupIdList?.lastOrNull()?.let {
+                            service.deleteGroup(it)
+                        }
+                        refresh(service)
+                    }
                 }
             }.build()
     private val columns: List<Column<String>> = TableColumn.values().map { it.getColumnSetting() }

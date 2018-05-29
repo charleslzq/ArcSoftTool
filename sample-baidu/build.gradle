@@ -35,6 +35,7 @@ dependencies {
 
     implementation project(':baidu-binding')
     implementation rootProject.ext.smartTable
+    implementation rootProject.ext.supportDesign
 
     implementation rootProject.ext.supportAppCompat
     implementation rootProject.ext.supportConstraintLayout

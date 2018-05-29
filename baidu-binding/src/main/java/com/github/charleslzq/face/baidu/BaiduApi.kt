@@ -12,10 +12,10 @@ interface BaiduUserGroupApi {
     ): Deferred<BaiduResponse<GroupIdList>>
 
     @POST("groups")
-    fun addGroup(@Body groupId: String): Deferred<BaiduResponse<*>>
+    fun addGroup(@Body groupId: String): Deferred<BaiduResponse<Any>>
 
     @DELETE("groups/{id}")
-    fun deleteGroup(@Path("id") id: String): Deferred<BaiduResponse<*>>
+    fun deleteGroup(@Path("id") id: String): Deferred<BaiduResponse<Any>>
 
     @PUT("groups/{id}")
     fun copyUser(
@@ -60,7 +60,7 @@ interface BaiduUserApi {
     fun deleteUser(
             @Path("groupId") groupId: String,
             @Path("id") id: String
-    ): Deferred<BaiduResponse<*>>
+    ): Deferred<BaiduResponse<Any>>
 
     data class RegisterImage(
             val image: Image = Image(),
@@ -86,7 +86,7 @@ interface BaiduFaceApi {
             @Path("groupId") groupId: String,
             @Path("userId") userId: String,
             @Path("faceToken") faceToken: String
-    ): Deferred<BaiduResponse<*>>
+    ): Deferred<BaiduResponse<Any>>
 }
 
 interface BaiduImageApi {
