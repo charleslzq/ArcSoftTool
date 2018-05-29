@@ -55,11 +55,11 @@ abstract class FaceEngineServiceBackground<in I, P, F, FE : FaceEngine<I, P, F>>
             private var beforeDisconnect: (T) -> Unit = {}
 
             fun beforeDisconnect(handler: (T) -> Unit) = also {
-                it.afterConnected = handler
+                it.beforeDisconnect = handler
             }
 
             fun afterConnected(handler: (T) -> Unit) = also {
-                it.beforeDisconnect = handler
+                it.afterConnected = handler
             }
 
             fun build() = ServiceConnectionWrapper(afterConnected, beforeDisconnect)

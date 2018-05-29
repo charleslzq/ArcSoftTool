@@ -1,6 +1,7 @@
 package com.github.charleslzq.face.baidu
 
 import android.graphics.Rect
+import android.util.Log
 import com.github.charleslzq.face.baidu.data.*
 import com.github.charleslzq.faceengine.core.FaceEngine
 import com.github.charleslzq.faceengine.core.FaceEngineService
@@ -8,12 +9,11 @@ import com.github.charleslzq.faceengine.core.FaceEngineServiceBackground
 import com.github.charleslzq.faceengine.core.TrackedFace
 import com.github.charleslzq.faceengine.support.toEncodedBytes
 import com.github.charleslzq.faceengine.view.CameraPreview
+import com.jakewharton.retrofit2.adapter.kotlin.coroutines.experimental.CoroutineCallAdapterFactory
 import kotlinx.coroutines.experimental.CommonPool
-import kotlinx.coroutines.experimental.runBlocking
+import kotlinx.coroutines.experimental.async
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
-import ru.gildor.coroutines.retrofit.Result
-import ru.gildor.coroutines.retrofit.awaitResult
 
 fun CameraPreview.PreviewFrame.toImage() = Image(Image.Type.BASE64, toEncodedBytes(this))
 
@@ -41,16 +41,20 @@ fun UserSearchResult.toUser() = BaiduFaceEngine.User(
 )
 
 class BaiduFaceEngine(
-        baseUrl: String
+        baseUrl: String,
+        val retrofitBuilder: (String) -> Retrofit = {
+            Retrofit.Builder()
+                    .baseUrl(it.toSafeRetrofitUrl())
+                    .addConverterFactory(GsonConverterFactory.create())
+                    .addCallAdapterFactory(CoroutineCallAdapterFactory())
+                    .build()
+        }
 ) : BaiduUserGroupApi, BaiduUserApi, BaiduFaceApi, BaiduImageApi,
         FaceEngine<CameraPreview.PreviewFrame, BaiduFaceEngine.User, DetectedFace> {
     var url = baseUrl
         set(value) {
             if (value != field) {
-                retrofit = Retrofit.Builder()
-                        .baseUrl(value.toSafeRetrofitUrl())
-                        .addConverterFactory(GsonConverterFactory.create())
-                        .build()
+                retrofit = retrofitBuilder(value)
                 groupApi = retrofit.create(BaiduUserGroupApi::class.java)
                 userApi = retrofit.create(BaiduUserApi::class.java)
                 faceApi = retrofit.create(BaiduFaceApi::class.java)
@@ -58,36 +62,36 @@ class BaiduFaceEngine(
                 field = value
             }
         }
-    private var retrofit: Retrofit = Retrofit.Builder().baseUrl(baseUrl.toSafeRetrofitUrl()).addConverterFactory(GsonConverterFactory.create()).build()
+    private var retrofit: Retrofit = retrofitBuilder(baseUrl)
     private var groupApi: BaiduUserGroupApi = retrofit.create(BaiduUserGroupApi::class.java)
     private var userApi: BaiduUserApi = retrofit.create(BaiduUserApi::class.java)
     private var faceApi: BaiduFaceApi = retrofit.create(BaiduFaceApi::class.java)
     private var imageApi: BaiduImageApi = retrofit.create(BaiduImageApi::class.java)
 
-    override fun detect(image: CameraPreview.PreviewFrame) = runBlocking(CommonPool) {
-        detect(image.toImage()).awaitResult().let {
-            when (it) {
-                is Result.Ok -> it.value.result?.faceList?.map { it.toTrackedFace() to it }?.toMap()
-                        ?: emptyMap()
-                else -> emptyMap()
+    override fun detect(image: CameraPreview.PreviewFrame) = mutableMapOf<TrackedFace, DetectedFace>().apply {
+        async(CommonPool) {
+            try {
+                detect(image.toImage()).await().result?.faceList?.forEach {
+                    put(it.toTrackedFace(), it)
+                }
+            } catch (throwable: Throwable) {
+                Log.e("DETECT", "Error happened", throwable)
             }
         }
     }
 
-    override fun search(image: CameraPreview.PreviewFrame) = runBlocking(CommonPool) {
-        list().awaitResult().let {
-            when (it) {
-                is Result.Ok -> it.value.result?.groupIdList?.toTypedArray()?.let {
-                    search(image.toImage(), it).awaitResult().let {
-                        when (it) {
-                            is Result.Ok -> it.value.result?.userList?.maxBy { it.score }?.toUser()
-                            else -> null
-                        }
-                    }
+    override fun search(image: CameraPreview.PreviewFrame): User? {
+        var result: User? = null
+        async(CommonPool) {
+            try {
+                result = list().await().result?.groupIdList?.toTypedArray()?.let {
+                    search(image.toImage(), it).await().result?.userList?.maxBy { it.score }?.toUser()
                 }
-                else -> null
+            } catch (throwable: Throwable) {
+                Log.e("SEARCH", "Error happened", throwable)
             }
         }
+        return result
     }
 
     override fun list(start: Int, length: Int) = groupApi.list(start, length)

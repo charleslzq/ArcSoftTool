@@ -1,7 +1,7 @@
 package com.github.charleslzq.face.baidu
 
 import com.github.charleslzq.face.baidu.data.*
-import retrofit2.Call
+import kotlinx.coroutines.experimental.Deferred
 import retrofit2.http.*
 
 interface BaiduUserGroupApi {
@@ -9,13 +9,13 @@ interface BaiduUserGroupApi {
     fun list(
             @Query("start") start: Int = 0,
             @Query("length") length: Int = 100
-    ): Call<BaiduResponse<GroupIdList>>
+    ): Deferred<BaiduResponse<GroupIdList>>
 
     @POST("groups")
-    fun add(@Body groupId: String): Call<BaiduResponse<*>>
+    fun add(@Body groupId: String): Deferred<BaiduResponse<*>>
 
     @DELETE("groups/{id}")
-    fun delete(@Path("id") id: String): Call<BaiduResponse<*>>
+    fun delete(@Path("id") id: String): Deferred<BaiduResponse<*>>
 
     @PUT("groups/{id}")
     fun copy(
@@ -31,7 +31,7 @@ interface BaiduUserApi {
             @Path("groupId") groupId: String,
             @Query("start") start: Int = 0,
             @Query("length") length: Int = 100
-    ): Call<BaiduResponse<UserIdList>>
+    ): Deferred<BaiduResponse<UserIdList>>
 
     @POST("groups/{groupId}/users")
     fun add(
@@ -39,7 +39,7 @@ interface BaiduUserApi {
             @Body image: RegisterImage,
             @Query("quality") quality: QualityControl = QualityControl.NONE,
             @Query("liveness") liveness: LivenessControl = LivenessControl.NONE
-    ): Call<BaiduResponse<FaceOperationResult>>
+    ): Deferred<BaiduResponse<FaceOperationResult>>
 
     @PUT("groups/{groupId}/users/{id}")
     fun update(
@@ -48,19 +48,19 @@ interface BaiduUserApi {
             @Body image: UpdateImage,
             @Query("quality") quality: QualityControl = QualityControl.NONE,
             @Query("liveness") liveness: LivenessControl = LivenessControl.NONE
-    ): Call<BaiduResponse<FaceOperationResult>>
+    ): Deferred<BaiduResponse<FaceOperationResult>>
 
     @GET("groups/{groupId}/users/{id}")
     fun get(
             @Path("groupId") groupId: String,
             @Path("id") id: String
-    ): Call<BaiduResponse<UserQueryResult>>
+    ): Deferred<BaiduResponse<UserQueryResult>>
 
     @DELETE("groups/{groupId}/users/{id}")
     fun delete(
             @Path("groupId") groupId: String,
             @Path("id") id: String
-    ): Call<BaiduResponse<*>>
+    ): Deferred<BaiduResponse<*>>
 
     data class RegisterImage(
             val image: Image = Image(),
@@ -79,14 +79,14 @@ interface BaiduFaceApi {
     fun list(
             @Path("groupId") groupId: String,
             @Path("userId") userId: String
-    ): Call<BaiduResponse<FaceListResult>>
+    ): Deferred<BaiduResponse<FaceListResult>>
 
     @DELETE("groups/{groupId}/users/{userId}/faces/{faceToken}")
     fun delete(
             @Path("groupId") groupId: String,
             @Path("userId") userId: String,
             @Path("faceToken") faceToken: String
-    ): Call<BaiduResponse<*>>
+    ): Deferred<BaiduResponse<*>>
 }
 
 interface BaiduImageApi {
@@ -97,7 +97,7 @@ interface BaiduImageApi {
             @Query("source") source: FaceSource = FaceSource.LIVE,
             @Query("fields") fields: Array<FaceField> = emptyArray(),
             @Query("complete") complete: Boolean = false
-    ): Call<BaiduResponse<DetectResult>>
+    ): Deferred<BaiduResponse<DetectResult>>
 
     @POST("images/search")
     fun search(
@@ -107,15 +107,15 @@ interface BaiduImageApi {
             @Query("maxUser") maxUser: Int = 1,
             @Query("quality") quality: QualityControl = QualityControl.NONE,
             @Query("liveness") liveness: LivenessControl = LivenessControl.NONE
-    ): Call<BaiduResponse<SearchResult>>
+    ): Deferred<BaiduResponse<SearchResult>>
 
     @POST("images/match")
     fun match(
             @Body images: Array<MatchReq>
-    ): Call<BaiduResponse<MatchResult>>
+    ): Deferred<BaiduResponse<MatchResult>>
 
     @POST("images/verify")
     fun verify(
             @Body images: Array<FaceVerifyReq>
-    ): Call<BaiduResponse<VerifyResult>>
+    ): Deferred<BaiduResponse<VerifyResult>>
 }

@@ -6,8 +6,9 @@ import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
 import android.util.Log
 import com.github.charleslzq.face.baidu.BaiduFaceEngineServiceBackground
-import com.github.charleslzq.faceengine.support.runOnIo
 import kotlinx.android.synthetic.main.activity_main.*
+import kotlinx.coroutines.experimental.android.UI
+import kotlinx.coroutines.experimental.launch
 
 class MainActivity : AppCompatActivity() {
 
@@ -19,16 +20,12 @@ class MainActivity : AppCompatActivity() {
                 }
                 resetButton.setOnClickListener {
                     service.setUrlWithCallback(baiduServerUrl.text.toString()) {
-                        runOnIo {
+                        launch(UI) {
                             try {
-                                Log.i("Main", "try to list from ${service!!.url}")
-                                service!!.list().execute().takeIf { it.isSuccessful }?.body()?.let {
-                                    groups.post {
-                                        groups.text = it.result?.groupIdList?.joinToString(",") ?: "UN-FOUND"
-                                    }
-                                }
+                                Log.i("Main", "try to list from ${service.url}")
+                                groups.text = service.list().await().result?.groupIdList?.joinToString(",") ?: "404 NOT FOUND"
                             } catch (throwable: Throwable) {
-
+                                Log.e("Main", "Error happened", throwable)
                             }
                         }
                     }
