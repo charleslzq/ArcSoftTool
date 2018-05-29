@@ -25,12 +25,7 @@ class MainActivity : AppCompatActivity() {
                     refresh(service)
                 }
             }.build()
-    private val columns: List<Column<String>> = listOf(
-            Column("group", "groupId"),
-            Column("userId", "userId"),
-            Column("faceToken", "faceToken"),
-            Column("createTime", "createTime")
-    )
+    private val columns: List<Column<String>> = TableColumn.values().map { it.getColumnSetting() }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -40,7 +35,6 @@ class MainActivity : AppCompatActivity() {
                 isShowXSequence = false
                 isShowYSequence = false
             }
-            setZoom(true, 2f, 0.2f)
         }
         bindService(
                 Intent(this, BaiduFaceEngineServiceBackground::class.java),
@@ -96,4 +90,18 @@ class MainActivity : AppCompatActivity() {
             val faceToken: String = "",
             val createTime: String = ""
     )
+
+    enum class TableColumn(
+            val title: String,
+            val field: String
+    ) {
+        GROUP_ID("group", "groupId"),
+        USER_ID("userId", "userId"),
+        FACE_TOKEN("faceToken", "faceToken"),
+        CREATE_TIME("createTime", "createTime");
+
+        fun getColumnSetting() = Column<String>(title, field).apply {
+            isAutoMerge = true
+        }
+    }
 }
