@@ -1,4 +1,4 @@
-package com.github.charleslzq.face.baidu
+package com.github.charleslzq.face.baidu.data
 
 data class DetectedFace(
         val faceToken: String,

@@ -1,5 +1,6 @@
 package com.github.charleslzq.face.baidu
 
+import com.github.charleslzq.face.baidu.data.*
 import retrofit2.Call
 import retrofit2.http.*
 

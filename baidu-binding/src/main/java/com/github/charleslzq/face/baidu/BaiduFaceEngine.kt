@@ -1,6 +1,7 @@
 package com.github.charleslzq.face.baidu
 
 import android.graphics.Rect
+import com.github.charleslzq.face.baidu.data.*
 import com.github.charleslzq.faceengine.core.FaceEngine
 import com.github.charleslzq.faceengine.core.FaceEngineService
 import com.github.charleslzq.faceengine.core.FaceEngineServiceBackground
