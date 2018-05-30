@@ -70,6 +70,8 @@ class BaiduFaceEngine(
     private var faceApi: BaiduFaceApi = retrofit.create(BaiduFaceApi::class.java)
     private var imageApi: BaiduImageApi = retrofit.create(BaiduImageApi::class.java)
 
+    var defaultSearchGroups = mutableListOf<String>()
+
     fun <T> blockingGet(job: Deferred<T>) = runBlocking { job.await() }
 
     override fun detect(image: CameraPreview.PreviewFrame) = mutableMapOf<TrackedFace, DetectedFace>().apply {
@@ -88,9 +90,7 @@ class BaiduFaceEngine(
         var result: User? = null
         async(CommonPool) {
             try {
-                result = listGroup().await().result?.groupIdList?.toTypedArray()?.let {
-                    search(image.toImage(), it).await().result?.userList?.maxBy { it.score }?.toUser()
-                }
+                result = search(image.toImage(), defaultSearchGroups.toTypedArray()).await().result?.userList?.maxBy { it.score }?.toUser()
             } catch (throwable: Throwable) {
                 Log.e("SEARCH", "Error happened", throwable)
             }
