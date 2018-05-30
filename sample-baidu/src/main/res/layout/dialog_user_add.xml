@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <TextView
+        android:id="@+id/groupIdLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Group Id"
+        app:layout_constraintBottom_toTopOf="@id/userIdLabel"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toLeftOf="@id/groupIdText"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <AutoCompleteTextView
+        android:id="@+id/groupIdText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:completionThreshold="1"
+        android:inputType="text"
+        android:labelFor="@id/srcGroupIdLabel"
+        app:layout_constraintBottom_toBottomOf="@id/groupIdLabel"
+        app:layout_constraintLeft_toRightOf="@id/groupIdLabel"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/userIdLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="User Id"
+        app:layout_constraintBottom_toTopOf="@id/userInfoLabel"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toLeftOf="@id/userIdText"
+        app:layout_constraintTop_toBottomOf="@id/groupIdLabel" />
+
+    <AutoCompleteTextView
+        android:id="@+id/userIdText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:completionThreshold="1"
+        android:inputType="text"
+        android:labelFor="@id/dstGroupIdLabel"
+        app:layout_constraintBottom_toBottomOf="@id/userIdLabel"
+        app:layout_constraintLeft_toRightOf="@id/userIdLabel"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/groupIdText" />
+
+    <TextView
+        android:id="@+id/userInfoLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="User INFO (Optional)"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toLeftOf="@id/userInfoText"
+        app:layout_constraintTop_toBottomOf="@id/userIdLabel" />
+
+    <EditText
+        android:id="@+id/userInfoText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:inputType="text"
+        android:labelFor="@id/userIdLabel"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintLeft_toRightOf="@id/userInfoText"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/userIdText" />
+
+</android.support.constraint.ConstraintLayout>
