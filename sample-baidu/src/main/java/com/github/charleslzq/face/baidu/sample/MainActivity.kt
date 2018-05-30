@@ -128,6 +128,88 @@ class MainActivity : AppCompatActivity() {
                 toast("Service not connected")
             }
         }
+        copyUserButton.setOnClickListener {
+            if (connection.isConnected) {
+                val groupIdList = (userInfoTable.tableData as? PageTableData<TableItem>)?.t?.map { it.groupId }?.distinct()
+                        ?: emptyList()
+                if (groupIdList.isEmpty()) {
+                    toast("There is no group")
+                } else {
+                    val dialogLayout = layoutInflater.inflate(R.layout.dialog_group_user_copy, null)
+                    val srcGroup = dialogLayout.findViewById<AutoCompleteTextView>(R.id.srcGroupIdText)
+                    val dstGroup = dialogLayout.findViewById<AutoCompleteTextView>(R.id.dstGroupIdText)
+                    val user = dialogLayout.findViewById<AutoCompleteTextView>(R.id.userIdText)
+                    srcGroup.setOnFocusChangeListener { _, hasFocus ->
+                        if (hasFocus) {
+                            srcGroup.setAdapter(ArrayAdapter<String>(
+                                    this@MainActivity,
+                                    android.R.layout.simple_dropdown_item_1line,
+                                    groupIdList.filter { it != dstGroup.text.toString() }
+                            ))
+                        } else {
+                            if (!groupIdList.contains(srcGroup.text.toString())) {
+                                srcGroup.error = "Group Id Does not Exist"
+                            }
+                        }
+                    }
+                    dstGroup.setOnFocusChangeListener { _, hasFocus ->
+                        if (hasFocus) {
+                            dstGroup.setAdapter(ArrayAdapter<String>(
+                                    this@MainActivity,
+                                    android.R.layout.simple_dropdown_item_1line,
+                                    groupIdList.filter { it != srcGroup.text.toString() }
+                            ))
+                        } else {
+                            if (!groupIdList.contains(srcGroup.text.toString())) {
+                                dstGroup.error = "Group Id Does not Exist"
+                            }
+                        }
+                    }
+                    user.setOnFocusChangeListener { _, hasFocus ->
+                        val userIdList = if (groupIdList.contains(srcGroup.text.toString())) {
+                            (userInfoTable.tableData as? PageTableData<TableItem>)?.t?.filter { it.groupId == srcGroup.text.toString() }
+                                    ?.map { it.userId } ?: emptyList()
+                        } else {
+                            emptyList()
+                        }
+                        if (hasFocus) {
+                            user.setAdapter(ArrayAdapter<String>(
+                                    this@MainActivity,
+                                    android.R.layout.simple_dropdown_item_1line,
+                                    userIdList
+                            ))
+                        } else {
+                            if (!userIdList.contains(user.text.toString())) {
+                                user.error = "User Id Does not Exist in source Group"
+                            }
+                        }
+                    }
+                    AlertDialog.Builder(this@MainActivity)
+                            .setView(dialogLayout)
+                            .setTitle("Input the Information")
+                            .setPositiveButton("OK", null)
+                            .setNegativeButton("CANCEL", { dialog, _ -> dialog.dismiss() })
+                            .show()
+                            .apply {
+                                getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
+                                    val srcGroupId = srcGroup.text.toString()
+                                    val dstGroupId = dstGroup.text.toString()
+                                    val userId = user.text.toString()
+
+                                    if (groupIdList.contains(srcGroupId) && groupIdList.contains(dstGroupId)) {
+                                        launch(CommonPool) { connection.instance!!.copyUser(dstGroupId, srcGroupId, userId).await() }
+                                        refresh()
+                                        dismiss()
+                                    } else {
+                                        toast("Group Id Does not Exist")
+                                    }
+                                }
+                            }
+                }
+            } else {
+                toast("Service not connected")
+            }
+        }
         bindService(
                 Intent(this, BaiduFaceEngineServiceBackground::class.java),
                 connection,

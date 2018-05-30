@@ -17,7 +17,6 @@
         android:layout_height="match_parent"
         android:layout_weight="8"
         android:completionThreshold="1"
-        android:hint="can be alphabets, numbers or _"
         android:inputType="text"
         android:labelFor="@id/groupIdLabel" />
 
