@@ -10,10 +10,7 @@ import io.fotoapparat.log.logcat
 import io.fotoapparat.parameter.ScaleType
 import io.fotoapparat.preview.Frame
 import io.fotoapparat.preview.FrameProcessor
-import io.fotoapparat.selector.back
-import io.fotoapparat.selector.firstAvailable
-import io.fotoapparat.selector.front
-import io.fotoapparat.selector.single
+import io.fotoapparat.selector.*
 import io.fotoapparat.view.CameraView
 import io.reactivex.Scheduler
 import io.reactivex.subjects.PublishSubject
@@ -70,6 +67,7 @@ class FotoCameraOperatorSource(
                         )
                 )
                 .previewScaleType(ScaleType.CenterInside)
+                .photoResolution(lowestResolution())
                 .frameProcessor(frameProcessor)
                 .into(cameraView)
                 .logger(logcat())

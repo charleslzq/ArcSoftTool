@@ -109,7 +109,7 @@ class UVCCameraOperatorSource(
         private val supportedResolution = uvcCamera.supportedSizeList.map {
             Resolution(it.width, it.height)
         }.sortedByDescending { it.area }
-        var resolutionSelector: (Iterable<Resolution>) -> Resolution? = HIGHEST_RESOLUTION
+        var resolutionSelector: (Iterable<Resolution>) -> Resolution? = LOWEST_RESOLUTION
         private var selectedResolution = resolutionSelector(supportedResolution)
                 ?: Resolution(UVCCamera.DEFAULT_PREVIEW_WIDTH, UVCCamera.DEFAULT_PREVIEW_HEIGHT)
         private val surface = cameraView.getPreview().let {
