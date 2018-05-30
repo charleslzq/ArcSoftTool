@@ -1,7 +1,6 @@
 package com.github.charleslzq.face.baidu
 
 import android.graphics.Rect
-import android.util.Log
 import com.github.charleslzq.face.baidu.data.*
 import com.github.charleslzq.faceengine.core.FaceEngine
 import com.github.charleslzq.faceengine.core.FaceEngineService
@@ -12,7 +11,6 @@ import com.github.charleslzq.faceengine.view.CameraPreview
 import com.jakewharton.retrofit2.adapter.kotlin.coroutines.experimental.CoroutineCallAdapterFactory
 import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.Deferred
-import kotlinx.coroutines.experimental.async
 import kotlinx.coroutines.experimental.runBlocking
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
@@ -74,28 +72,13 @@ class BaiduFaceEngine(
 
     fun <T> blockingGet(job: Deferred<T>) = runBlocking { job.await() }
 
-    override fun detect(image: CameraPreview.PreviewFrame) = mutableMapOf<TrackedFace, DetectedFace>().apply {
-        async(CommonPool) {
-            try {
-                detect(image.toImage()).await().result?.faceList?.forEach {
-                    put(it.toTrackedFace(), it)
-                }
-            } catch (throwable: Throwable) {
-                Log.e("DETECT", "Error happened", throwable)
-            }
-        }
+    override fun detect(image: CameraPreview.PreviewFrame) = runBlocking(CommonPool) {
+        detect(image.toImage()).await().result?.faceList?.map { it.toTrackedFace() to it }?.toMap()
+                ?: emptyMap()
     }
 
-    override fun search(image: CameraPreview.PreviewFrame): User? {
-        var result: User? = null
-        async(CommonPool) {
-            try {
-                result = search(image.toImage(), defaultSearchGroups.toTypedArray()).await().result?.userList?.maxBy { it.score }?.toUser()
-            } catch (throwable: Throwable) {
-                Log.e("SEARCH", "Error happened", throwable)
-            }
-        }
-        return result
+    override fun search(image: CameraPreview.PreviewFrame) = runBlocking(CommonPool) {
+        search(image.toImage(), defaultSearchGroups.toTypedArray()).await().result?.userList?.maxBy { it.score }?.toUser()
     }
 
     override fun listGroup(start: Int, length: Int) = groupApi.listGroup(start, length)

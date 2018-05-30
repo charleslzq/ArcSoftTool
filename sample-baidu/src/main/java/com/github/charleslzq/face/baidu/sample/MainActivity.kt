@@ -317,7 +317,12 @@ class MainActivity : AppCompatActivity() {
                     try {
                         Log.i("Main", "try to listGroup from ${service.url}")
                         val groupIdList = service.listGroup().await().result?.groupIdList
-                        groupIdList?.forEach { groupId ->
+                                ?: emptyList()
+                        service.engine.defaultSearchGroups.apply {
+                            clear()
+                            addAll(groupIdList)
+                        }
+                        groupIdList.forEach { groupId ->
                             val userIdList = service.listUser(groupId).await().result?.userIdList
                             if (userIdList == null || userIdList.isEmpty()) {
                                 dataList.add(TableItem(groupId))
