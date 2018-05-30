@@ -8,6 +8,8 @@ import android.graphics.Bitmap
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
 import android.util.Log
+import android.widget.ArrayAdapter
+import android.widget.AutoCompleteTextView
 import android.widget.EditText
 import android.widget.Toast
 import com.bin.david.form.data.column.Column
@@ -73,7 +75,7 @@ class MainActivity : AppCompatActivity() {
                                 } else if (groupId.isNotBlank()) {
                                     connection.instance!!.let { service ->
                                         launch(CommonPool) {
-                                            service.addGroup(groupId)
+                                            service.addGroup(groupId).await()
                                             refresh()
                                         }
                                     }
@@ -83,6 +85,45 @@ class MainActivity : AppCompatActivity() {
                                 }
                             }
                         }
+            } else {
+                toast("Service not connected")
+            }
+        }
+        removeGroupButton.setOnClickListener {
+            if (connection.isConnected) {
+                val groupIdList = (userInfoTable.tableData as? PageTableData<TableItem>)?.t?.map { it.groupId }?.distinct()
+                        ?: emptyList()
+                if (groupIdList.isEmpty()) {
+                    toast("There is no group to remove")
+                } else {
+                    val dialogLayout = layoutInflater.inflate(R.layout.dialog_group_remove, null)
+                    val input = dialogLayout.findViewById<AutoCompleteTextView>(R.id.groupIdText)
+                    input.setAdapter(ArrayAdapter<String>(
+                            this@MainActivity,
+                            android.R.layout.simple_dropdown_item_1line,
+                            groupIdList
+                    ))
+                    AlertDialog.Builder(this@MainActivity)
+                            .setView(dialogLayout)
+                            .setTitle("Input the group id")
+                            .setPositiveButton("OK", null)
+                            .setNegativeButton("CANCEL", { dialog, _ -> dialog.dismiss() })
+                            .show()
+                            .apply {
+                                getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
+                                    val groupId = input.text.toString()
+                                    if (groupIdList.contains(groupId)) {
+                                        launch(CommonPool) {
+                                            connection.instance!!.deleteGroup(groupId).await()
+                                        }
+                                        refresh()
+                                        dismiss()
+                                    } else {
+                                        input.error = "Group Id Does not Exist"
+                                    }
+                                }
+                            }
+                }
             } else {
                 toast("Service not connected")
             }
