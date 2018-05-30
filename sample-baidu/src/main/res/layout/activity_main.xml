@@ -6,24 +6,57 @@
     android:layout_height="match_parent"
     tools:context=".MainActivity">
 
+    <TextView
+        android:id="@+id/urlLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Server URL Base"
+        app:layout_constraintBottom_toTopOf="@id/addGroupButton"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toLeftOf="@id/baiduServerUrl"
+        app:layout_constraintTop_toTopOf="parent" />
+
     <EditText
         android:id="@+id/baiduServerUrl"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        app:layout_constraintBottom_toTopOf="@id/tableContainer"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toLeftOf="@id/resetButton"
+        android:hint="Provide Baidu Face Server Url Base"
+        android:inputType="textUri"
+        android:labelFor="@id/urlLabel"
+        app:layout_constraintBottom_toBottomOf="@id/urlLabel"
+        app:layout_constraintLeft_toRightOf="@id/urlLabel"
+        app:layout_constraintRight_toLeftOf="@id/refreshButton"
         app:layout_constraintTop_toTopOf="parent" />
 
     <Button
-        android:id="@+id/resetButton"
+        android:id="@+id/refreshButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="REFRESH"
-        app:layout_constraintBottom_toTopOf="@id/tableContainer"
+        app:layout_constraintBottom_toBottomOf="@id/urlLabel"
         app:layout_constraintLeft_toRightOf="@id/baiduServerUrl"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
+
+    <Button
+        android:id="@+id/addGroupButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="ADD GROUP"
+        app:layout_constraintBottom_toTopOf="@id/tableContainer"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toLeftOf="@id/removeGroupButton"
+        app:layout_constraintTop_toBottomOf="@id/urlLabel" />
+
+    <Button
+        android:id="@+id/removeGroupButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="REMOVE GROUP"
+        app:layout_constraintBottom_toBottomOf="@id/addGroupButton"
+        app:layout_constraintLeft_toRightOf="@id/addGroupButton"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/urlLabel" />
 
     <FrameLayout
         android:id="@+id/tableContainer"
@@ -32,28 +65,12 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/baiduServerUrl">
+        app:layout_constraintTop_toBottomOf="@id/addGroupButton">
 
         <com.bin.david.form.core.SmartTable
             android:id="@+id/userInfoTable"
             android:layout_width="match_parent"
             android:layout_height="match_parent" />
     </FrameLayout>
-
-    <android.support.design.widget.FloatingActionButton
-        android:id="@+id/addFab"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:src="@drawable/tria_pic_up"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintLeft_toLeftOf="parent" />
-
-    <android.support.design.widget.FloatingActionButton
-        android:id="@+id/removeFab"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:src="@drawable/tria_pic_down"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintRight_toRightOf="parent" />
 
 </android.support.constraint.ConstraintLayout>
