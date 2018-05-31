@@ -32,7 +32,7 @@
         </activity>
 
         <service
-            android:name="com.github.charleslzq.arcsofttools.kotlin.WebSocketArcSoftEngineService"
+            android:name="com.github.charleslzq.arcsofttools.kotlin.WebSocketArcSoftService"
             android:enabled="true" />
 
         <activity android:name=".FaceDetectActivity" />

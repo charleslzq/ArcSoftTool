@@ -2,13 +2,9 @@ package com.github.charleslzq.samplejava;
 
 import android.app.Activity;
 import android.app.AlertDialog;
-import android.content.ComponentName;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.ServiceConnection;
 import android.os.Bundle;
-import android.os.IBinder;
 import android.provider.MediaStore;
 import android.support.v7.app.AppCompatActivity;
 import android.text.Editable;
@@ -24,12 +20,15 @@ import com.bin.david.form.core.SmartTable;
 import com.bin.david.form.data.column.Column;
 import com.bin.david.form.data.format.IFormat;
 import com.bin.david.form.data.table.PageTableData;
-import com.github.charleslzq.arcsofttools.kotlin.ArcSoftFaceEngineService;
+import com.github.charleslzq.arcsofttools.kotlin.ArcSoftFaceOfflineEngine;
 import com.github.charleslzq.arcsofttools.kotlin.Face;
 import com.github.charleslzq.arcsofttools.kotlin.Person;
-import com.github.charleslzq.arcsofttools.kotlin.WebSocketArcSoftEngineService;
+import com.github.charleslzq.arcsofttools.kotlin.WebSocketArcSoftService;
 import com.github.charleslzq.arcsofttools.kotlin.support.Nv21ImageUtils;
 import com.github.charleslzq.faceengine.core.TrackedFace;
+import com.github.charleslzq.faceengine.support.ServiceCaller;
+import com.github.charleslzq.faceengine.support.ServiceConnectionProvider;
+import com.github.charleslzq.faceengine.support.ServiceInvoker;
 import com.github.charleslzq.facestore.FaceStoreChangeListener;
 import com.github.charleslzq.facestore.Meta;
 import com.github.charleslzq.facestore.websocket.WebSocketCompositeFaceStore;
@@ -58,7 +57,6 @@ public class MainActivity extends AppCompatActivity {
     SmartTable faceStoreTable;
     @BindView(R.id.tableFilterText)
     EditText tableFilterText;
-    private ArcSoftFaceEngineService<WebSocketCompositeFaceStore<Person, Face>> faceEngineService = null;
     private Predicate<Person> defaultFilter = new Predicate<Person>() {
         @Override
         public boolean test(Person person) {
@@ -87,21 +85,22 @@ public class MainActivity extends AppCompatActivity {
             reload();
         }
     };
-    private ServiceConnection serviceConnection = new ServiceConnection() {
-        @Override
-        public void onServiceConnected(ComponentName componentName, IBinder iBinder) {
-            faceEngineService = (ArcSoftFaceEngineService<WebSocketCompositeFaceStore<Person, Face>>) iBinder;
-            faceEngineService.getEngine().getStore().getListeners().add(storeListener);
-            faceEngineService.getEngine().getStore().refresh();
-            reload();
-        }
-
-        @Override
-        public void onServiceDisconnected(ComponentName componentName) {
-            faceEngineService.getEngine().getStore().getListeners().remove(storeListener);
-            faceEngineService = null;
-        }
-    };
+    private ServiceConnectionProvider<ArcSoftFaceOfflineEngine<WebSocketCompositeFaceStore<Person, Face>>> connection
+            = WebSocketArcSoftService.Companion.getBuilder()
+            .afterConnected(new ServiceInvoker<ArcSoftFaceOfflineEngine<WebSocketCompositeFaceStore<Person, Face>>>() {
+                @Override
+                public void invoke(ArcSoftFaceOfflineEngine<WebSocketCompositeFaceStore<Person, Face>> service) {
+                    service.getStore().getListeners().add(storeListener);
+                    service.getStore().refresh();
+                }
+            })
+            .beforeDisconnect(new ServiceInvoker<ArcSoftFaceOfflineEngine<WebSocketCompositeFaceStore<Person, Face>>>() {
+                @Override
+                public void invoke(ArcSoftFaceOfflineEngine<WebSocketCompositeFaceStore<Person, Face>> service) {
+                    service.getStore().getListeners().remove(storeListener);
+                }
+            })
+            .build();
 
     private static List<Column> buildColumnSetting() {
         List<Column> result = new ArrayList<>();
@@ -178,7 +177,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        bindService(new Intent(this, WebSocketArcSoftEngineService.class), serviceConnection, Context.BIND_AUTO_CREATE);
+        connection.bind(this, WebSocketArcSoftService.class);
     }
 
     @Override
@@ -195,7 +194,7 @@ public class MainActivity extends AppCompatActivity {
                 }
                 break;
             case IMAGE_CAMERA:
-                if (resultCode == Activity.RESULT_OK && data != null && faceEngineService != null) {
+                if (resultCode == Activity.RESULT_OK && data != null) {
                     registerImage(data);
                 }
                 break;
@@ -203,100 +202,107 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private boolean reload() {
-        if (faceEngineService != null) {
-            List<FaceData<Person, Face>> faceDataList = new ArrayList<>();
-            for (String id : faceEngineService.getEngine().getStore().getPersonIds()) {
-                Person person = faceEngineService.getEngine().getStore().getPerson(id);
-                if (tableFilter.test(person)) {
-                    List<String> faceIdList = faceEngineService.getEngine().getStore().getFaceIdList(id);
-                    List<Face> faces = new ArrayList<>();
-                    for (String faceId : faceIdList) {
-                        Face face = faceEngineService.getEngine().getStore().getFace(id, faceId);
-                        if (face != null) {
-                            faces.add(face);
+        Boolean result = connection.whenConnected(new ServiceCaller<ArcSoftFaceOfflineEngine<? extends WebSocketCompositeFaceStore<Person, Face>>, Boolean>() {
+            @Override
+            public Boolean call(ArcSoftFaceOfflineEngine<? extends WebSocketCompositeFaceStore<Person, Face>> service) {
+                List<FaceData<Person, Face>> faceDataList = new ArrayList<>();
+                for (String id : service.getStore().getPersonIds()) {
+                    Person person = service.getStore().getPerson(id);
+                    if (tableFilter.test(person)) {
+                        List<String> faceIdList = service.getStore().getFaceIdList(id);
+                        List<Face> faces = new ArrayList<>();
+                        for (String faceId : faceIdList) {
+                            Face face = service.getStore().getFace(id, faceId);
+                            if (face != null) {
+                                faces.add(face);
+                            }
                         }
+                        faceDataList.add(new FaceData<>(person, faces));
                     }
-                    faceDataList.add(new FaceData<>(person, faces));
+                }
+                if (!faceDataList.isEmpty()) {
+                    PageTableData<FaceData<Person, Face>> pageTableData = new PageTableData<FaceData<Person, Face>>("Registered Persons And Faces",
+                            faceDataList,
+                            COLUMNS
+                    );
+                    if (!loaded.compareAndSet(false, true)) {
+                        pageTableData.setPageSize(100);
+                    }
+                    faceStoreTable.setTableData(pageTableData);
+                    return true;
+                } else {
+                    return false;
                 }
             }
-            if (!faceDataList.isEmpty()) {
-                PageTableData<FaceData<Person, Face>> pageTableData = new PageTableData<FaceData<Person, Face>>("Registered Persons And Faces",
-                        faceDataList,
-                        COLUMNS
-                );
-                if (!loaded.compareAndSet(false, true)) {
-                    pageTableData.setPageSize(100);
-                }
-                faceStoreTable.setTableData(pageTableData);
-                return true;
-            } else {
-                return false;
-            }
-        } else {
-            return false;
-        }
+        });
+        return result != null && result;
     }
 
-    private void registerImage(Intent data) {
-        final Map<TrackedFace, Face> faces = faceEngineService.detect(Nv21ImageUtils.toFrame(BitmapFileHelper.load(data.getExtras().getString("picPath"))));
-        if (!faces.isEmpty() && faces.size() == 1) {
-            final AtomicReference<SimplePerson> selectedPerson = new AtomicReference<>(null);
-            View dialogLayout = getLayoutInflater().inflate(R.layout.dialog_register, null);
-            final AutoCompleteTextView autoCompleteTextView = dialogLayout.findViewById(R.id.personRegister);
-            autoCompleteTextView.setAdapter(new ArrayAdapter<>(
-                    this,
-                    android.R.layout.simple_dropdown_item_1line,
-                    constructAutoCompleteData())
-            );
-            autoCompleteTextView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-                @Override
-                public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                    selectedPerson.set(((ArrayAdapter<SimplePerson>) parent.getAdapter()).getItem(position));
-                }
-            });
-            autoCompleteTextView.addTextChangedListener(new TextWatcher() {
-                @Override
-                public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-
-                }
-
-                @Override
-                public void onTextChanged(CharSequence s, int start, int before, int count) {
-
-                }
-
-                @Override
-                public void afterTextChanged(Editable s) {
-                    selectedPerson.set(null);
-                }
-            });
-            (new AlertDialog.Builder(this))
-                    .setView(dialogLayout)
-                    .setTitle("Your ID or Name")
-                    .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+    private void registerImage(final Intent data) {
+        connection.whenConnected(new ServiceInvoker<ArcSoftFaceOfflineEngine<? extends WebSocketCompositeFaceStore<Person, Face>>>() {
+            @Override
+            public void invoke(final ArcSoftFaceOfflineEngine<? extends WebSocketCompositeFaceStore<Person, Face>> service) {
+                final Map<TrackedFace, Face> faces = service.detect(Nv21ImageUtils.toFrame(BitmapFileHelper.load(data.getExtras().getString("picPath"))));
+                if (!faces.isEmpty() && faces.size() == 1) {
+                    final AtomicReference<SimplePerson> selectedPerson = new AtomicReference<>(null);
+                    View dialogLayout = getLayoutInflater().inflate(R.layout.dialog_register, null);
+                    final AutoCompleteTextView autoCompleteTextView = dialogLayout.findViewById(R.id.personRegister);
+                    autoCompleteTextView.setAdapter(new ArrayAdapter<>(
+                            MainActivity.this,
+                            android.R.layout.simple_dropdown_item_1line,
+                            constructAutoCompleteData()
+                    ));
+                    autoCompleteTextView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
                         @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            String personId = selectedPerson.get() != null ? selectedPerson.get().getId() : UUID.randomUUID().toString();
-                            String personName = selectedPerson.get() != null ? selectedPerson.get().getName() : autoCompleteTextView.getText().toString();
-                            if (selectedPerson.get() == null) {
-                                faceEngineService.getEngine().getStore().savePerson(new Person(personId, personName));
-                            }
-                            faceEngineService.getEngine().getStore().saveFace(personId, faces.get(0));
+                        public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                            selectedPerson.set(((ArrayAdapter<SimplePerson>) parent.getAdapter()).getItem(position));
                         }
-                    })
-                    .setNegativeButton("CANCEL", new DialogInterface.OnClickListener() {
+                    });
+                    autoCompleteTextView.addTextChangedListener(new TextWatcher() {
                         @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            dialog.dismiss();
+                        public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
                         }
-                    })
-                    .show();
-            String testPersonId = "test";
-            faceEngineService.getEngine().getStore().savePerson(new Person(testPersonId, "test_name"));
-            for (Face face : faces.values()) {
-                faceEngineService.getEngine().getStore().saveFace(testPersonId, face);
+
+                        @Override
+                        public void onTextChanged(CharSequence s, int start, int before, int count) {
+
+                        }
+
+                        @Override
+                        public void afterTextChanged(Editable s) {
+                            selectedPerson.set(null);
+                        }
+                    });
+                    (new AlertDialog.Builder(MainActivity.this))
+                            .setView(dialogLayout)
+                            .setTitle("Your ID or Name")
+                            .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    String personId = selectedPerson.get() != null ? selectedPerson.get().getId() : UUID.randomUUID().toString();
+                                    String personName = selectedPerson.get() != null ? selectedPerson.get().getName() : autoCompleteTextView.getText().toString();
+                                    if (selectedPerson.get() == null) {
+                                        service.getStore().savePerson(new Person(personId, personName));
+                                    }
+                                    service.getStore().saveFace(personId, faces.get(0));
+                                }
+                            })
+                            .setNegativeButton("CANCEL", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    dialog.dismiss();
+                                }
+                            })
+                            .show();
+                    String testPersonId = "test";
+                    service.getStore().savePerson(new Person(testPersonId, "test_name"));
+                    for (Face face : faces.values()) {
+                        service.getStore().saveFace(testPersonId, face);
+                    }
+                }
             }
-        }
+        });
     }
 
     @OnClick(R.id.captureImageButton)
@@ -317,9 +323,12 @@ public class MainActivity extends AppCompatActivity {
 
     @OnClick(R.id.refreshButton)
     public void onRefreshButtonClicked() {
-        if (faceEngineService != null) {
-            faceEngineService.getEngine().getStore().refresh();
-        }
+        connection.whenConnected(new ServiceInvoker<ArcSoftFaceOfflineEngine<? extends WebSocketCompositeFaceStore<Person, Face>>>() {
+            @Override
+            public void invoke(ArcSoftFaceOfflineEngine<? extends WebSocketCompositeFaceStore<Person, Face>> service) {
+                service.getStore().refresh();
+            }
+        });
     }
 
     private void toast(String message) {
@@ -328,22 +337,28 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onDestroy() {
-        unbindService(serviceConnection);
+        unbindService(connection);
         super.onDestroy();
     }
 
     private List<SimplePerson> constructAutoCompleteData() {
-        if (faceEngineService != null) {
-            List<SimplePerson> result = new ArrayList<>();
-            for (String id : faceEngineService.getEngine().getStore().getPersonIds()) {
-                Person person = faceEngineService.getEngine().getStore().getPerson(id);
-                if (person != null) {
-                    result.add(SimplePerson.fromPerson(person));
+        List<SimplePerson> result = connection.whenConnected(new ServiceCaller<ArcSoftFaceOfflineEngine<? extends WebSocketCompositeFaceStore<Person, Face>>, List<SimplePerson>>() {
+            @Override
+            public List<SimplePerson> call(ArcSoftFaceOfflineEngine<? extends WebSocketCompositeFaceStore<Person, Face>> service) {
+                List<SimplePerson> result = new ArrayList<>();
+                for (String id : service.getStore().getPersonIds()) {
+                    Person person = service.getStore().getPerson(id);
+                    if (person != null) {
+                        result.add(SimplePerson.fromPerson(person));
+                    }
                 }
+                return result;
             }
-            return result;
-        } else {
+        });
+        if (result == null) {
             return Collections.emptyList();
+        } else {
+            return result;
         }
     }
 

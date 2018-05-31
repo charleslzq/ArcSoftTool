@@ -26,6 +26,8 @@ import com.github.charleslzq.faceengine.core.*
 import com.github.charleslzq.faceengine.store.ReadWriteFaceStoreCacheDelegate
 import com.github.charleslzq.faceengine.store.ReadWriteFaceStoreRxDelegate
 import com.github.charleslzq.faceengine.support.BitmapConverter
+import com.github.charleslzq.faceengine.support.ServiceBackground
+import com.github.charleslzq.faceengine.support.ServiceConnectionBuilder
 import com.github.charleslzq.faceengine.support.toBitmap
 import com.github.charleslzq.faceengine.view.CameraPreview
 import com.github.charleslzq.facestore.FaceFileReadWriteStore
@@ -36,13 +38,13 @@ import java.util.*
 /**
  * Created by charleslzq on 18-3-1.
  */
-interface ArcSoftFaceOfflineEngine<out D : ReadWriteFaceStore<Person, Face>>
+interface ArcSoftFaceOfflineEngine<D : ReadWriteFaceStore<Person, Face>>
     : FaceOfflineEngine<CameraPreview.PreviewFrame, Person, Face, Float, D>,
         AgeDetector<CameraPreview.PreviewFrame, DetectedAge>,
         GenderDetector<CameraPreview.PreviewFrame, DetectedGender>,
         FaceTracker<CameraPreview.PreviewFrame>
 
-open class ArcSoftOfflineEngineAdapterBase<S : ArcSoftSetting, out D : ReadWriteFaceStore<Person, Face>>(
+open class ArcSoftOfflineEngineAdapterBase<S : ArcSoftSetting, D : ReadWriteFaceStore<Person, Face>>(
         keys: ArcSoftSdkKey,
         setting: S,
         createStore: (S) -> D
@@ -186,7 +188,7 @@ class ArcSoftFaceEngineService<D : ReadWriteFaceStore<Person, Face>>(
 class LocalArcSoftEngineService :
         FaceEngineServiceBackground<CameraPreview.PreviewFrame, Person, Face, ArcSoftFaceOfflineEngine<ReadWriteFaceStore<Person, Face>>>() {
     override fun createEngineService() =
-            ArcSoftFaceEngineService<ReadWriteFaceStore<Person, Face>>(
+            ArcSoftFaceEngineService(
                     ArcSoftRxDelegate(ArcSoftOfflineEngineAdapterBase(ArcSoftSdkKey.read(applicationContext), ArcSoftSetting(resources)) {
                         ReadWriteFaceStoreCacheDelegate(
                                 ReadWriteFaceStoreRxDelegate(
@@ -204,10 +206,31 @@ class LocalArcSoftEngineService :
                                         )
                                 )
                         )
-                    })
+                    }) as ArcSoftFaceOfflineEngine<ReadWriteFaceStore<Person, Face>>
             )
+}
 
-    companion object : ConnectionBuilder<CameraPreview.PreviewFrame, Person, Face, ArcSoftFaceOfflineEngine<ReadWriteFaceStore<Person, Face>>, ArcSoftFaceEngineService<ReadWriteFaceStore<Person, Face>>>
+class LocalArcSoftService : ServiceBackground<ArcSoftFaceOfflineEngine<ReadWriteFaceStore<Person, Face>>>() {
+    override fun createService() = ArcSoftRxDelegate(ArcSoftOfflineEngineAdapterBase(ArcSoftSdkKey.read(applicationContext), ArcSoftSetting(resources)) {
+        ReadWriteFaceStoreCacheDelegate(
+                ReadWriteFaceStoreRxDelegate(
+                        FaceFileReadWriteStore(
+                                Environment.getExternalStorageDirectory().absolutePath + it.faceDirectory.run {
+                                    if (startsWith('/')) {
+                                        this
+                                    } else {
+                                        "/$this"
+                                    }
+                                },
+                                Person::class.java,
+                                Face::class.java,
+                                BitmapConverter.createGson()
+                        )
+                )
+        )
+    }) as ArcSoftFaceOfflineEngine<ReadWriteFaceStore<Person, Face>>
+
+    companion object : ServiceConnectionBuilder<ArcSoftFaceOfflineEngine<ReadWriteFaceStore<Person, Face>>>
 }
 
 class WebSocketArcSoftEngineService :
@@ -239,6 +262,30 @@ class WebSocketArcSoftEngineService :
         super.onDestroy()
         engineService.engine.store.disconnect()
     }
+}
 
-    companion object : ConnectionBuilder<CameraPreview.PreviewFrame, Person, Face, ArcSoftFaceOfflineEngine<WebSocketCompositeFaceStore<Person, Face>>, ArcSoftFaceEngineService<WebSocketCompositeFaceStore<Person, Face>>>
+class WebSocketArcSoftService : ServiceBackground<ArcSoftFaceOfflineEngine<WebSocketCompositeFaceStore<Person, Face>>>() {
+    override fun createService() = ArcSoftOfflineEngineAdapterBase(ArcSoftSdkKey.read(applicationContext), ArcSoftSettingWithWebSocket(resources)) {
+        WebSocketCompositeFaceStore(
+                it.webSocketUrl,
+                ReadWriteFaceStoreCacheDelegate(
+                        ReadWriteFaceStoreRxDelegate(
+                                FaceFileReadWriteStore(
+                                        Environment.getExternalStorageDirectory().absolutePath + it.faceDirectory.run {
+                                            if (startsWith('/')) {
+                                                this
+                                            } else {
+                                                "/$this"
+                                            }
+                                        },
+                                        Person::class.java,
+                                        Face::class.java,
+                                        BitmapConverter.createGson()
+                                )
+                        )
+                )
+        )
+    }
+
+    companion object : ServiceConnectionBuilder<ArcSoftFaceOfflineEngine<WebSocketCompositeFaceStore<Person, Face>>>
 }

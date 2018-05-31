@@ -15,7 +15,7 @@ import com.bin.david.form.data.column.Column
 import com.bin.david.form.data.table.PageTableData
 import com.github.charleslzq.arcsofttools.kotlin.Face
 import com.github.charleslzq.arcsofttools.kotlin.Person
-import com.github.charleslzq.arcsofttools.kotlin.WebSocketArcSoftEngineService
+import com.github.charleslzq.arcsofttools.kotlin.WebSocketArcSoftService
 import com.github.charleslzq.arcsofttools.kotlin.support.toFrame
 import com.github.charleslzq.faceengine.support.runOnUI
 import com.github.charleslzq.facestore.FaceStoreChangeListener
@@ -33,15 +33,15 @@ fun Context.toast(message: CharSequence, duration: Int = Toast.LENGTH_SHORT) {
 
 class MainActivity : AppCompatActivity() {
 
-    private val connection = WebSocketArcSoftEngineService.getBuilder()
+    private val connection = WebSocketArcSoftService.getBuilder()
             .afterConnected {
-                it.engine.store.apply {
+                it.store.apply {
                     listeners.add(storeListener)
                     refresh()
                 }
                 reload(100)
             }.beforeDisconnect {
-                it.engine.store.apply {
+                it.store.apply {
                     listeners.remove(storeListener)
                 }
             }.build()
@@ -118,13 +118,11 @@ class MainActivity : AppCompatActivity() {
             )
         }
         refreshButton.setOnClickListener {
-            connection.getEngine()?.store?.refresh()
+            connection.whenConnected {
+                it.store.refresh()
+            }
         }
-        bindService(
-                Intent(this, WebSocketArcSoftEngineService::class.java),
-                connection,
-                Context.BIND_AUTO_CREATE
-        )
+        connection.bind<WebSocketArcSoftService>(this)
     }
 
     override fun onDestroy() {
@@ -136,50 +134,52 @@ class MainActivity : AppCompatActivity() {
         super.onActivityResult(requestCode, resultCode, data)
 
         when (RequestCodes.fromCode(requestCode)) {
-            RequestCodes.IMAGE_CAMERA -> if (resultCode == Activity.RESULT_OK && data != null && connection.isConnected) {
-                connection.getEngine()!!.detect(toFrame(BitmapFileHelper.load(data.extras["picPath"] as String))).run {
-                    if (isNotEmpty() && size == 1) {
-                        forEach {
-                            var selectedPerson: SimplePerson? = null
-                            val dialogLayout = layoutInflater.inflate(R.layout.dialog_register, null)
-                            val autoCompleteTexts = dialogLayout.findViewById<AutoCompleteTextView>(R.id.personRegister)
-                            autoCompleteTexts.setAdapter(ArrayAdapter<SimplePerson>(
-                                    this@MainActivity,
-                                    android.R.layout.simple_dropdown_item_1line,
-                                    connection.getEngine()!!.store.getPersonIds()
-                                            .mapNotNull { connection.getEngine()!!.store.getPerson(it) }
-                                            .map { SimplePerson.fromPerson(it) }
-                            ))
-                            autoCompleteTexts.setOnItemClickListener { parent, _, position, _ ->
-                                @Suppress("UNCHECKED_CAST")
-                                selectedPerson = (parent.adapter as ArrayAdapter<SimplePerson>).getItem(position)
+            RequestCodes.IMAGE_CAMERA -> if (resultCode == Activity.RESULT_OK && data != null) {
+                connection.whenConnected { engine ->
+                    engine.detect(toFrame(BitmapFileHelper.load(data.extras["picPath"] as String))).run {
+                        if (isNotEmpty() && size == 1) {
+                            forEach {
+                                var selectedPerson: SimplePerson? = null
+                                val dialogLayout = layoutInflater.inflate(R.layout.dialog_register, null)
+                                val autoCompleteTexts = dialogLayout.findViewById<AutoCompleteTextView>(R.id.personRegister)
+                                autoCompleteTexts.setAdapter(ArrayAdapter<SimplePerson>(
+                                        this@MainActivity,
+                                        android.R.layout.simple_dropdown_item_1line,
+                                        engine.store.getPersonIds()
+                                                .mapNotNull { engine.store.getPerson(it) }
+                                                .map { SimplePerson.fromPerson(it) }
+                                ))
+                                autoCompleteTexts.setOnItemClickListener { parent, _, position, _ ->
+                                    @Suppress("UNCHECKED_CAST")
+                                    selectedPerson = (parent.adapter as ArrayAdapter<SimplePerson>).getItem(position)
+                                }
+                                autoCompleteTexts.addTextChangedListener(object : TextWatcher {
+                                    override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
+                                    }
+
+                                    override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+                                    }
+
+                                    override fun afterTextChanged(s: Editable?) {
+                                        selectedPerson = null
+                                    }
+                                })
+                                AlertDialog.Builder(this@MainActivity)
+                                        .setView(dialogLayout)
+                                        .setTitle("Your ID or Name")
+                                        .setPositiveButton("OK", { _, _ ->
+                                            val personId = selectedPerson?.id
+                                                    ?: UUID.randomUUID().toString()
+                                            val personName = selectedPerson?.name
+                                                    ?: autoCompleteTexts.text.toString()
+                                            if (selectedPerson == null) {
+                                                engine.store.savePerson(Person(personId, personName))
+                                            }
+                                            engine.store.saveFace(personId, it.value)
+                                        })
+                                        .setNegativeButton("CANCEL", { dialog, _ -> dialog.dismiss() })
+                                        .show()
                             }
-                            autoCompleteTexts.addTextChangedListener(object : TextWatcher {
-                                override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
-                                }
-
-                                override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
-                                }
-
-                                override fun afterTextChanged(s: Editable?) {
-                                    selectedPerson = null
-                                }
-                            })
-                            AlertDialog.Builder(this@MainActivity)
-                                    .setView(dialogLayout)
-                                    .setTitle("Your ID or Name")
-                                    .setPositiveButton("OK", { _, _ ->
-                                        val personId = selectedPerson?.id
-                                                ?: UUID.randomUUID().toString()
-                                        val personName = selectedPerson?.name
-                                                ?: autoCompleteTexts.text.toString()
-                                        if (selectedPerson == null) {
-                                            connection.getEngine()!!.store.savePerson(Person(personId, personName))
-                                        }
-                                        connection.getEngine()!!.store.saveFace(personId, it.value)
-                                    })
-                                    .setNegativeButton("CANCEL", { dialog, _ -> dialog.dismiss() })
-                                    .show()
                         }
                     }
                 }
@@ -193,18 +193,19 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun reload(newPageSize: Int? = null): Boolean =
-            connection.getEngine()?.store?.run {
-                getPersonIds().mapNotNull { getPerson(it) }.filter(tableFilter).takeIf { it.isNotEmpty() }?.let {
-                    faceStoreTable.tableData = PageTableData<FaceData<Person, Face>>("Registered Persons And Faces",
-                            it.map { FaceData(it, getFaceIdList(it.id).mapNotNull { faceId -> getFace(it.id, faceId) }) },
-                            columns
-                    ).apply {
-                        newPageSize?.let { pageSize = it }
-                    }
-                    true
-                } ?: false
+    private fun reload(newPageSize: Int? = null): Boolean = connection.whenConnected {
+        it.store.run {
+            getPersonIds().mapNotNull { getPerson(it) }.filter(tableFilter).takeIf { it.isNotEmpty() }?.let {
+                faceStoreTable.tableData = PageTableData<FaceData<Person, Face>>("Registered Persons And Faces",
+                        it.map { FaceData(it, getFaceIdList(it.id).mapNotNull { faceId -> getFace(it.id, faceId) }) },
+                        columns
+                ).apply {
+                    newPageSize?.let { pageSize = it }
+                }
+                true
             } ?: false
+        }
+    } ?: false
 
     enum class RequestCodes {
         IMAGE_CAMERA,

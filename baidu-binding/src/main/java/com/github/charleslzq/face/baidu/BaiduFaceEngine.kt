@@ -3,9 +3,9 @@ package com.github.charleslzq.face.baidu
 import android.graphics.Rect
 import com.github.charleslzq.face.baidu.data.*
 import com.github.charleslzq.faceengine.core.FaceEngine
-import com.github.charleslzq.faceengine.core.FaceEngineService
-import com.github.charleslzq.faceengine.core.FaceEngineServiceBackground
 import com.github.charleslzq.faceengine.core.TrackedFace
+import com.github.charleslzq.faceengine.support.ServiceBackground
+import com.github.charleslzq.faceengine.support.ServiceConnectionBuilder
 import com.github.charleslzq.faceengine.support.toEncodedBytes
 import com.github.charleslzq.faceengine.view.CameraPreview
 import com.jakewharton.retrofit2.adapter.kotlin.coroutines.experimental.CoroutineCallAdapterFactory
@@ -69,6 +69,16 @@ class BaiduFaceEngine(
 
     var defaultSearchGroups = mutableListOf<String>()
 
+    fun setUrlWithCallback(newUrl: String, callback: () -> Unit) {
+        url = newUrl
+        callback()
+    }
+
+    fun setUrlWithCallback(newUrl: String, callback: Runnable) {
+        url = newUrl
+        callback.run()
+    }
+
     override fun detect(image: CameraPreview.PreviewFrame) = runBlocking(CommonPool) {
         detect(image.toImage()).await().result?.faceList?.map { it.toTrackedFace() to it }?.toMap()
                 ?: emptyMap()
@@ -115,32 +125,8 @@ class BaiduFaceEngine(
     )
 }
 
-class BaiduFaceEngineService(
-        engine: BaiduFaceEngine
-) : FaceEngineService<CameraPreview.PreviewFrame, BaiduFaceEngine.User, DetectedFace, BaiduFaceEngine>(engine),
-        BaiduUserGroupApi by engine,
-        BaiduUserApi by engine,
-        BaiduFaceApi by engine,
-        BaiduImageApi by engine {
-    var url: String
-        get() = engine.url
-        set(value) {
-            engine.url = value
-        }
+class BaiduFaceEngineServiceBackground : ServiceBackground<BaiduFaceEngine>() {
+    override fun createService() = BaiduFaceEngine(BaiduSetting(resources).baseUrl)
 
-    fun setUrlWithCallback(newUrl: String, callback: () -> Unit) {
-        url = newUrl
-        callback()
-    }
-
-    fun setUrlWithCallback(newUrl: String, callback: Runnable) {
-        url = newUrl
-        callback.run()
-    }
-}
-
-class BaiduFaceEngineServiceBackground : FaceEngineServiceBackground<CameraPreview.PreviewFrame, BaiduFaceEngine.User, DetectedFace, BaiduFaceEngine>() {
-    override fun createEngineService() = BaiduFaceEngineService(BaiduFaceEngine(BaiduSetting(resources).baseUrl))
-
-    companion object : ConnectionBuilder<CameraPreview.PreviewFrame, BaiduFaceEngine.User, DetectedFace, BaiduFaceEngine, BaiduFaceEngineService>
+    companion object : ServiceConnectionBuilder<BaiduFaceEngine>
 }

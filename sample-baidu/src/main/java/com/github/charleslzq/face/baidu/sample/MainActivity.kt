@@ -15,7 +15,7 @@ import android.widget.EditText
 import android.widget.Toast
 import com.bin.david.form.data.column.Column
 import com.bin.david.form.data.table.PageTableData
-import com.github.charleslzq.face.baidu.BaiduFaceEngineService
+import com.github.charleslzq.face.baidu.BaiduFaceEngine
 import com.github.charleslzq.face.baidu.BaiduFaceEngineServiceBackground
 import com.github.charleslzq.face.baidu.BaiduUserApi
 import com.github.charleslzq.face.baidu.data.Image
@@ -35,10 +35,10 @@ fun Context.toast(message: CharSequence, duration: Int = Toast.LENGTH_SHORT) {
 class MainActivity : AppCompatActivity() {
 
     private val connection = BaiduFaceEngineServiceBackground.getBuilder()
-            .afterConnected { service ->
-                Log.i("Main", "Service connected ${service.url}")
+            .afterConnected {
+                Log.i("Main", "Service connected ${it.url}")
                 baiduServerUrl.post {
-                    baiduServerUrl.setText(service.url)
+                    baiduServerUrl.setText(it.url)
                 }
             }.build()
     private val columns: List<Column<String>> = TableColumn.values().map { it.getColumnSetting() }
@@ -74,9 +74,9 @@ class MainActivity : AppCompatActivity() {
                                 } else if (!Regex(BAIDU_ID_REGEX).matches(groupId)) {
                                     input.error = "Illegal format"
                                 } else if (groupId.isNotBlank()) {
-                                    connection.instance!!.let { service ->
+                                    connection.whenConnected {
                                         launch(CommonPool) {
-                                            service.addGroup(groupId).await()
+                                            it.addGroup(groupId).await()
                                             refresh()
                                         }
                                     }
@@ -91,7 +91,7 @@ class MainActivity : AppCompatActivity() {
             }
         }
         removeGroupButton.setOnClickListener {
-            if (connection.isConnected) {
+            connection.whenConnected { engine ->
                 val groupIdList = getUserGroupsFromTable()
                 if (groupIdList.isEmpty()) {
                     toast("There is no group to remove")
@@ -110,7 +110,7 @@ class MainActivity : AppCompatActivity() {
                                     val groupId = input.text.toString()
                                     if (groupIdList.contains(groupId)) {
                                         launch(CommonPool) {
-                                            connection.instance!!.deleteGroup(groupId).await()
+                                            engine.deleteGroup(groupId).await()
                                         }
                                         refresh()
                                         dismiss()
@@ -120,12 +120,10 @@ class MainActivity : AppCompatActivity() {
                                 }
                             }
                 }
-            } else {
-                toast("Service not connected")
             }
         }
         copyUserButton.setOnClickListener {
-            if (connection.isConnected) {
+            connection.whenConnected { engine ->
                 val groupIdList = getUserGroupsFromTable()
                 if (groupIdList.isEmpty()) {
                     toast("There is no group")
@@ -179,7 +177,7 @@ class MainActivity : AppCompatActivity() {
                                     val userId = user.text.toString()
 
                                     if (groupIdList.contains(srcGroupId) && groupIdList.contains(dstGroupId)) {
-                                        launch(CommonPool) { connection.instance!!.copyUser(dstGroupId, srcGroupId, userId).await() }
+                                        launch(CommonPool) { engine.copyUser(dstGroupId, srcGroupId, userId).await() }
                                         refresh()
                                         dismiss()
                                     } else {
@@ -188,8 +186,6 @@ class MainActivity : AppCompatActivity() {
                                 }
                             }
                 }
-            } else {
-                toast("Service not connected")
             }
         }
         addUserButton.setOnClickListener {
@@ -205,11 +201,7 @@ class MainActivity : AppCompatActivity() {
                     RequestCodes.FACE_CHECK.code
             )
         }
-        bindService(
-                Intent(this, BaiduFaceEngineServiceBackground::class.java),
-                connection,
-                Context.BIND_AUTO_CREATE
-        )
+        connection.bind<BaiduFaceEngineServiceBackground>(this)
     }
 
     override fun onDestroy() {
@@ -221,7 +213,7 @@ class MainActivity : AppCompatActivity() {
         super.onActivityResult(requestCode, resultCode, data)
 
         if (resultCode == Activity.RESULT_OK && connection.isConnected && data != null) {
-            connection.instance!!.let { service ->
+            connection.whenConnected { engine ->
                 when (RequestCodes.fromCode(requestCode)) {
                     RequestCodes.IMAGE_CAMERA -> launch(UI) {
                         val image = data.extras["data"] as? Bitmap
@@ -261,7 +253,7 @@ class MainActivity : AppCompatActivity() {
 
                                                 if (groupIdList.contains(groupId)) {
                                                     launch(CommonPool) {
-                                                        service.addUser(groupId, BaiduUserApi.RegisterImage(
+                                                        engine.addUser(groupId, BaiduUserApi.RegisterImage(
                                                                 Image(Image.Type.BASE64, toEncodedBytes(image)),
                                                                 userId, userInfoText
                                                         )).await()
@@ -310,25 +302,25 @@ class MainActivity : AppCompatActivity() {
                     ?: emptyList()
 
     fun refresh() = launch(UI) {
-        connection.instance?.let { service: BaiduFaceEngineService ->
-            service.setUrlWithCallback(baiduServerUrl.text.toString()) {
+        connection.whenConnected { engine: BaiduFaceEngine ->
+            engine.setUrlWithCallback(baiduServerUrl.text.toString()) {
                 launch(UI) {
                     val dataList = mutableListOf<TableItem>()
                     try {
-                        Log.i("Main", "try to listGroup from ${service.url}")
-                        val groupIdList = service.listGroup().await().result?.groupIdList
+                        Log.i("Main", "try to listGroup from ${engine.url}")
+                        val groupIdList = engine.listGroup().await().result?.groupIdList
                                 ?: emptyList()
-                        service.engine.defaultSearchGroups.apply {
+                        engine.defaultSearchGroups.apply {
                             clear()
                             addAll(groupIdList)
                         }
                         groupIdList.forEach { groupId ->
-                            val userIdList = service.listUser(groupId).await().result?.userIdList
+                            val userIdList = engine.listUser(groupId).await().result?.userIdList
                             if (userIdList == null || userIdList.isEmpty()) {
                                 dataList.add(TableItem(groupId))
                             } else {
                                 userIdList.forEach { userId ->
-                                    val faceList = service.listFace(groupId, userId).await().result?.faceList
+                                    val faceList = engine.listFace(groupId, userId).await().result?.faceList
                                     if (faceList == null || faceList.isEmpty()) {
                                         dataList.add(TableItem(groupId, userId))
                                     } else {

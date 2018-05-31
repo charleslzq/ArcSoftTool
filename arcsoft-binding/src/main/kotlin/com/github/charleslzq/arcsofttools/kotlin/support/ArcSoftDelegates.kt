@@ -12,7 +12,7 @@ import com.github.charleslzq.facestore.ReadWriteFaceStore
 /**
  * Created by charleslzq on 18-3-14.
  */
-class ArcSoftRxDelegate<S : ArcSoftSetting, out D : ReadWriteFaceStore<Person, Face>>(
+class ArcSoftRxDelegate<S : ArcSoftSetting, D : ReadWriteFaceStore<Person, Face>>(
         arcSoftEngineAdapterBase: ArcSoftOfflineEngineAdapterBase<S, D>
 ) : FaceOfflineEngineRxDelegate<CameraPreview.PreviewFrame, Person, Face, Float, D>(arcSoftEngineAdapterBase), ArcSoftFaceOfflineEngine<D> {
     override fun detectGender(image: CameraPreview.PreviewFrame) = callOnCompute { (delegate as ArcSoftOfflineEngineAdapterBase<*, *>).detectGender(image) }
