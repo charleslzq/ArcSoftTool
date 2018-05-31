@@ -5,4 +5,5 @@ include ':baidu-binding'
 include ':sample'
 include ':sample-java'
 include ':sample-baidu'
+include ':sample-baidu-java'
 

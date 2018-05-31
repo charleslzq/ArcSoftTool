@@ -10,7 +10,6 @@ import com.github.charleslzq.faceengine.support.toEncodedBytes
 import com.github.charleslzq.faceengine.view.CameraPreview
 import com.jakewharton.retrofit2.adapter.kotlin.coroutines.experimental.CoroutineCallAdapterFactory
 import kotlinx.coroutines.experimental.CommonPool
-import kotlinx.coroutines.experimental.Deferred
 import kotlinx.coroutines.experimental.runBlocking
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
@@ -69,8 +68,6 @@ class BaiduFaceEngine(
     private var imageApi: BaiduImageApi = retrofit.create(BaiduImageApi::class.java)
 
     var defaultSearchGroups = mutableListOf<String>()
-
-    fun <T> blockingGet(job: Deferred<T>) = runBlocking { job.await() }
 
     override fun detect(image: CameraPreview.PreviewFrame) = runBlocking(CommonPool) {
         detect(image.toImage()).await().result?.faceList?.map { it.toTrackedFace() to it }?.toMap()
@@ -134,6 +131,11 @@ class BaiduFaceEngineService(
     fun setUrlWithCallback(newUrl: String, callback: () -> Unit) {
         url = newUrl
         callback()
+    }
+
+    fun setUrlWithCallback(newUrl: String, callback: Runnable) {
+        url = newUrl
+        callback.run()
     }
 }
 

@@ -4,7 +4,7 @@ android {
     compileSdkVersion rootProject.ext.compileSdkVersion
 
     defaultConfig {
-        applicationId "com.github.charleslzq.samplejava"
+        applicationId "com.github.charleslzq.face.baidu.sample"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.compileSdkVersion
         versionCode 1
@@ -21,10 +21,6 @@ android {
         }
     }
 
-    lintOptions {
-        abortOnError false
-    }
-
     packagingOptions {
         exclude 'META-INF/rxjava.properties'
     }
@@ -32,15 +28,16 @@ android {
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
-    implementation project(':arcsoft-binding')
-//    implementation rootProject.ext.arcsoftBinding
+
+    implementation project(':baidu-binding')
+
+    implementation rootProject.ext.smartTable
+
     implementation rootProject.ext.supportAppCompat
     implementation rootProject.ext.supportConstraintLayout
 
     implementation rootProject.ext.butterKnife
     annotationProcessor rootProject.ext.butterKnifeCompiler
 
-    implementation rootProject.ext.smartTable
-    implementation rootProject.ext.orhanobutLogger
     testImplementation rootProject.ext.junit
 }

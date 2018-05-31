@@ -39,6 +39,5 @@ dependencies {
 
     implementation rootProject.ext.supportAppCompat
     implementation rootProject.ext.supportConstraintLayout
-    implementation 'com.android.support.constraint:constraint-layout:1.1.0'
     testImplementation rootProject.ext.junit
 }

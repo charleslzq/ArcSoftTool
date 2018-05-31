@@ -29,6 +29,10 @@ ext {
     koinCore = "org.koin:koin-core:$koin_version"
     koinAndroid = "org.koin:koin-android:$koin_version"
 
+    butter_knife_version = '8.8.1'
+    butterKnife = "com.jakewharton:butterknife:$butter_knife_version"
+    butterKnifeCompiler = "com.jakewharton:butterknife-compiler:$butter_knife_version"
+
     supportVersion = '27.1.1'
     supportCompat = "com.android.support:support-compat:$supportVersion"
     supportAppCompat = "com.android.support:appcompat-v7:$supportVersion"
