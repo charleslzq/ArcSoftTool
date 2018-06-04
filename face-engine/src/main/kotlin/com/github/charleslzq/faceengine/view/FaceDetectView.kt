@@ -44,6 +44,7 @@ constructor(context: Context, attributeSet: AttributeSet? = null, @AttrRes defSt
             if (oldCamera != newCamera) {
                 oldCamera?.stopPreview()
                 field = value
+                newCamera?.onSelected()
                 newCamera?.startPreview()
             }
         }
@@ -82,6 +83,18 @@ constructor(context: Context, attributeSet: AttributeSet? = null, @AttrRes defSt
     fun updateTrackFaces(faces: Collection<TrackedFace>) {
         if (cameraPreviewConfiguration.showRect) {
             trackView.resetRects(faces)
+        }
+    }
+
+    fun selectNext() {
+        selectedCamera?.let {
+            selectAt(cameras.indexOf(it) + 1)
+        }
+    }
+
+    fun selectAt(index: Int) {
+        selectCamera = {
+            it.elementAtOrNull(index % it.count())
         }
     }
 

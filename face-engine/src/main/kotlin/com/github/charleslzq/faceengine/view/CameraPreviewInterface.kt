@@ -48,6 +48,7 @@ interface CameraPreviewOperator : CameraPreviewConfigurable {
     fun startPreview()
     fun stopPreview()
     fun isPreviewing(): Boolean
+    fun onSelected() {}
     override fun applyConfiguration(cameraPreviewConfiguration: CameraPreviewConfiguration) {}
 }
 
