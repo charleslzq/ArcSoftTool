@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <declare-styleable name="FaceDetectView">
+        <attr name="autoSwitchToNewDevice" format="boolean" />
         <attr name="showTrackRect" format="boolean" />
         <attr name="rectColor" format="color" />
         <attr name="rectWidth" format="dimension" />

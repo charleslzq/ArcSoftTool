@@ -6,7 +6,6 @@ import android.util.AttributeSet
 import android.view.TextureView
 import android.widget.FrameLayout
 import com.github.charleslzq.faceengine.core.TrackedFace
-import com.github.charleslzq.faceengine.view.task.RxFrameTaskRunner
 import io.fotoapparat.parameter.ScaleType
 import io.fotoapparat.view.CameraView
 import java.util.concurrent.TimeUnit
@@ -21,8 +20,7 @@ class FaceDetectView
 @JvmOverloads
 constructor(context: Context, attributeSet: AttributeSet? = null, @AttrRes defStyle: Int = 0) :
         FrameLayout(context, attributeSet, defStyle), CameraSource {
-    private var cameraPreviewConfiguration: CameraPreviewConfiguration = CameraPreviewConfiguration.from(context, attributeSet, defStyle)
-    private val frameTaskRunner = RxFrameTaskRunner(cameraPreviewConfiguration.sampleInterval)
+    private var cameraPreviewConfiguration: CameraPreviewConfiguration = CameraPreviewConfiguration.from(context, attributeSet)
     private val cameraView = CameraView(context, attributeSet, defStyle).also {
         it.setScaleType(ScaleType.CenterInside)
         addView(it)
@@ -32,8 +30,18 @@ constructor(context: Context, attributeSet: AttributeSet? = null, @AttrRes defSt
         addView(it)
     }
     private val cameraSources = listOf(
-            UVCCameraOperatorSource(context, cameraView, { frameTaskRunner.consume(it) }, cameraPreviewConfiguration),
-            FotoCameraOperatorSource(context, cameraView, { frameTaskRunner.consume(it) }, cameraPreviewConfiguration)
+            UVCCameraOperatorSource(
+                    context,
+                    cameraView,
+                    { cameraPreviewConfiguration.frameTaskRunner.consume(it) },
+                    cameraPreviewConfiguration,
+                    this::onNewDevice,
+                    this::onDisconnect),
+            FotoCameraOperatorSource(
+                    context,
+                    cameraView,
+                    { cameraPreviewConfiguration.frameTaskRunner.consume(it) },
+                    cameraPreviewConfiguration)
     )
     override val cameras: List<CameraPreviewOperator>
         get() = cameraSources.flatMap { it.cameras }
@@ -69,14 +77,14 @@ constructor(context: Context, attributeSet: AttributeSet? = null, @AttrRes defSt
             timeout: Long = 2000,
             timeUnit: TimeUnit = TimeUnit.MILLISECONDS,
             processor: (SourceAwarePreviewFrame) -> Unit
-    ) = frameTaskRunner.onPreviewFrame(timeout, timeUnit, processor)
+    ) = cameraPreviewConfiguration.frameTaskRunner.onPreviewFrame(timeout, timeUnit, processor)
 
     @JvmOverloads
     fun onPreview(
             timeout: Long = 2000,
             timeUnit: TimeUnit = TimeUnit.MILLISECONDS,
             frameConsumer: FrameConsumer
-    ) = frameTaskRunner.onPreviewFrame(timeout, timeUnit, {
+    ) = cameraPreviewConfiguration.frameTaskRunner.onPreviewFrame(timeout, timeUnit, {
         frameConsumer.accept(it)
     })
 
@@ -98,6 +106,24 @@ constructor(context: Context, attributeSet: AttributeSet? = null, @AttrRes defSt
         }
     }
 
+    fun selectById(id: String) {
+        selectCamera = {
+            it.firstOrNull { it.id == id }
+        }
+    }
+
+    private fun onNewDevice(camera: CameraPreviewOperator) {
+        if (cameraPreviewConfiguration.autoSwitchToNewDevice) {
+            selectById(camera.id)
+        }
+    }
+
+    fun onDisconnect(camera: CameraPreviewOperator) {
+        if (selectedCamera != null && selectedCamera!!.id == camera.id) {
+            selectCamera = { it.firstOrNull() }
+        }
+    }
+
     override fun open() {
         cameraSources.forEach { it.open() }
         if (selectedCamera == null || !selectedCamera!!.isPreviewing()) {
@@ -113,7 +139,7 @@ constructor(context: Context, attributeSet: AttributeSet? = null, @AttrRes defSt
         cameraSources.forEach {
             it.close()
         }
-        frameTaskRunner.cancelAll()
+        cameraPreviewConfiguration.frameTaskRunner.cancelAll()
     }
 
     override fun applyConfiguration(cameraPreviewConfiguration: CameraPreviewConfiguration) {

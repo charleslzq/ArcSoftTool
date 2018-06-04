@@ -1,5 +1,6 @@
 package com.github.charleslzq.faceengine.view.task
 
+import com.github.charleslzq.faceengine.support.runOnCompute
 import com.github.charleslzq.faceengine.view.SourceAwarePreviewFrame
 import io.reactivex.Scheduler
 import io.reactivex.disposables.Disposable
@@ -29,7 +30,7 @@ class RxTaskExecutor(
                 tasks.add(this)
                 try {
                     get(timeout, timeUnit)
-                } catch (exception: Exception) {
+                } catch (exception: Throwable) {
                     cancel(true)
                     null
                 }
@@ -71,6 +72,10 @@ class RxFrameTaskRunner(
                 .sample(sampleInterval, TimeUnit.MILLISECONDS)
                 .subscribe(processorWithTimeout)
         return RxTask(processor, subscription)
+    }
+
+    override fun compute(runnable: () -> Unit) {
+        runOnCompute(runnable)
     }
 
     override fun cancelAll() {
