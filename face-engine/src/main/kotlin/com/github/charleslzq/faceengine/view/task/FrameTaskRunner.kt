@@ -11,6 +11,7 @@ interface FrameTaskRunner {
             processor: (SourceAwarePreviewFrame) -> Unit
     ): Task
 
+    fun compute(runnable: () -> Unit)
     fun cancelAll()
 
     abstract class Task(

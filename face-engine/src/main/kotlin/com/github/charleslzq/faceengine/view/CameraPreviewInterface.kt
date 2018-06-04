@@ -3,9 +3,10 @@ package com.github.charleslzq.faceengine.view
 import android.content.Context
 import android.content.res.TypedArray
 import android.graphics.Color
-import android.support.annotation.AttrRes
 import android.util.AttributeSet
 import com.github.charleslzq.faceengine.core.R
+import com.github.charleslzq.faceengine.view.task.FrameTaskRunner
+import com.github.charleslzq.faceengine.view.task.RxFrameTaskRunner
 import io.fotoapparat.parameter.Resolution
 
 sealed class PreviewFrame(
@@ -77,22 +78,26 @@ class CameraPreviewConfiguration(
         val previewResolution: (Iterable<Resolution>) -> Resolution? = PreviewResolution.LOWEST.selector,
         val sampleInterval: Long = 500,
         val showRect: Boolean = true,
+        val autoSwitchToNewDevice: Boolean = true,
         val rectColor: Int = Color.RED,
-        val rectWidth: Float = 1f
+        val rectWidth: Float = 1f,
+        val frameTaskRunner: FrameTaskRunner = RxFrameTaskRunner(sampleInterval)
 ) {
     companion object {
         const val DEFAULT_RESOLUTION_ID = 1
         const val DEFAULT_INTERVAL = 500
         const val DEFAULT_TRACK = true
+        const val DEFAULT_AUTO_SWITCH = true
         const val DEFAULT_COLOR = Color.RED
         const val DEFAULT_WIDTH = 1f
 
-        fun from(context: Context, attributeSet: AttributeSet? = null, @AttrRes defStyle: Int = 0): CameraPreviewConfiguration {
+        fun from(context: Context, attributeSet: AttributeSet? = null): CameraPreviewConfiguration {
             return attributeSet?.let { context.obtainStyledAttributes(it, R.styleable.FaceDetectView) }?.extract {
                 CameraPreviewConfiguration(
                         previewResolution = PreviewResolution.fromAttrs(getInt(R.styleable.FaceDetectView_previewResolution, DEFAULT_RESOLUTION_ID)).selector,
                         sampleInterval = getInteger(R.styleable.FaceDetectView_sampleInterval, DEFAULT_INTERVAL).toLong(),
                         showRect = getBoolean(R.styleable.FaceDetectView_showTrackRect, DEFAULT_TRACK),
+                        autoSwitchToNewDevice = getBoolean(R.styleable.FaceDetectView_autoSwitchToNewDevice, DEFAULT_AUTO_SWITCH),
                         rectColor = getColor(R.styleable.FaceDetectView_rectColor, DEFAULT_COLOR),
                         rectWidth = getDimension(R.styleable.FaceDetectView_rectWidth, DEFAULT_WIDTH)
                 )

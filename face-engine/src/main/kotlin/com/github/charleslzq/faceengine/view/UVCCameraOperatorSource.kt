@@ -5,7 +5,6 @@ import android.hardware.usb.UsbDevice
 import android.util.Log
 import android.view.Surface
 import android.widget.Toast
-import com.github.charleslzq.faceengine.support.runOnCompute
 import com.serenegiant.usb.USBMonitor
 import com.serenegiant.usb.UVCCamera
 import io.fotoapparat.parameter.Resolution
@@ -20,7 +19,9 @@ class UVCCameraOperatorSource(
         context: Context,
         cameraView: CameraView,
         consumeFrame: (SourceAwarePreviewFrame) -> Unit,
-        override var cameraPreviewConfiguration: CameraPreviewConfiguration
+        override var cameraPreviewConfiguration: CameraPreviewConfiguration,
+        val onNewDevice: (CameraPreviewOperator) -> Unit,
+        val onDisconnect: (CameraPreviewOperator) -> Unit
 ) : CameraOperatorSource() {
     override val id: String = "UVC"
     private val connectionListener = object : USBMonitor.OnDeviceConnectListener {
@@ -30,7 +31,6 @@ class UVCCameraOperatorSource(
         }
 
         override fun onConnect(usbDevice: UsbDevice, usbControlBlock: USBMonitor.UsbControlBlock, createNew: Boolean) {
-            Toast.makeText(context, "External Camera Connected", Toast.LENGTH_SHORT).show()
             cameraMap.values.forEach { it.stopPreview() }
             val camera = UVCCamera()
             try {
@@ -42,7 +42,11 @@ class UVCCameraOperatorSource(
                         camera,
                         consumeFrame,
                         cameraPreviewConfiguration
-                )
+                ).also {
+                    if (cameraPreviewConfiguration.autoSwitchToNewDevice) {
+                        onNewDevice(it)
+                    }
+                }
             } catch (throwable: Throwable) {
                 throwable.printStackTrace()
             }
@@ -52,12 +56,14 @@ class UVCCameraOperatorSource(
         }
 
         override fun onDisconnect(usbDevice: UsbDevice, p1: USBMonitor.UsbControlBlock) {
-            cameraMap[usbDevice.deviceName]?.release()
+            cameraMap[usbDevice.deviceName]?.run {
+                onDisconnect(this)
+                release()
+            }
             cameraMap.remove(usbDevice.deviceName)
         }
 
         override fun onDettach(usbDevice: UsbDevice) {
-            Toast.makeText(context, "External Camera Detached", Toast.LENGTH_SHORT).show()
         }
     }
     private val usbMonitor: USBMonitor = USBMonitor(context, connectionListener)
@@ -111,7 +117,7 @@ class UVCCameraOperatorSource(
                 }
                 uvcCamera.setPreviewDisplay(surface)
                 uvcCamera.setFrameCallback {
-                    runOnCompute {
+                    cameraPreviewConfiguration.frameTaskRunner.compute {
                         synchronized(buffer) {
                             if (it.limit() > buffer.size) {
                                 buffer = ByteArray(it.limit())
