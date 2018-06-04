@@ -24,11 +24,9 @@ class FotoCameraOperatorSource(
         context: Context,
         cameraView: CameraView,
         consumeFrame: (SourceAwarePreviewFrame) -> Unit,
-        override var cameraPreviewConfiguration: CameraPreviewConfiguration,
-        override val switchToThis: (String) -> Unit
+        override var cameraPreviewConfiguration: CameraPreviewConfiguration
 ) : CameraOperatorSource() {
     override val id: String = "FOTO"
-    override var selected = false
     private val frameProcessor = FrameToObservableProcessor(consumeFrame)
     private val fotoapparat by lazy {
         Fotoapparat.with(context)
@@ -37,15 +35,7 @@ class FotoCameraOperatorSource(
     }
     override val cameras = listOf(LensPosition.Front, LensPosition.Back)
             .filter { fotoapparat.isAvailable(single(it)) }
-            .map { FotoCameraPreviewOperator(it::class.java.simpleName, fotoapparat, InternalCamera.fromLensSelector(it), frameProcessor) }
-
-    override fun onSelected(operator: CameraPreviewOperator?) {
-        (operator as? FotoCameraPreviewOperator)?.switchToThis()
-    }
-
-    override fun close() {
-        selectedCamera?.stopPreview()
-    }
+            .map { FotoCameraPreviewOperator(it::class.java.simpleName, this, fotoapparat) }
 
     override fun applyConfiguration(cameraPreviewConfiguration: CameraPreviewConfiguration) {
         super.applyConfiguration(cameraPreviewConfiguration)
@@ -72,11 +62,14 @@ class FotoCameraOperatorSource(
                 }
     }
 
+    override fun close() {
+        cameras.forEach { it.stopPreview() }
+    }
+
     class FotoCameraPreviewOperator(
             override val id: String,
-            private val fotoapparat: Fotoapparat,
-            private val camera: InternalCamera,
-            private val frameProcessor: FrameToObservableProcessor
+            override val source: CameraOperatorSource,
+            private val fotoapparat: Fotoapparat
     ) : CameraPreviewOperator {
         private val _isPreviewing = AtomicBoolean(false)
 
@@ -93,14 +86,6 @@ class FotoCameraOperatorSource(
         }
 
         override fun isPreviewing() = _isPreviewing.get()
-
-        fun switchToThis() {
-            fotoapparat.switchTo(camera.lensPosition, camera.configuration.copy(
-                    frameProcessor = {
-                        frameProcessor.process(it)
-                    }
-            ))
-        }
     }
 
     class FrameToObservableProcessor(val consumeFrame: (SourceAwarePreviewFrame) -> Unit) : FrameProcessor {

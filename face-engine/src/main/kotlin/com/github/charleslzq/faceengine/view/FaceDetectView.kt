@@ -32,28 +32,26 @@ constructor(context: Context, attributeSet: AttributeSet? = null, @AttrRes defSt
         addView(it)
     }
     private val cameraSources = listOf(
-            UVCCameraOperatorSource(context, cameraView, { frameTaskRunner.consume(it) }, cameraPreviewConfiguration, this::switchTo),
-            FotoCameraOperatorSource(context, cameraView, { frameTaskRunner.consume(it) }, cameraPreviewConfiguration, this::switchTo)
+            UVCCameraOperatorSource(context, cameraView, { frameTaskRunner.consume(it) }, cameraPreviewConfiguration),
+            FotoCameraOperatorSource(context, cameraView, { frameTaskRunner.consume(it) }, cameraPreviewConfiguration)
     )
     override val cameras: List<CameraPreviewOperator>
         get() = cameraSources.flatMap { it.cameras }
-
-    var operatorSourceSelector: (Iterable<CameraOperatorSource>) -> CameraOperatorSource? = { null }
+    var selectCamera: (Iterable<CameraPreviewOperator>) -> CameraPreviewOperator? = { null }
         set(value) {
-            val oldSelection = field(cameraSources)
-            val newSelection = value(cameraSources)
-            if (oldSelection != newSelection) {
-                oldSelection?.cameras?.forEach { it.stopPreview() }
-                oldSelection?.selected = false
+            val oldCamera = field(cameras)
+            val newCamera = value(cameras)
+            if (oldCamera != newCamera) {
+                oldCamera?.stopPreview()
                 field = value
-                newSelection?.selected = true
-                newSelection?.selectedCamera?.startPreview()
+                newCamera?.startPreview()
             }
         }
+    val selectedCamera: CameraPreviewOperator?
+        get() = selectCamera(cameras)
     val selectedSource: CameraOperatorSource?
-        get() = operatorSourceSelector(cameraSources)
-    override val selectedCamera: CameraPreviewOperator?
-        get() = operatorSourceSelector(cameraSources)?.selectedCamera
+        get() = selectedCamera?.source
+
 
     override fun onLayout(changed: Boolean, left: Int, top: Int, right: Int, bottom: Int) {
         cameraView.layout(left, top, right, bottom)
@@ -87,15 +85,10 @@ constructor(context: Context, attributeSet: AttributeSet? = null, @AttrRes defSt
         }
     }
 
-    override fun start() {
-        cameraSources.forEach { it.start() }
+    override fun open() {
+        cameraSources.forEach { it.open() }
         if (selectedCamera == null || !selectedCamera!!.isPreviewing()) {
-            cameraSources.firstOrNull { it.cameras.isNotEmpty() }?.let {
-                val sourceId = it.id
-                operatorSourceSelector = {
-                    it.firstOrNull { it.id == sourceId }
-                }
-            }
+            selectCamera = { it.firstOrNull() }
         }
     }
 
@@ -112,12 +105,6 @@ constructor(context: Context, attributeSet: AttributeSet? = null, @AttrRes defSt
 
     override fun applyConfiguration(cameraPreviewConfiguration: CameraPreviewConfiguration) {
         updateConfiguration { cameraPreviewConfiguration }
-    }
-
-    private fun switchTo(id: String) {
-        operatorSourceSelector = {
-            it.firstOrNull { it.id == id }
-        }
     }
 
     private fun updateConfiguration(generator: CameraPreviewConfiguration.() -> CameraPreviewConfiguration) {

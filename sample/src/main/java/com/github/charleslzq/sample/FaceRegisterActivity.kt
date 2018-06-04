@@ -29,7 +29,7 @@ class FaceRegisterActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
-        faceRegisterCamera.start()
+        faceRegisterCamera.open()
     }
 
     override fun onPause() {

@@ -131,7 +131,7 @@ public class FaceDetectActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        faceDetectCamera.start();
+        faceDetectCamera.open();
     }
 
     @Override

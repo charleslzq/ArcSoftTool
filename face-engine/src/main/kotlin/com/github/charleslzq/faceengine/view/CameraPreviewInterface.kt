@@ -44,6 +44,7 @@ interface CameraPreviewConfigurable {
 
 interface CameraPreviewOperator : CameraPreviewConfigurable {
     val id: String
+    val source: CameraOperatorSource
     fun startPreview()
     fun stopPreview()
     fun isPreviewing(): Boolean
@@ -51,35 +52,14 @@ interface CameraPreviewOperator : CameraPreviewConfigurable {
 }
 
 interface CameraSource : CameraPreviewConfigurable, AutoCloseable {
-    val selectedCamera: CameraPreviewOperator?
     val cameras: List<CameraPreviewOperator>
-    fun start() {}
+    fun open() {}
+    override fun close() {}
 }
 
 abstract class CameraOperatorSource : CameraSource {
-    var operatorSelector: (Iterable<CameraPreviewOperator>) -> CameraPreviewOperator? = { it.firstOrNull() }
-        set(value) {
-            val oldSelection = field(cameras)
-            val newSelection = value(cameras)
-            if (oldSelection != newSelection) {
-                if (selected) {
-                    oldSelection?.stopPreview()
-                }
-                field = value
-                if (selected) {
-                    onSelected(newSelection)
-                    newSelection?.startPreview()
-                }
-            }
-        }
-    override val selectedCamera: CameraPreviewOperator?
-        get() = operatorSelector(cameras)
     abstract var cameraPreviewConfiguration: CameraPreviewConfiguration
-    abstract var selected: Boolean
     abstract val id: String
-    abstract val switchToThis: (String) -> Unit
-
-    abstract fun onSelected(operator: CameraPreviewOperator?)
 
     override fun applyConfiguration(cameraPreviewConfiguration: CameraPreviewConfiguration) {
         this.cameraPreviewConfiguration = cameraPreviewConfiguration

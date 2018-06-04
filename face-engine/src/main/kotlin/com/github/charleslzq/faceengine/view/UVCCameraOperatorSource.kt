@@ -20,11 +20,9 @@ class UVCCameraOperatorSource(
         context: Context,
         cameraView: CameraView,
         consumeFrame: (SourceAwarePreviewFrame) -> Unit,
-        override var cameraPreviewConfiguration: CameraPreviewConfiguration,
-        override val switchToThis: (String) -> Unit
+        override var cameraPreviewConfiguration: CameraPreviewConfiguration
 ) : CameraOperatorSource() {
     override val id: String = "UVC"
-    override var selected = false
     private val connectionListener = object : USBMonitor.OnDeviceConnectListener {
         override fun onAttach(usbDevice: UsbDevice) {
             Toast.makeText(context, "External Camera Attached", Toast.LENGTH_SHORT).show()
@@ -39,18 +37,12 @@ class UVCCameraOperatorSource(
                 camera.open(usbControlBlock)
                 cameraMap[usbDevice.deviceName] = UVCCameraOperator(
                         usbDevice.deviceName,
+                        this@UVCCameraOperatorSource,
                         cameraView,
                         camera,
                         consumeFrame,
                         cameraPreviewConfiguration
                 )
-                switchToThis(id)
-                operatorSelector = {
-                    it.first { it.id == usbDevice.deviceName }
-                }
-                if (!selectedCamera!!.isPreviewing() && selected) {
-                    selectedCamera!!.startPreview()
-                }
             } catch (throwable: Throwable) {
                 throwable.printStackTrace()
             }
@@ -73,15 +65,12 @@ class UVCCameraOperatorSource(
     override val cameras: List<CameraPreviewOperator>
         get() = cameraMap.values.toList()
 
-    override fun onSelected(operator: CameraPreviewOperator?) {
-    }
-
     override fun applyConfiguration(cameraPreviewConfiguration: CameraPreviewConfiguration) {
         super.applyConfiguration(cameraPreviewConfiguration)
         cameraMap.values.forEach { it.applyConfiguration(cameraPreviewConfiguration) }
     }
 
-    override fun start() {
+    override fun open() {
         usbMonitor.register()
     }
 
@@ -92,6 +81,7 @@ class UVCCameraOperatorSource(
 
     class UVCCameraOperator(
             override val id: String,
+            override val source: CameraOperatorSource,
             private val cameraView: CameraView,
             private val uvcCamera: UVCCamera,
             private val consumeFrame: (SourceAwarePreviewFrame) -> Unit,

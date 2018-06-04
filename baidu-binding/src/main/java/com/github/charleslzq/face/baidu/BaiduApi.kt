@@ -7,7 +7,7 @@ import retrofit2.http.*
 interface BaiduUserGroupApi {
     @GET("groups")
     fun listGroup(
-            @Query("start") start: Int = 0,
+            @Query("open") start: Int = 0,
             @Query("length") length: Int = 100
     ): Deferred<BaiduResponse<GroupIdList>>
 
@@ -29,7 +29,7 @@ interface BaiduUserApi {
     @GET("groups/{groupId}/users")
     fun listUser(
             @Path("groupId") groupId: String,
-            @Query("start") start: Int = 0,
+            @Query("open") start: Int = 0,
             @Query("length") length: Int = 100
     ): Deferred<BaiduResponse<UserIdList>>
 
