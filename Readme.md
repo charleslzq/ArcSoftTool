@@ -17,7 +17,7 @@
 
     dependencies {
         // 其它依赖
-        implementation 'com.github.charleslzq:arcsoft-binding:1.0.1-RC2'
+        implementation 'com.github.charleslzq:arcsoft-binding:1.0.1'
     }
 
 或者使用百度在线人脸api
@@ -25,7 +25,7 @@
 
     dependencies {
         // 其它依赖
-        implementation 'com.github.charleslzq:baidu-binding:1.0.1-RC2'
+        implementation 'com.github.charleslzq:baidu-binding:1.0.1'
     }
 
 另外还需要加入以下代码避免报错:
