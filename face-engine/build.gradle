@@ -2,11 +2,11 @@ apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
 
 android {
-    compileSdkVersion rootProject.ext.compileSdkVersion
+    compileSdkVersion versions.sdk.target
 
     defaultConfig {
-        minSdkVersion rootProject.ext.minSdkVersion
-        targetSdkVersion rootProject.ext.compileSdkVersion
+        minSdkVersion versions.sdk.min
+        targetSdkVersion versions.sdk.target
         versionCode 1
         versionName "1.0"
 
@@ -31,23 +31,21 @@ android {
 }
 
 dependencies {
-    api rootProject.ext.faceStore
-    api rootProject.ext.jodaTime
-    api('io.fotoapparat.fotoapparat:library:2.2.0') {
-        exclude module: 'support-compat'
-    }
-    api rootProject.ext.kotlinStdlib
-    api rootProject.ext.rxAndroid
-    api rootProject.ext.rxJava
-    api 'com.github.charleslzq:TP-libuvccamera:1.0.0'
-    api 'com.github.charleslzq:TP-usbCameraCommon:1.0.0'
-    api rootProject.ext.supportCompat
-    implementation rootProject.ext.gson
-    implementation rootProject.ext.gsonJodaSerialiser
-    implementation 'com.serenegiant:common:1.5.20'
-    testImplementation rootProject.ext.junit
-    androidTestImplementation rootProject.ext.supportTestRunner
-    androidTestImplementation rootProject.ext.supportTestEspresso
+    api deps.faceStore
+    api deps.jodaTime
+    api deps.fotoapparat
+    api deps.kotlin.lib
+    api deps.rx.java
+    api deps.rx.android
+    api deps.uvccamera.lib
+    api deps.uvccamera.common
+    api deps.support.compat
+    implementation deps.gson
+    implementation deps.gsonJodaSerialiser
+    implementation deps.uvccamera.seregegiant
+    testImplementation deps.test.junit
+    androidTestImplementation deps.test.support.runner
+    androidTestImplementation deps.test.support.espresso.core
 }
 
 apply from: rootProject.file('gradle/gradle-mvn-push.gradle')

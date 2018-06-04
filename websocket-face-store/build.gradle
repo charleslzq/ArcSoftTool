@@ -2,13 +2,11 @@ apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
 
 android {
-    compileSdkVersion rootProject.ext.compileSdkVersion
-
-
+    compileSdkVersion versions.sdk.target
 
     defaultConfig {
-        minSdkVersion rootProject.ext.minSdkVersion
-        targetSdkVersion rootProject.ext.compileSdkVersion
+        minSdkVersion versions.sdk.min
+        targetSdkVersion versions.sdk.target
         versionCode 1
         versionName "1.0"
 
@@ -27,14 +25,14 @@ android {
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
-    api rootProject.ext.faceStore
+    api deps.faceStore
     api project(':face-engine')
-    implementation rootProject.ext.androidSync
-    implementation rootProject.ext.gson
-    implementation rootProject.ext.gsonJodaSerialiser
-    implementation rootProject.ext.kotlinStdlib
+    implementation deps.androidSync
+    implementation deps.gson
+    implementation deps.gsonJodaSerialiser
+    implementation deps.kotlin.lib
 
-    testImplementation rootProject.ext.junit
+    testImplementation deps.test.junit
 }
 repositories {
     mavenCentral()

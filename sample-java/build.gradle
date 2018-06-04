@@ -1,12 +1,12 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion rootProject.ext.compileSdkVersion
+    compileSdkVersion versions.sdk.target
 
     defaultConfig {
         applicationId "com.github.charleslzq.samplejava"
-        minSdkVersion rootProject.ext.minSdkVersion
-        targetSdkVersion rootProject.ext.compileSdkVersion
+        minSdkVersion versions.sdk.min
+        targetSdkVersion versions.sdk.target
         versionCode 1
         versionName "1.0"
 
@@ -33,14 +33,14 @@ android {
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation project(':arcsoft-binding')
-//    implementation rootProject.ext.arcsoftBinding
-    implementation rootProject.ext.supportAppCompat
-    implementation rootProject.ext.supportConstraintLayout
+//    implementation deps.arcsoftBinding
+    implementation deps.support.appCompat
+    implementation deps.support.constraintLayout
 
-    implementation rootProject.ext.butterKnife
-    annotationProcessor rootProject.ext.butterKnifeCompiler
+    implementation deps.butterKnife.core
+    annotationProcessor deps.butterKnife.compiler
 
-    implementation rootProject.ext.smartTable
-    implementation rootProject.ext.orhanobutLogger
-    testImplementation rootProject.ext.junit
+    implementation deps.smartTable
+    implementation deps.orhanobutLogger
+    testImplementation deps.test.junit
 }

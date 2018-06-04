@@ -1,12 +1,12 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion rootProject.ext.compileSdkVersion
+    compileSdkVersion versions.sdk.target
 
     defaultConfig {
         applicationId "com.github.charleslzq.face.baidu.sample"
-        minSdkVersion rootProject.ext.minSdkVersion
-        targetSdkVersion rootProject.ext.compileSdkVersion
+        minSdkVersion versions.sdk.min
+        targetSdkVersion versions.sdk.target
         versionCode 1
         versionName "1.0"
 
@@ -31,13 +31,13 @@ dependencies {
 
     implementation project(':baidu-binding')
 
-    implementation rootProject.ext.smartTable
+    implementation deps.smartTable
 
-    implementation rootProject.ext.supportAppCompat
-    implementation rootProject.ext.supportConstraintLayout
+    implementation deps.support.appCompat
+    implementation deps.support.constraintLayout
 
-    implementation rootProject.ext.butterKnife
-    annotationProcessor rootProject.ext.butterKnifeCompiler
+    implementation deps.butterKnife.core
+    annotationProcessor deps.butterKnife.compiler
 
-    testImplementation rootProject.ext.junit
+    testImplementation deps.test.junit
 }

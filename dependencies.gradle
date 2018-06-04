@@ -1,54 +1,108 @@
 ext {
-    androidPlugin = 'com.android.tools.build:gradle:3.0.1'
-    minSdkVersion = 19
-    compileSdkVersion = 27
-
-    faceStore = 'com.github.charleslzq:face-store:1.0.1-RC2'
-    arcsoftBinding = 'com.github.charleslzq:arcsoft-binding:1.0.0-RC3'
-    jodaTime = 'joda-time:joda-time:2.9.9'
-    gson = 'com.google.code.gson:gson:2.8.2'
-    gsonJodaSerialiser = 'com.fatboyindustrial.gson-jodatime-serialisers:gson-jodatime-serialisers:1.6.0'
-    androidSync = 'com.koushikdutta.async:androidasync:2.2.1'
-    smartTable = 'com.github.huangyanbin:SmartTable:2.0'
-    orhanobutLogger = 'com.orhanobut:logger:2.2.0'
-
-    retrofit_version = '2.4.0'
-    retrofit = "com.squareup.retrofit2:retrofit:$retrofit_version"
-    retrofitGson = "com.squareup.retrofit2:converter-gson:$retrofit_version"
-    retrofitCoroutine = 'com.jakewharton.retrofit:retrofit2-kotlin-coroutines-experimental-adapter:1.0.0'
-
-    kotlinPlugin = "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
-    kotlinStdlib = "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
-    kotlinPoet = 'com.squareup:kotlinpoet:0.6.0'
-
-    kotlinx_coroutine_version = '0.22.5'
-    kotlinXCoroutineCore = "org.jetbrains.kotlinx:kotlinx-coroutines-core:$kotlinx_coroutine_version"
-    kotlinXCoroutineAndroid = "org.jetbrains.kotlinx:kotlinx-coroutines-android:$kotlinx_coroutine_version"
-
-    koin_version = '0.9.3'
-    koinCore = "org.koin:koin-core:$koin_version"
-    koinAndroid = "org.koin:koin-android:$koin_version"
-
-    butter_knife_version = '8.8.1'
-    butterKnife = "com.jakewharton:butterknife:$butter_knife_version"
-    butterKnifeCompiler = "com.jakewharton:butterknife-compiler:$butter_knife_version"
-
-    supportVersion = '27.1.1'
-    supportCompat = "com.android.support:support-compat:$supportVersion"
-    supportAppCompat = "com.android.support:appcompat-v7:$supportVersion"
-    supportDesign ="com.android.support:design:$supportVersion"
-    supportConstraintLayout = 'com.android.support.constraint:constraint-layout:1.1.0'
-
-    autoValue = 'com.google.auto.value:auto-value:1.5.2'
-    autoValueAnnotations = 'com.jakewharton.auto.value:auto-value-annotations:1.5'
-
-    supportTestRunner = 'com.android.support.test:runner:1.0.1'
-    supportTestRules = 'com.android.support.test:rules:0.5'
-    supportTestEspresso = 'com.android.support.test.espresso:espresso-core:3.0.1'
-    supportTestEspressoContrib = 'com.android.support.test.espresso:espresso-contrib:2.2.1'
-    rxJava = 'io.reactivex.rxjava2:rxjava:2.0.2'
-    rxAndroid = 'io.reactivex.rxjava2:rxandroid:2.0.0'
-    junit = 'junit:junit:4.12'
+    versions = [
+            sdk : [
+                    min: 19,
+                    target: 27
+            ],
+            kotlin: [
+                    base: '1.2.41',
+                    poet: '0.6.0',
+                    coroutine: '0.22.5'
+            ],
+            rx: [
+                    java: '2.0.2',
+                    android: '2.0.0'
+            ],
+            support: [
+                    core: '27.1.1',
+                    constraintLayout: '1.1.0'
+            ],
+            retrofit: [
+                    base: '2.4.0',
+                    coroutine: '1.0.0'
+            ],
+            buildTool: '3.1.2',
+            faceStore: '1.0.1-RC2',
+            faceEngine: '1.0.1',
+            fotoapparat: '2.2.0',
+            uvccamera: '1.0.0',
+            seregegiant: '1.5.20',
+            jodaTime: '2.9.9',
+            gson: '2.8.2',
+            gsonJodaSerialiser: '1.6.0',
+            androidSync: '2.2.1',
+            smartTable: '2.0',
+            orhanobutLogger: '2.2.0',
+            butterKnife: '8.8.1',
+            test: [
+                    junit: '4.12',
+                    support: [
+                            runner: '1.0.1',
+                            rules: '0.5',
+                            espresso: [
+                                    core: '3.0.1',
+                                    contrib: '2.2.1'
+                            ]
+                    ]
+            ]
+    ]
+    deps = [
+            kotlin: [
+                    plugin: "org.jetbrains.kotlin:kotlin-gradle-plugin:${versions.kotlin.base}",
+                    lib: "org.jetbrains.kotlin:kotlin-stdlib:${versions.kotlin.base}",
+                    gradlePlugin: "org.jetbrains.kotlin:kotlin-gradle-plugin:${versions.kotlin.base}",
+                    coroutine: [
+                            core: "org.jetbrains.kotlinx:kotlinx-coroutines-core:${versions.kotlin.coroutine}",
+                            android: "org.jetbrains.kotlinx:kotlinx-coroutines-android:${versions.kotlin.coroutine}"
+                    ]
+            ],
+            rx: [
+                    java: "io.reactivex.rxjava2:rxjava:${versions.rx.java}",
+                    android: "io.reactivex.rxjava2:rxandroid:${versions.rx.android}"
+            ],
+            support: [
+                    compat: "com.android.support:support-compat:${versions.support.core}",
+                    appCompat: "com.android.support:appcompat-v7:${versions.support.core}",
+                    design: "com.android.support:design:${versions.support.core}",
+                    constraintLayout: "com.android.support.constraint:constraint-layout:${versions.support.constraintLayout}"
+            ],
+            retrofit: [
+                    core: "com.squareup.retrofit2:retrofit:${versions.retrofit.base}",
+                    gson: "com.squareup.retrofit2:converter-gson:${versions.retrofit.base}",
+                    coroutine: "com.jakewharton.retrofit:retrofit2-kotlin-coroutines-experimental-adapter:${versions.retrofit.coroutine}"
+            ],
+            butterKnife: [
+                    core: "com.jakewharton:butterknife:${versions.butterKnife}",
+                    compiler: "com.jakewharton:butterknife-compiler:${versions.butterKnife}"
+            ],
+            uvccamera: [
+                    lib: "com.github.charleslzq:TP-libuvccamera:${versions.uvccamera}",
+                    common: "com.github.charleslzq:TP-usbCameraCommon:${versions.uvccamera}",
+                    seregegiant: "com.serenegiant:common:${versions.seregegiant}"
+            ],
+            buildTool: "com.android.tools.build:gradle:${versions.buildTool}",
+            faceStore: "com.github.charleslzq:face-store:${versions.faceStore}",
+            arcsoftBinding: "com.github.charleslzq:arcsoft-binding:${versions.faceEngine}",
+            baiduBinding: "com.github.charleslzq:baidu-binding:${versions.faceEngine}",
+            fotoapparat: "io.fotoapparat.fotoapparat:library:${versions.fotoapparat}",
+            jodaTime: "joda-time:joda-time:${versions.jodaTime}",
+            gson: "com.google.code.gson:gson:${versions.gson}",
+            gsonJodaSerialiser:"com.fatboyindustrial.gson-jodatime-serialisers:gson-jodatime-serialisers:${versions.gsonJodaSerialiser}",
+            androidSync: "com.koushikdutta.async:androidasync:${versions.androidSync}",
+            smartTable: "com.github.huangyanbin:SmartTable:${versions.smartTable}",
+            orhanobutLogger: "com.orhanobut:logger:${versions.orhanobutLogger}",
+            test: [
+                    junit: "junit:junit:${versions.test.junit}",
+                    support: [
+                            runner: "com.android.support.test:runner:${versions.test.support.runner}",
+                            rules: "com.android.support.test:rules:${versions.test.support.rules}",
+                            espresso: [
+                                    core: "com.android.support.test.espresso:espresso-core:${versions.test.support.espresso.core}",
+                                    contrib: "com.android.support.test.espresso:espresso-contrib:${versions.test.support.espresso.contrib}"
+                            ]
+                    ]
+            ]
+    ]
 }
 
 subprojects { project ->
@@ -56,7 +110,7 @@ subprojects { project ->
         resolutionStrategy {
             eachDependency { details ->
                 if (details.requested.group == 'com.android.support') {
-                    details.useVersion(rootProject.ext.supportVersion)
+                    details.useVersion(versions.support.core)
                 }
             }
         }

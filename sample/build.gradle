@@ -7,12 +7,12 @@ configurations.all {
 }
 
 android {
-    compileSdkVersion rootProject.ext.compileSdkVersion
+    compileSdkVersion versions.sdk.target
 
     defaultConfig {
         applicationId "com.github.charleslzq.sample"
-        minSdkVersion rootProject.ext.minSdkVersion
-        targetSdkVersion rootProject.ext.compileSdkVersion
+        minSdkVersion versions.sdk.min
+        targetSdkVersion versions.sdk.target
         versionCode 1
         versionName "1.0"
 
@@ -39,10 +39,10 @@ android {
 dependencies {
     implementation fileTree(include: ['*.jar'], dir: 'libs')
     implementation project(':arcsoft-binding')
-//    implementation rootProject.ext.arcsoftBinding
-    implementation rootProject.ext.supportAppCompat
-    implementation rootProject.ext.supportConstraintLayout
-    implementation rootProject.ext.smartTable
-    implementation rootProject.ext.orhanobutLogger
-    testImplementation rootProject.ext.junit
+//    implementation deps.arcsoftBinding
+    implementation deps.support.appCompat
+    implementation deps.support.constraintLayout
+    implementation deps.smartTable
+    implementation deps.orhanobutLogger
+    testImplementation deps.test.junit
 }

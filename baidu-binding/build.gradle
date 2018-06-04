@@ -4,11 +4,11 @@ apply plugin: 'kotlin-android'
 kotlin.experimental.coroutines 'enable'
 
 android {
-    compileSdkVersion rootProject.ext.compileSdkVersion
+    compileSdkVersion versions.sdk.target
 
     defaultConfig {
-        minSdkVersion rootProject.ext.minSdkVersion
-        targetSdkVersion rootProject.ext.compileSdkVersion
+        minSdkVersion versions.sdk.min
+        targetSdkVersion versions.sdk.target
         versionCode 1
         versionName "1.0"
 
@@ -26,20 +26,20 @@ android {
 
 dependencies {
     api project(':face-engine')
-    api rootProject.ext.kotlinXCoroutineCore
-    api rootProject.ext.kotlinXCoroutineAndroid
+    api deps.kotlin.coroutine.core
+    api deps.kotlin.coroutine.android
 
-    api rootProject.ext.retrofit
-    api rootProject.ext.retrofitGson
-    api rootProject.ext.retrofitCoroutine
+    api deps.retrofit.core
+    api deps.retrofit.gson
+    api deps.retrofit.coroutine
 
     implementation fileTree(dir: 'libs', include: ['*.jar'])
 
-    implementation rootProject.ext.supportAppCompat
+    implementation deps.support.appCompat
 
-    testImplementation rootProject.ext.junit
-    androidTestImplementation rootProject.ext.supportTestRunner
-    androidTestImplementation rootProject.ext.supportTestEspresso
+    testImplementation deps.test.junit
+    androidTestImplementation deps.test.support.runner
+    androidTestImplementation deps.test.support.espresso.core
 }
 
 apply from: rootProject.file('gradle/gradle-mvn-push.gradle')

@@ -5,12 +5,12 @@ apply plugin: 'kotlin-android-extensions'
 kotlin.experimental.coroutines 'enable'
 
 android {
-    compileSdkVersion rootProject.ext.compileSdkVersion
+    compileSdkVersion versions.sdk.target
 
     defaultConfig {
         applicationId "com.github.charleslzq.face.baidu.sample"
-        minSdkVersion rootProject.ext.minSdkVersion
-        targetSdkVersion rootProject.ext.compileSdkVersion
+        minSdkVersion versions.sdk.min
+        targetSdkVersion versions.sdk.target
         versionCode 1
         versionName "1.0"
 
@@ -34,10 +34,10 @@ dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
 
     implementation project(':baidu-binding')
-    implementation rootProject.ext.smartTable
-    implementation rootProject.ext.supportDesign
+    implementation deps.smartTable
+    implementation deps.support.design
 
-    implementation rootProject.ext.supportAppCompat
-    implementation rootProject.ext.supportConstraintLayout
-    testImplementation rootProject.ext.junit
+    implementation deps.support.appCompat
+    implementation deps.support.constraintLayout
+    testImplementation deps.test.junit
 }
