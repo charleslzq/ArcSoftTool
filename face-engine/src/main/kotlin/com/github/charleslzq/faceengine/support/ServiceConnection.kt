@@ -14,7 +14,7 @@ interface ServiceInvoker<in S> {
 }
 
 interface ServiceCaller<in S, out T> {
-    fun call(service: S): T
+    fun call(service: S): T?
 }
 
 interface ServiceConnectionBuilder<S> {
@@ -30,7 +30,7 @@ private constructor(
     val isConnected: Boolean
         get() = binder != null
 
-    fun <T> whenConnected(handler: (S) -> T) = binder?.instance?.let(handler)
+    fun <T> whenConnected(handler: (S) -> T?) = binder?.instance?.let(handler)
 
     fun whenConnected(invoker: ServiceInvoker<S>) = binder?.instance?.let { invoker.invoke(it) }
 
