@@ -7,14 +7,14 @@ import com.github.charleslzq.faceengine.core.TrackedFace
 import com.github.charleslzq.faceengine.support.ServiceBackground
 import com.github.charleslzq.faceengine.support.ServiceConnectionBuilder
 import com.github.charleslzq.faceengine.support.toEncodedBytes
-import com.github.charleslzq.faceengine.view.CameraPreview
+import com.github.charleslzq.faceengine.view.PreviewFrame
 import com.jakewharton.retrofit2.adapter.kotlin.coroutines.experimental.CoroutineCallAdapterFactory
 import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.runBlocking
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
-fun CameraPreview.PreviewFrame.toImage() = Image(Image.Type.BASE64, toEncodedBytes(this))
+fun PreviewFrame.toImage() = Image(Image.Type.BASE64, toEncodedBytes(this))
 
 fun DetectedFace.leftInt() = location.left.toInt()
 
@@ -49,7 +49,7 @@ class BaiduFaceEngine(
                     .build()
         }
 ) : BaiduUserGroupApi, BaiduUserApi, BaiduFaceApi, BaiduImageApi,
-        FaceEngine<CameraPreview.PreviewFrame, BaiduFaceEngine.User, DetectedFace> {
+        FaceEngine<PreviewFrame, BaiduFaceEngine.User, DetectedFace> {
     var url = baseUrl
         set(value) {
             if (value != field) {
@@ -79,12 +79,12 @@ class BaiduFaceEngine(
         callback.run()
     }
 
-    override fun detect(image: CameraPreview.PreviewFrame) = runBlocking(CommonPool) {
+    override fun detect(image: PreviewFrame) = runBlocking(CommonPool) {
         detect(image.toImage()).await().result?.faceList?.map { it.toTrackedFace() to it }?.toMap()
                 ?: emptyMap()
     }
 
-    override fun search(image: CameraPreview.PreviewFrame) = runBlocking(CommonPool) {
+    override fun search(image: PreviewFrame) = runBlocking(CommonPool) {
         search(image.toImage(), defaultSearchGroups.toTypedArray()).await().result?.userList?.maxBy { it.score }?.toUser()
     }
 

@@ -9,8 +9,9 @@ import com.github.charleslzq.face.baidu.BaiduFaceEngine;
 import com.github.charleslzq.face.baidu.BaiduFaceEngineServiceBackground;
 import com.github.charleslzq.faceengine.support.ServiceConnectionProvider;
 import com.github.charleslzq.faceengine.support.ServiceInvoker;
-import com.github.charleslzq.faceengine.view.CameraPreview;
 import com.github.charleslzq.faceengine.view.FaceDetectView;
+import com.github.charleslzq.faceengine.view.FrameConsumer;
+import com.github.charleslzq.faceengine.view.SourceAwarePreviewFrame;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -28,9 +29,9 @@ public class FaceDetectActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_face_detect);
         ButterKnife.bind(this);
-        faceDetectCamera.onPreview(new CameraPreview.FrameConsumer() {
+        faceDetectCamera.onPreview(new FrameConsumer() {
             @Override
-            public void accept(@NotNull final CameraPreview.PreviewFrame previewFrame) {
+            public void accept(@NotNull final SourceAwarePreviewFrame previewFrame) {
                 connection.whenConnected(new ServiceInvoker<BaiduFaceEngine>() {
                     @Override
                     public void invoke(BaiduFaceEngine service) {

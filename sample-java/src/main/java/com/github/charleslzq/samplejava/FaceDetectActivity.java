@@ -16,9 +16,10 @@ import com.github.charleslzq.arcsofttools.kotlin.WebSocketArcSoftService;
 import com.github.charleslzq.faceengine.core.TrackedFace;
 import com.github.charleslzq.faceengine.support.ServiceConnectionProvider;
 import com.github.charleslzq.faceengine.support.ServiceInvoker;
-import com.github.charleslzq.faceengine.view.CameraPreview;
 import com.github.charleslzq.faceengine.view.CameraPreviewOperator;
 import com.github.charleslzq.faceengine.view.FaceDetectView;
+import com.github.charleslzq.faceengine.view.FrameConsumer;
+import com.github.charleslzq.faceengine.view.SourceAwarePreviewFrame;
 import com.github.charleslzq.facestore.websocket.WebSocketCompositeFaceStore;
 import com.orhanobut.logger.Logger;
 
@@ -49,9 +50,9 @@ public class FaceDetectActivity extends AppCompatActivity {
         if (faceDetectCamera.getSelectedCamera() != null) {
             Logger.i("Use Camera: " + faceDetectCamera.getSelectedCamera().getId());
         }
-        faceDetectCamera.onPreview(new FaceDetectView.FrameConsumer() {
+        faceDetectCamera.onPreview(new FrameConsumer() {
             @Override
-            public void accept(final @NonNull CameraPreview.PreviewFrame frame) {
+            public void accept(final @NonNull SourceAwarePreviewFrame frame) {
                 Logger.i("on frame with size " + frame.getSize().toString() + " and rotation " + frame.getRotation() + ", " + frame.getSequence());
                 connection.whenConnected(new ServiceInvoker<ArcSoftFaceOfflineEngine<? extends WebSocketCompositeFaceStore<Person, Face>>>() {
                     @Override

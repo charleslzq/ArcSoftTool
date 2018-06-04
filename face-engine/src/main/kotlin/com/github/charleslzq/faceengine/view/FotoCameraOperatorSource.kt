@@ -2,7 +2,6 @@ package com.github.charleslzq.faceengine.view
 
 import android.content.Context
 import android.util.Log
-import com.github.charleslzq.faceengine.support.faceEngineTaskExecutor
 import io.fotoapparat.Fotoapparat
 import io.fotoapparat.FotoapparatBuilder
 import io.fotoapparat.characteristic.LensPosition
@@ -16,47 +15,33 @@ import io.fotoapparat.selector.firstAvailable
 import io.fotoapparat.selector.front
 import io.fotoapparat.selector.single
 import io.fotoapparat.view.CameraView
-import io.reactivex.Scheduler
-import io.reactivex.subjects.PublishSubject
-import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
 
-fun Frame.toPreviewFrame(source: String, seq: Int? = null) = CameraPreview.PreviewFrame(source, size, image, rotation, seq)
+fun Frame.toPreviewFrame(source: String, seq: Int) = SourceAwarePreviewFrame(source, seq, size, image, rotation)
 
 class FotoCameraOperatorSource(
         context: Context,
         cameraView: CameraView,
+        consumeFrame: (SourceAwarePreviewFrame) -> Unit,
         override var cameraPreviewConfiguration: CameraPreviewConfiguration,
         override val switchToThis: (String) -> Unit
 ) : CameraOperatorSource() {
     override val id: String = "FOTO"
     override var selected = false
-    private val frameProcessor = FrameToObservableProcessor()
+    private val frameProcessor = FrameToObservableProcessor(consumeFrame)
     private val fotoapparat by lazy {
         Fotoapparat.with(context)
                 .apply { setup(this, cameraView) }
                 .build()
     }
-    private val cameraOperators = listOf(LensPosition.Front, LensPosition.Back)
+    override val cameras = listOf(LensPosition.Front, LensPosition.Back)
             .filter { fotoapparat.isAvailable(single(it)) }
             .map { FotoCameraPreviewOperator(it::class.java.simpleName, fotoapparat, InternalCamera.fromLensSelector(it), frameProcessor) }
-
-    override fun getCameras() = cameraOperators
 
     override fun onSelected(operator: CameraPreviewOperator?) {
         (operator as? FotoCameraPreviewOperator)?.switchToThis()
     }
-
-    override fun onPreviewFrame(
-            scheduler: Scheduler,
-            processor: (CameraPreview.PreviewFrame) -> Unit
-    ) = frameProcessor.publisher.observeOn(scheduler).sample(cameraPreviewConfiguration.sampleInterval, TimeUnit.MILLISECONDS).subscribe(processor)
-
-    override fun onPreviewFrame(
-            scheduler: Scheduler,
-            frameConsumer: CameraPreview.FrameConsumer
-    ) = frameProcessor.publisher.observeOn(scheduler).sample(cameraPreviewConfiguration.sampleInterval, TimeUnit.MILLISECONDS).subscribe { frameConsumer.accept(it) }
 
     override fun close() {
         selectedCamera?.stopPreview()
@@ -104,7 +89,6 @@ class FotoCameraOperatorSource(
         override fun stopPreview() {
             if (_isPreviewing.compareAndSet(true, false)) {
                 fotoapparat.stop()
-                faceEngineTaskExecutor.cancelTasks(id)
             }
         }
 
@@ -119,13 +103,12 @@ class FotoCameraOperatorSource(
         }
     }
 
-    class FrameToObservableProcessor : FrameProcessor {
-        val publisher = PublishSubject.create<CameraPreview.PreviewFrame>()
+    class FrameToObservableProcessor(val consumeFrame: (SourceAwarePreviewFrame) -> Unit) : FrameProcessor {
         private val count = AtomicInteger(0)
 
         override fun process(frame: Frame) {
             count.getAndIncrement().let {
-                publisher.onNext(frame.toPreviewFrame("FOTO", it))
+                consumeFrame(frame.toPreviewFrame("FOTO", it))
             }
             if (count.get() > 1000) {
                 count.set(0)

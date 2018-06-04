@@ -6,12 +6,9 @@ import android.util.AttributeSet
 import android.view.TextureView
 import android.widget.FrameLayout
 import com.github.charleslzq.faceengine.core.TrackedFace
-import com.github.charleslzq.faceengine.support.faceEngineTaskExecutor
+import com.github.charleslzq.faceengine.view.task.RxFrameTaskRunner
 import io.fotoapparat.parameter.ScaleType
 import io.fotoapparat.view.CameraView
-import io.reactivex.Scheduler
-import io.reactivex.disposables.Disposable
-import io.reactivex.schedulers.Schedulers
 import java.util.concurrent.TimeUnit
 
 /**
@@ -25,6 +22,7 @@ class FaceDetectView
 constructor(context: Context, attributeSet: AttributeSet? = null, @AttrRes defStyle: Int = 0) :
         FrameLayout(context, attributeSet, defStyle), CameraSource {
     private var cameraPreviewConfiguration: CameraPreviewConfiguration = CameraPreviewConfiguration.from(context, attributeSet, defStyle)
+    private val frameTaskRunner = RxFrameTaskRunner(cameraPreviewConfiguration.sampleInterval)
     private val cameraView = CameraView(context, attributeSet, defStyle).also {
         it.setScaleType(ScaleType.CenterInside)
         addView(it)
@@ -34,16 +32,18 @@ constructor(context: Context, attributeSet: AttributeSet? = null, @AttrRes defSt
         addView(it)
     }
     private val cameraSources = listOf(
-            UVCCameraOperatorSource(context, cameraView, cameraPreviewConfiguration, this::switchTo),
-            FotoCameraOperatorSource(context, cameraView, cameraPreviewConfiguration, this::switchTo)
+            UVCCameraOperatorSource(context, cameraView, { frameTaskRunner.consume(it) }, cameraPreviewConfiguration, this::switchTo),
+            FotoCameraOperatorSource(context, cameraView, { frameTaskRunner.consume(it) }, cameraPreviewConfiguration, this::switchTo)
     )
+    override val cameras: List<CameraPreviewOperator>
+        get() = cameraSources.flatMap { it.cameras }
 
     var operatorSourceSelector: (Iterable<CameraOperatorSource>) -> CameraOperatorSource? = { null }
         set(value) {
             val oldSelection = field(cameraSources)
             val newSelection = value(cameraSources)
             if (oldSelection != newSelection) {
-                oldSelection?.getCameras()?.forEach { it.stopPreview() }
+                oldSelection?.cameras?.forEach { it.stopPreview() }
                 oldSelection?.selected = false
                 field = value
                 newSelection?.selected = true
@@ -55,8 +55,6 @@ constructor(context: Context, attributeSet: AttributeSet? = null, @AttrRes defSt
     override val selectedCamera: CameraPreviewOperator?
         get() = operatorSourceSelector(cameraSources)?.selectedCamera
 
-    private val disposables = mutableListOf<Disposable>()
-
     override fun onLayout(changed: Boolean, left: Int, top: Int, right: Int, bottom: Int) {
         cameraView.layout(left, top, right, bottom)
         trackView.layout(
@@ -67,49 +65,21 @@ constructor(context: Context, attributeSet: AttributeSet? = null, @AttrRes defSt
         )
     }
 
-    override fun onPreviewFrame(scheduler: Scheduler, processor: (CameraPreview.PreviewFrame) -> Unit) = CompositeDisposable(
-            cameraSources.map {
-                it.onPreviewFrame(scheduler, processor)
-            }
-    ).also { disposables.add(it) }
-
-    override fun onPreviewFrame(scheduler: Scheduler, frameConsumer: CameraPreview.FrameConsumer) = CompositeDisposable(
-            cameraSources.map {
-                it.onPreviewFrame(scheduler, frameConsumer)
-            }
-    ).also { disposables.add(it) }
+    @JvmOverloads
+    fun onPreview(
+            timeout: Long = 2000,
+            timeUnit: TimeUnit = TimeUnit.MILLISECONDS,
+            processor: (SourceAwarePreviewFrame) -> Unit
+    ) = frameTaskRunner.onPreviewFrame(timeout, timeUnit, processor)
 
     @JvmOverloads
     fun onPreview(
             timeout: Long = 2000,
             timeUnit: TimeUnit = TimeUnit.MILLISECONDS,
-            scheduler: Scheduler = Schedulers.computation(),
-            processor: (CameraPreview.PreviewFrame) -> Unit
-    ) = onPreviewFrame(scheduler) {
-        faceEngineTaskExecutor.run {
-            executeInTimeout(selectedCamera!!.id, timeout, timeUnit) {
-                processor(it)
-            }
-            logStatus()
-        }
-    }
-
-    @JvmOverloads
-    fun onPreview(
-            timeout: Long = 2000,
-            timeUnit: TimeUnit = TimeUnit.MILLISECONDS,
-            scheduler: Scheduler = Schedulers.computation(),
-            frameConsumer: CameraPreview.FrameConsumer
-    ) = onPreviewFrame(scheduler) {
-        faceEngineTaskExecutor.run {
-            executeInTimeout(selectedCamera!!.id, timeout, timeUnit) {
-                frameConsumer.accept(it)
-            }
-            logStatus()
-        }
-    }
-
-    override fun getCameras() = cameraSources.flatMap { it.getCameras() }
+            frameConsumer: FrameConsumer
+    ) = frameTaskRunner.onPreviewFrame(timeout, timeUnit, {
+        frameConsumer.accept(it)
+    })
 
     fun updateTrackFaces(faces: Collection<TrackedFace>) {
         if (cameraPreviewConfiguration.showRect) {
@@ -120,37 +90,10 @@ constructor(context: Context, attributeSet: AttributeSet? = null, @AttrRes defSt
     override fun start() {
         cameraSources.forEach { it.start() }
         if (selectedCamera == null || !selectedCamera!!.isPreviewing()) {
-            cameraSources.firstOrNull { it.getCameras().isNotEmpty() }?.let {
+            cameraSources.firstOrNull { it.cameras.isNotEmpty() }?.let {
                 val sourceId = it.id
                 operatorSourceSelector = {
                     it.firstOrNull { it.id == sourceId }
-                }
-            }
-        }
-    }
-
-    fun selectNext() {
-        if (selectedSource != null && selectedCamera != null) {
-            faceEngineTaskExecutor.cancelTasks()
-            selectedSource!!.getCameras().run {
-                val index = indexOf(selectedCamera!!)
-                if (index + 1 < size) {
-                    selectedSource!!.operatorSelector = {
-                        it.elementAt(index + 1)
-                    }
-                } else {
-                    val sourceIndex = cameraSources.indexOf(selectedSource!!)
-                    val availableSourceIndex = cameraSources.indices.firstOrNull {
-                        it > sourceIndex && cameraSources[it].getCameras().isNotEmpty()
-                    }
-                    operatorSourceSelector = if (availableSourceIndex != null) {
-                        { it.elementAt(availableSourceIndex) }
-                    } else {
-                        { it.firstOrNull { it.getCameras().isNotEmpty() } }
-                    }
-                    selectedSource!!.operatorSelector = {
-                        it.elementAt(0)
-                    }
                 }
             }
         }
@@ -160,21 +103,11 @@ constructor(context: Context, attributeSet: AttributeSet? = null, @AttrRes defSt
         selectedCamera?.stopPreview()
     }
 
-    fun selectSource(selector: (Iterable<CameraOperatorSource>) -> CameraOperatorSource?) {
-        operatorSourceSelector = selector
-    }
-
-    fun selectSource(selector: SourceSelector) {
-        operatorSourceSelector = { selector.select(it) }
-    }
-
     override fun close() {
         cameraSources.forEach {
             it.close()
         }
-        disposables.filter { !it.isDisposed }.forEach { it.dispose() }
-        disposables.clear()
-        faceEngineTaskExecutor.cancelTasks()
+        frameTaskRunner.cancelAll()
     }
 
     override fun applyConfiguration(cameraPreviewConfiguration: CameraPreviewConfiguration) {
@@ -191,17 +124,6 @@ constructor(context: Context, attributeSet: AttributeSet? = null, @AttrRes defSt
         cameraPreviewConfiguration = generator(cameraPreviewConfiguration)
         cameraSources.forEach { it.applyConfiguration(cameraPreviewConfiguration) }
         trackView.applyConfiguration(cameraPreviewConfiguration)
-    }
-
-    class CompositeDisposable(private val disposables: List<Disposable>) : Disposable {
-        override fun isDisposed() = disposables.all { it.isDisposed }
-
-        override fun dispose() = disposables.forEach { it.dispose() }
-    }
-
-    @FunctionalInterface
-    interface SourceSelector {
-        fun select(choices: Iterable<CameraOperatorSource>): CameraOperatorSource?
     }
 
     companion object {

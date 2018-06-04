@@ -4,13 +4,13 @@ package com.github.charleslzq.faceengine.support
 
 import android.graphics.*
 import android.util.Base64
-import com.github.charleslzq.faceengine.view.CameraPreview
+import com.github.charleslzq.faceengine.view.PreviewFrame
 import java.io.ByteArrayOutputStream
 
 /**
  * Created by charleslzq on 18-3-8.
  */
-fun toBitmap(frame: CameraPreview.PreviewFrame): Bitmap =
+fun toBitmap(frame: PreviewFrame): Bitmap =
         YuvImage(frame.image, ImageFormat.NV21, frame.size.width, frame.size.height, null).run {
             TempByteArrayOutputStream().use {
                 compressToJpeg(Rect(0, 0, frame.size.width, frame.size.height), 100, it)
@@ -25,7 +25,7 @@ fun toEncodedBytes(bitmap: Bitmap): String = bitmap.run {
     }
 }
 
-fun toEncodedBytes(frame: CameraPreview.PreviewFrame) = toEncodedBytes(toBitmap(frame))
+fun toEncodedBytes(frame: PreviewFrame) = toEncodedBytes(toBitmap(frame))
 
 private class TempByteArrayOutputStream : ByteArrayOutputStream() {
     val data: ByteArray

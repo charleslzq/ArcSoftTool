@@ -5,25 +5,21 @@ import android.hardware.usb.UsbDevice
 import android.util.Log
 import android.view.Surface
 import android.widget.Toast
-import com.github.charleslzq.faceengine.support.faceEngineTaskExecutor
 import com.github.charleslzq.faceengine.support.runOnCompute
 import com.serenegiant.usb.USBMonitor
 import com.serenegiant.usb.UVCCamera
 import io.fotoapparat.parameter.Resolution
 import io.fotoapparat.view.CameraView
 import io.fotoapparat.view.Preview
-import io.reactivex.Observer
-import io.reactivex.Scheduler
-import io.reactivex.subjects.PublishSubject
 import java.nio.ByteBuffer
 import java.util.concurrent.ConcurrentHashMap
-import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
 
 class UVCCameraOperatorSource(
         context: Context,
         cameraView: CameraView,
+        consumeFrame: (SourceAwarePreviewFrame) -> Unit,
         override var cameraPreviewConfiguration: CameraPreviewConfiguration,
         override val switchToThis: (String) -> Unit
 ) : CameraOperatorSource() {
@@ -37,15 +33,15 @@ class UVCCameraOperatorSource(
 
         override fun onConnect(usbDevice: UsbDevice, usbControlBlock: USBMonitor.UsbControlBlock, createNew: Boolean) {
             Toast.makeText(context, "External Camera Connected", Toast.LENGTH_SHORT).show()
-            cameras.values.forEach { it.stopPreview() }
+            cameraMap.values.forEach { it.stopPreview() }
             val camera = UVCCamera()
             try {
                 camera.open(usbControlBlock)
-                cameras[usbDevice.deviceName] = UVCCameraOperator(
+                cameraMap[usbDevice.deviceName] = UVCCameraOperator(
                         usbDevice.deviceName,
                         cameraView,
                         camera,
-                        publisher,
+                        consumeFrame,
                         cameraPreviewConfiguration
                 )
                 switchToThis(id)
@@ -64,8 +60,8 @@ class UVCCameraOperatorSource(
         }
 
         override fun onDisconnect(usbDevice: UsbDevice, p1: USBMonitor.UsbControlBlock) {
-            cameras[usbDevice.deviceName]?.release()
-            cameras.remove(usbDevice.deviceName)
+            cameraMap[usbDevice.deviceName]?.release()
+            cameraMap.remove(usbDevice.deviceName)
         }
 
         override fun onDettach(usbDevice: UsbDevice) {
@@ -73,27 +69,16 @@ class UVCCameraOperatorSource(
         }
     }
     private val usbMonitor: USBMonitor = USBMonitor(context, connectionListener)
-    private val publisher = PublishSubject.create<CameraPreview.PreviewFrame>()
-    private val cameras = ConcurrentHashMap<String, UVCCameraOperator>()
-
-    override fun onPreviewFrame(
-            scheduler: Scheduler,
-            processor: (CameraPreview.PreviewFrame) -> Unit
-    ) = publisher.observeOn(scheduler).sample(cameraPreviewConfiguration.sampleInterval, TimeUnit.MILLISECONDS).subscribe(processor)
-
-    override fun onPreviewFrame(
-            scheduler: Scheduler,
-            frameConsumer: CameraPreview.FrameConsumer
-    ) = publisher.observeOn(scheduler).sample(cameraPreviewConfiguration.sampleInterval, TimeUnit.MILLISECONDS).subscribe { frameConsumer.accept(it) }
-
-    override fun getCameras() = cameras.values.toList()
+    private val cameraMap = ConcurrentHashMap<String, UVCCameraOperator>()
+    override val cameras: List<CameraPreviewOperator>
+        get() = cameraMap.values.toList()
 
     override fun onSelected(operator: CameraPreviewOperator?) {
     }
 
     override fun applyConfiguration(cameraPreviewConfiguration: CameraPreviewConfiguration) {
         super.applyConfiguration(cameraPreviewConfiguration)
-        cameras.values.forEach { it.applyConfiguration(cameraPreviewConfiguration) }
+        cameraMap.values.forEach { it.applyConfiguration(cameraPreviewConfiguration) }
     }
 
     override fun start() {
@@ -101,7 +86,7 @@ class UVCCameraOperatorSource(
     }
 
     override fun close() {
-        cameras.values.forEach { it.release() }
+        cameraMap.values.forEach { it.release() }
         usbMonitor.unregister()
     }
 
@@ -109,7 +94,7 @@ class UVCCameraOperatorSource(
             override val id: String,
             private val cameraView: CameraView,
             private val uvcCamera: UVCCamera,
-            private val frameObserver: Observer<CameraPreview.PreviewFrame>,
+            private val consumeFrame: (SourceAwarePreviewFrame) -> Unit,
             private var cameraPreviewConfiguration: CameraPreviewConfiguration
     ) : CameraPreviewOperator {
         private val supportedResolution = uvcCamera.supportedSizeList.map {
@@ -142,7 +127,7 @@ class UVCCameraOperatorSource(
                                 buffer = ByteArray(it.limit())
                             }
                             it.get(buffer)
-                            frameObserver.onNext(CameraPreview.PreviewFrame("UVC-$id", selectedResolution, buffer, 0, count.getAndIncrement()))
+                            consumeFrame(SourceAwarePreviewFrame("UVC-$id", count.getAndIncrement(), selectedResolution, buffer, 0))
                         }
                         if (count.get() > 1000) {
                             count.set(0)
@@ -157,7 +142,6 @@ class UVCCameraOperatorSource(
             if (_isPreviewing.compareAndSet(true, false)) {
                 surface.release()
                 uvcCamera.stopPreview()
-                faceEngineTaskExecutor.cancelTasks(id)
             }
         }
 
@@ -174,16 +158,6 @@ class UVCCameraOperatorSource(
 
         override fun applyConfiguration(cameraPreviewConfiguration: CameraPreviewConfiguration) {
             this.cameraPreviewConfiguration = cameraPreviewConfiguration
-        }
-
-        @FunctionalInterface
-        interface ResolutionSelector {
-            fun select(choices: Iterable<Resolution>): Resolution?
-        }
-
-        companion object {
-            val HIGHEST_RESOLUTION: (Iterable<Resolution>) -> Resolution? = { it.firstOrNull() }
-            val LOWEST_RESOLUTION: (Iterable<Resolution>) -> Resolution? = { it.lastOrNull() }
         }
     }
 }

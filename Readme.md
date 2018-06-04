@@ -46,17 +46,16 @@
     3. rectWidth demension, 显示方框边框的宽度, 默认为1f
     4. sampleInterval integer, 取样间隔, 每隔该时间发送一次相片取样, 单位毫秒, 默认为500
 
-获取相片流在创建时调用其onPreview接口即可, java需实现CameraPreview.FrameConsumer接口, 如下所示:
+获取相片流在创建时调用其onPreview接口即可, java需实现FrameConsumer接口, 如下所示:
 
-    faceDetectView.onPreview(new CameraPreview.FrameConsumer() {
+    faceDetectView.onPreview(new FrameConsumer() {
                 @Override
-                public void accept(@NotNull CameraPreview.PreviewFrame previewFrame) {
+                public void accept(@NotNull PreviewFrame previewFrame) {
                     // 处理收到的数据
                 }
             });
 
-该接口有多个重载版本, 可指定超时时间(默认为2秒)或者指定处理逻辑在哪个线程执行(默认为rxjava的
-computation线程) . 收到的数据类型为CameraPreview.PreviewFrame, 各字段含义如下:
+该接口有多个重载版本, 可指定超时时间(默认为2秒). 收到的数据类型为PreviewFrame, 可能包含的各字段含义如下:
 
     1. source 相片来源, 为camera的标识符
     2. size 相片大小, Resolution类型, 可获取长\宽\面积\长宽比等数据

@@ -15,9 +15,6 @@ class FaceDetectActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_face_detect)
-        faceDetectCamera.setOnClickListener {
-            faceDetectCamera.selectNext()
-        }
         faceDetectCamera.onPreview {
             Logger.i("on frame with size ${it.size} and rotation ${it.rotation}, ${it.sequence}/${it.source}")
             val startTime = System.currentTimeMillis()

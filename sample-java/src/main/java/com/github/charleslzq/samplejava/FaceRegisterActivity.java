@@ -7,8 +7,9 @@ import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 
 import com.github.charleslzq.faceengine.support.ImageUtils;
-import com.github.charleslzq.faceengine.view.CameraPreview;
 import com.github.charleslzq.faceengine.view.FaceDetectView;
+import com.github.charleslzq.faceengine.view.FrameConsumer;
+import com.github.charleslzq.faceengine.view.SourceAwarePreviewFrame;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -34,9 +35,9 @@ public class FaceRegisterActivity extends AppCompatActivity {
                 requireTakePicture.compareAndSet(false, true);
             }
         });
-        faceDetectView.onPreview(new CameraPreview.FrameConsumer() {
+        faceDetectView.onPreview(new FrameConsumer() {
             @Override
-            public void accept(@NotNull CameraPreview.PreviewFrame previewFrame) {
+            public void accept(@NotNull SourceAwarePreviewFrame previewFrame) {
                 if (requireTakePicture.compareAndSet(true, false)) {
                     Intent intent = new Intent();
                     intent.putExtra("picPath", BitmapFileHelper.save(ImageUtils.toBitmap(previewFrame)));

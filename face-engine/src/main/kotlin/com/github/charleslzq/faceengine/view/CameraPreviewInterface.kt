@@ -7,33 +7,35 @@ import android.support.annotation.AttrRes
 import android.util.AttributeSet
 import com.github.charleslzq.faceengine.core.R
 import io.fotoapparat.parameter.Resolution
-import io.reactivex.Scheduler
-import io.reactivex.disposables.Disposable
-import io.reactivex.schedulers.Schedulers
 
-interface CameraPreview : CameraPreviewConfigurable {
-    fun onPreviewFrame(
-            scheduler: Scheduler = Schedulers.computation(),
-            processor: (PreviewFrame) -> Unit
-    ): Disposable
+sealed class PreviewFrame(
+        val size: Resolution,
+        val image: ByteArray,
+        val rotation: Int
+)
 
-    fun onPreviewFrame(
-            scheduler: Scheduler = Schedulers.computation(),
-            frameConsumer: FrameConsumer
-    ): Disposable
+class SimplePreviewFrame(
+        size: Resolution,
+        image: ByteArray,
+        rotation: Int
+) : PreviewFrame(size, image, rotation)
 
-    data class PreviewFrame(
-            val source: String,
-            val size: Resolution,
-            val image: ByteArray,
-            val rotation: Int,
-            val sequence: Int? = null
-    )
+class SourceAwarePreviewFrame(
+        val source: String,
+        val sequence: Int,
+        size: Resolution,
+        image: ByteArray,
+        rotation: Int
+) : PreviewFrame(size, image, rotation)
 
-    @FunctionalInterface
-    interface FrameConsumer {
-        fun accept(previewFrame: PreviewFrame)
-    }
+@FunctionalInterface
+interface FrameConsumer {
+    fun accept(previewFrame: SourceAwarePreviewFrame)
+}
+
+@FunctionalInterface
+interface Selector<T> {
+    fun select(choices: Iterable<T>): T?
 }
 
 interface CameraPreviewConfigurable {
@@ -48,17 +50,17 @@ interface CameraPreviewOperator : CameraPreviewConfigurable {
     override fun applyConfiguration(cameraPreviewConfiguration: CameraPreviewConfiguration) {}
 }
 
-interface CameraSource : CameraPreview, AutoCloseable {
+interface CameraSource : CameraPreviewConfigurable, AutoCloseable {
     val selectedCamera: CameraPreviewOperator?
+    val cameras: List<CameraPreviewOperator>
     fun start() {}
-    fun getCameras(): List<CameraPreviewOperator>
 }
 
 abstract class CameraOperatorSource : CameraSource {
     var operatorSelector: (Iterable<CameraPreviewOperator>) -> CameraPreviewOperator? = { it.firstOrNull() }
         set(value) {
-            val oldSelection = field(getCameras())
-            val newSelection = value(getCameras())
+            val oldSelection = field(cameras)
+            val newSelection = value(cameras)
             if (oldSelection != newSelection) {
                 if (selected) {
                     oldSelection?.stopPreview()
@@ -71,7 +73,7 @@ abstract class CameraOperatorSource : CameraSource {
             }
         }
     override val selectedCamera: CameraPreviewOperator?
-        get() = operatorSelector(getCameras())
+        get() = operatorSelector(cameras)
     abstract var cameraPreviewConfiguration: CameraPreviewConfiguration
     abstract var selected: Boolean
     abstract val id: String
@@ -81,19 +83,6 @@ abstract class CameraOperatorSource : CameraSource {
 
     override fun applyConfiguration(cameraPreviewConfiguration: CameraPreviewConfiguration) {
         this.cameraPreviewConfiguration = cameraPreviewConfiguration
-    }
-
-    fun selectCamera(selector: (Iterable<CameraPreviewOperator>) -> CameraPreviewOperator?) {
-        operatorSelector = selector
-    }
-
-    fun selectCamera(selector: CameraSelector) {
-        operatorSelector = { selector.select(it) }
-    }
-
-    @FunctionalInterface
-    interface CameraSelector {
-        fun select(choices: Iterable<CameraPreviewOperator>): CameraPreviewOperator?
     }
 }
 
