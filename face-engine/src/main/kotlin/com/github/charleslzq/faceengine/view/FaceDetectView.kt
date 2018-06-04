@@ -5,7 +5,6 @@ import android.support.annotation.AttrRes
 import android.util.AttributeSet
 import android.view.TextureView
 import android.widget.FrameLayout
-import com.github.charleslzq.faceengine.core.R
 import com.github.charleslzq.faceengine.core.TrackedFace
 import com.github.charleslzq.faceengine.support.faceEngineTaskExecutor
 import io.fotoapparat.parameter.ScaleType
@@ -25,22 +24,18 @@ class FaceDetectView
 @JvmOverloads
 constructor(context: Context, attributeSet: AttributeSet? = null, @AttrRes defStyle: Int = 0) :
         FrameLayout(context, attributeSet, defStyle), CameraSource {
+    private var cameraPreviewConfiguration: CameraPreviewConfiguration = CameraPreviewConfiguration.from(context, attributeSet, defStyle)
     private val cameraView = CameraView(context, attributeSet, defStyle).also {
         it.setScaleType(ScaleType.CenterInside)
         addView(it)
     }
-    private val trackView = TrackView(context, attributeSet, defStyle).also { addView(it) }
-
-    private val sampleInterval: Long = {
-        attributeSet?.let { context.obtainStyledAttributes(it, R.styleable.FaceDetectView) }?.run {
-            val interval = getInteger(R.styleable.FaceDetectView_sampleInterval, DEFAULT_INTERVAL)
-            recycle()
-            interval
-        } ?: DEFAULT_INTERVAL
-    }.invoke().toLong()
+    private val trackView = TrackView(context, attributeSet, defStyle).also {
+        it.applyConfiguration(cameraPreviewConfiguration)
+        addView(it)
+    }
     private val cameraSources = listOf(
-            UVCCameraOperatorSource(context, cameraView, sampleInterval, this::switchTo),
-            FotoCameraOperatorSource(context, cameraView, sampleInterval, this::switchTo)
+            UVCCameraOperatorSource(context, cameraView, cameraPreviewConfiguration, this::switchTo),
+            FotoCameraOperatorSource(context, cameraView, cameraPreviewConfiguration, this::switchTo)
     )
 
     var operatorSourceSelector: (Iterable<CameraOperatorSource>) -> CameraOperatorSource? = { null }
@@ -117,7 +112,7 @@ constructor(context: Context, attributeSet: AttributeSet? = null, @AttrRes defSt
     override fun getCameras() = cameraSources.flatMap { it.getCameras() }
 
     fun updateTrackFaces(faces: Collection<TrackedFace>) {
-        if (trackView.track) {
+        if (cameraPreviewConfiguration.showRect) {
             trackView.resetRects(faces)
         }
     }
@@ -182,10 +177,20 @@ constructor(context: Context, attributeSet: AttributeSet? = null, @AttrRes defSt
         faceEngineTaskExecutor.cancelTasks()
     }
 
+    override fun applyConfiguration(cameraPreviewConfiguration: CameraPreviewConfiguration) {
+        updateConfiguration { cameraPreviewConfiguration }
+    }
+
     private fun switchTo(id: String) {
         operatorSourceSelector = {
             it.firstOrNull { it.id == id }
         }
+    }
+
+    private fun updateConfiguration(generator: CameraPreviewConfiguration.() -> CameraPreviewConfiguration) {
+        cameraPreviewConfiguration = generator(cameraPreviewConfiguration)
+        cameraSources.forEach { it.applyConfiguration(cameraPreviewConfiguration) }
+        trackView.applyConfiguration(cameraPreviewConfiguration)
     }
 
     class CompositeDisposable(private val disposables: List<Disposable>) : Disposable {
@@ -201,6 +206,5 @@ constructor(context: Context, attributeSet: AttributeSet? = null, @AttrRes defSt
 
     companion object {
         const val TAG = "FaceDetectView"
-        const val DEFAULT_INTERVAL = 500
     }
 }

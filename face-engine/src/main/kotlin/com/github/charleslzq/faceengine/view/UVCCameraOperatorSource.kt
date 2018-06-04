@@ -24,7 +24,7 @@ import java.util.concurrent.atomic.AtomicInteger
 class UVCCameraOperatorSource(
         context: Context,
         cameraView: CameraView,
-        override val sampleInterval: Long,
+        override var cameraPreviewConfiguration: CameraPreviewConfiguration,
         override val switchToThis: (String) -> Unit
 ) : CameraOperatorSource() {
     override val id: String = "UVC"
@@ -45,7 +45,8 @@ class UVCCameraOperatorSource(
                         usbDevice.deviceName,
                         cameraView,
                         camera,
-                        publisher
+                        publisher,
+                        cameraPreviewConfiguration
                 )
                 switchToThis(id)
                 operatorSelector = {
@@ -70,7 +71,6 @@ class UVCCameraOperatorSource(
         override fun onDettach(usbDevice: UsbDevice) {
             Toast.makeText(context, "External Camera Detached", Toast.LENGTH_SHORT).show()
         }
-
     }
     private val usbMonitor: USBMonitor = USBMonitor(context, connectionListener)
     private val publisher = PublishSubject.create<CameraPreview.PreviewFrame>()
@@ -79,16 +79,21 @@ class UVCCameraOperatorSource(
     override fun onPreviewFrame(
             scheduler: Scheduler,
             processor: (CameraPreview.PreviewFrame) -> Unit
-    ) = publisher.observeOn(scheduler).sample(sampleInterval, TimeUnit.MILLISECONDS).subscribe(processor)
+    ) = publisher.observeOn(scheduler).sample(cameraPreviewConfiguration.sampleInterval, TimeUnit.MILLISECONDS).subscribe(processor)
 
     override fun onPreviewFrame(
             scheduler: Scheduler,
             frameConsumer: CameraPreview.FrameConsumer
-    ) = publisher.observeOn(scheduler).sample(sampleInterval, TimeUnit.MILLISECONDS).subscribe { frameConsumer.accept(it) }
+    ) = publisher.observeOn(scheduler).sample(cameraPreviewConfiguration.sampleInterval, TimeUnit.MILLISECONDS).subscribe { frameConsumer.accept(it) }
 
     override fun getCameras() = cameras.values.toList()
 
     override fun onSelected(operator: CameraPreviewOperator?) {
+    }
+
+    override fun applyConfiguration(cameraPreviewConfiguration: CameraPreviewConfiguration) {
+        super.applyConfiguration(cameraPreviewConfiguration)
+        cameras.values.forEach { it.applyConfiguration(cameraPreviewConfiguration) }
     }
 
     override fun start() {
@@ -104,13 +109,13 @@ class UVCCameraOperatorSource(
             override val id: String,
             private val cameraView: CameraView,
             private val uvcCamera: UVCCamera,
-            private val frameObserver: Observer<CameraPreview.PreviewFrame>
+            private val frameObserver: Observer<CameraPreview.PreviewFrame>,
+            private var cameraPreviewConfiguration: CameraPreviewConfiguration
     ) : CameraPreviewOperator {
         private val supportedResolution = uvcCamera.supportedSizeList.map {
             Resolution(it.width, it.height)
         }.sortedByDescending { it.area }
-        var resolutionSelector: (Iterable<Resolution>) -> Resolution? = LOWEST_RESOLUTION
-        private var selectedResolution = resolutionSelector(supportedResolution)
+        private var selectedResolution = cameraPreviewConfiguration.previewResolution(supportedResolution)
                 ?: Resolution(UVCCamera.DEFAULT_PREVIEW_WIDTH, UVCCamera.DEFAULT_PREVIEW_HEIGHT)
         private val surface = cameraView.getPreview().let {
             when (it) {
@@ -167,12 +172,8 @@ class UVCCameraOperatorSource(
             }
         }
 
-        fun selectResolution(selector: (Iterable<Resolution>) -> Resolution?) {
-            resolutionSelector = selector
-        }
-
-        fun selectResolution(selector: ResolutionSelector) {
-            resolutionSelector = { selector.select(it) }
+        override fun applyConfiguration(cameraPreviewConfiguration: CameraPreviewConfiguration) {
+            this.cameraPreviewConfiguration = cameraPreviewConfiguration
         }
 
         @FunctionalInterface

@@ -6,11 +6,15 @@ import com.github.charleslzq.faceengine.support.faceEngineTaskExecutor
 import io.fotoapparat.Fotoapparat
 import io.fotoapparat.FotoapparatBuilder
 import io.fotoapparat.characteristic.LensPosition
+import io.fotoapparat.configuration.CameraConfiguration
 import io.fotoapparat.log.logcat
 import io.fotoapparat.parameter.ScaleType
 import io.fotoapparat.preview.Frame
 import io.fotoapparat.preview.FrameProcessor
-import io.fotoapparat.selector.*
+import io.fotoapparat.selector.back
+import io.fotoapparat.selector.firstAvailable
+import io.fotoapparat.selector.front
+import io.fotoapparat.selector.single
 import io.fotoapparat.view.CameraView
 import io.reactivex.Scheduler
 import io.reactivex.subjects.PublishSubject
@@ -23,7 +27,7 @@ fun Frame.toPreviewFrame(source: String, seq: Int? = null) = CameraPreview.Previ
 class FotoCameraOperatorSource(
         context: Context,
         cameraView: CameraView,
-        override val sampleInterval: Long,
+        override var cameraPreviewConfiguration: CameraPreviewConfiguration,
         override val switchToThis: (String) -> Unit
 ) : CameraOperatorSource() {
     override val id: String = "FOTO"
@@ -47,15 +51,22 @@ class FotoCameraOperatorSource(
     override fun onPreviewFrame(
             scheduler: Scheduler,
             processor: (CameraPreview.PreviewFrame) -> Unit
-    ) = frameProcessor.publisher.observeOn(scheduler).sample(sampleInterval, TimeUnit.MILLISECONDS).subscribe(processor)
+    ) = frameProcessor.publisher.observeOn(scheduler).sample(cameraPreviewConfiguration.sampleInterval, TimeUnit.MILLISECONDS).subscribe(processor)
 
     override fun onPreviewFrame(
             scheduler: Scheduler,
             frameConsumer: CameraPreview.FrameConsumer
-    ) = frameProcessor.publisher.observeOn(scheduler).sample(sampleInterval, TimeUnit.MILLISECONDS).subscribe { frameConsumer.accept(it) }
+    ) = frameProcessor.publisher.observeOn(scheduler).sample(cameraPreviewConfiguration.sampleInterval, TimeUnit.MILLISECONDS).subscribe { frameConsumer.accept(it) }
 
     override fun close() {
         selectedCamera?.stopPreview()
+    }
+
+    override fun applyConfiguration(cameraPreviewConfiguration: CameraPreviewConfiguration) {
+        super.applyConfiguration(cameraPreviewConfiguration)
+        fotoapparat.updateConfiguration(CameraConfiguration.builder()
+                .photoResolution(cameraPreviewConfiguration.previewResolution)
+                .build())
     }
 
     private fun setup(fotoapparatBuilder: FotoapparatBuilder, cameraView: CameraView) {
@@ -67,7 +78,7 @@ class FotoCameraOperatorSource(
                         )
                 )
                 .previewScaleType(ScaleType.CenterInside)
-                .photoResolution(lowestResolution())
+                .photoResolution(cameraPreviewConfiguration.previewResolution)
                 .frameProcessor(frameProcessor)
                 .into(cameraView)
                 .logger(logcat())

@@ -5,5 +5,9 @@
         <attr name="rectColor" format="color" />
         <attr name="rectWidth" format="dimension" />
         <attr name="sampleInterval" format="integer" />
+        <attr name="previewResolution" format="enum">
+            <enum name="HIGHEST" value="0" />
+            <enum name="LOWEST" value="1" />
+        </attr>
     </declare-styleable>
 </resources>
