@@ -287,5 +287,10 @@ class WebSocketArcSoftService : ServiceBackground<ArcSoftFaceOfflineEngine<WebSo
         )
     }
 
+    override fun onDestroy() {
+        super.onDestroy()
+        binder.instance.store.disconnect()
+    }
+
     companion object : ServiceConnectionBuilder<ArcSoftFaceOfflineEngine<WebSocketCompositeFaceStore<Person, Face>>>
 }
