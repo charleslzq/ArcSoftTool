@@ -49,6 +49,7 @@ class RxTaskExecutor(
 }
 
 class RxFrameTaskRunner(
+        override var enableSample: Boolean,
         override var sampleInterval: Long,
         private val executor: RxTaskExecutor = RxTaskExecutor()
 ) : FrameTaskRunner {
@@ -64,8 +65,13 @@ class RxFrameTaskRunner(
 
     override fun subscribe(timeout: Long, timeUnit: TimeUnit, processor: (SourceAwarePreviewFrame) -> Unit) {
         publisher.observeOn(Schedulers.computation())
-                .sample(sampleInterval, TimeUnit.MILLISECONDS)
-                .subscribe {
+                .apply {
+                    if (enableSample) {
+                        sample(sampleInterval, TimeUnit.MILLISECONDS)
+                    } else {
+                        this
+                    }
+                }.subscribe {
                     executor.executeInTimeout(timeout, timeUnit) {
                         processor(it)
                     }

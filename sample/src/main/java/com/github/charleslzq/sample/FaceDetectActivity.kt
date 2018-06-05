@@ -28,7 +28,7 @@ class FaceDetectActivity : AppCompatActivity() {
                     val detectedAge = engine.detectAge(it).takeIf { it.size == 1 }?.get(0)?.age
                     val detectedGender = engine.detectGender(it).takeIf { it.size == 1 }?.get(0)?.gender
                     var personName: String? = null
-                    toast(buildString {
+                    Logger.i(buildString {
                         if (detectResult.size == 1) {
                             val result = detectResult.mapNotNull { engine.searchForScore(it.value) }
                             if (result.isNotEmpty()) {
@@ -59,8 +59,6 @@ class FaceDetectActivity : AppCompatActivity() {
                         }
                         append(", ")
                         append("${it.sequence}/${it.source}")
-                    }.also {
-                        Logger.i(it)
                     })
                     personName?.let {
                         setResult(Activity.RESULT_OK, Intent().apply {

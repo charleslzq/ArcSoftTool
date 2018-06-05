@@ -104,7 +104,6 @@ public class FaceDetectActivity extends AppCompatActivity {
                         messageBuilder.append(frame.getSequence());
 
                         Logger.i("Check Result: " + messageBuilder.toString());
-                        toast(messageBuilder.toString());
                         if (result != null) {
                             Intent intent = new Intent();
                             intent.putExtra("personName", result);

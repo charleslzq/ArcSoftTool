@@ -4,6 +4,7 @@ import com.github.charleslzq.faceengine.view.SourceAwarePreviewFrame
 import java.util.concurrent.TimeUnit
 
 interface FrameTaskRunner {
+    var enableSample: Boolean
     var sampleInterval: Long
     fun <T> transformAndSubmit(raw: T, transform: (T) -> SourceAwarePreviewFrame?)
     fun submit(previewFrame: SourceAwarePreviewFrame) = transformAndSubmit(previewFrame) { it }

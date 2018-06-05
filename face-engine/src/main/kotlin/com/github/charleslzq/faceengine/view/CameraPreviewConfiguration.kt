@@ -14,7 +14,7 @@ data class CameraPreviewConfiguration(
         val showRect: Boolean = true,
         val rectColor: Int = Color.RED,
         val rectWidth: Float = 1f,
-        val frameTaskRunner: FrameTaskRunner = CoroutineFrameTaskRunner(DEFAULT_SAMPLE_INTERVAL.toLong())
+        val frameTaskRunner: FrameTaskRunner = CoroutineFrameTaskRunner(DEFAULT_ENABLE_SAMPLE, DEFAULT_SAMPLE_INTERVAL.toLong())
 ) {
     fun withNewPreviewResolution(selector: Selector<Resolution>) = copy(
             previewResolution = { selector.select(it) }
@@ -43,6 +43,7 @@ data class CameraPreviewConfiguration(
     companion object {
         const val DEFAULT_RESOLUTION_ID = 0
         const val DEFAULT_TASK_RUNNER_ID = 0
+        const val DEFAULT_ENABLE_SAMPLE = false
         const val DEFAULT_SAMPLE_INTERVAL = 200
         const val DEFAULT_TRACK = true
         const val DEFAULT_AUTO_SWITCH = true
@@ -59,10 +60,11 @@ data class CameraPreviewConfiguration(
         )
 
         private fun detectRunner(typedArray: TypedArray): FrameTaskRunner {
+            val enableSample = typedArray.getBoolean(R.styleable.FaceDetectView_enableSample, DEFAULT_ENABLE_SAMPLE)
             val sampleInterval = typedArray.getInteger(R.styleable.FaceDetectView_sampleInterval, DEFAULT_SAMPLE_INTERVAL).toLong()
             return when (TaskRunner.fromAttrs(typedArray.getInt(R.styleable.FaceDetectView_taskRunner, DEFAULT_TASK_RUNNER_ID))) {
-                TaskRunner.COROUTINE -> CoroutineFrameTaskRunner(sampleInterval)
-                TaskRunner.RX -> RxFrameTaskRunner(sampleInterval)
+                TaskRunner.COROUTINE -> CoroutineFrameTaskRunner(enableSample, sampleInterval)
+                TaskRunner.RX -> RxFrameTaskRunner(enableSample, sampleInterval)
             }
         }
     }

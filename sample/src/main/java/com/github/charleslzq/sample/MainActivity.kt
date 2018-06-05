@@ -17,7 +17,6 @@ import com.github.charleslzq.arcsofttools.kotlin.Face
 import com.github.charleslzq.arcsofttools.kotlin.Person
 import com.github.charleslzq.arcsofttools.kotlin.WebSocketArcSoftService
 import com.github.charleslzq.arcsofttools.kotlin.support.toFrame
-import com.github.charleslzq.faceengine.support.runOnUI
 import com.github.charleslzq.facestore.FaceStoreChangeListener
 import com.github.charleslzq.facestore.Meta
 import kotlinx.android.synthetic.main.activity_main.*
@@ -26,9 +25,7 @@ import java.util.*
 
 
 fun Context.toast(message: CharSequence, duration: Int = Toast.LENGTH_SHORT) {
-    runOnUI {
-        Toast.makeText(this, message, duration).show()
-    }
+    Toast.makeText(this, message, duration).show()
 }
 
 class MainActivity : AppCompatActivity() {

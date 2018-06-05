@@ -5,6 +5,7 @@
         <attr name="showTrackRect" format="boolean" />
         <attr name="rectColor" format="color" />
         <attr name="rectWidth" format="dimension" />
+        <attr name="enableSample" format="boolean" />
         <attr name="sampleInterval" format="integer" />
         <attr name="previewResolution" format="enum">
             <enum name="LOWEST" value="0" />
