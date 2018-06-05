@@ -1,7 +1,8 @@
 package com.github.charleslzq.faceengine.view.task
 
-import com.github.charleslzq.faceengine.support.runOnCompute
+import com.github.charleslzq.faceengine.support.runOn
 import com.github.charleslzq.faceengine.view.SourceAwarePreviewFrame
+import io.reactivex.Scheduler
 import io.reactivex.schedulers.Schedulers
 import io.reactivex.subjects.PublishSubject
 import java.util.concurrent.Executors
@@ -51,12 +52,14 @@ class RxTaskExecutor(
 class RxFrameTaskRunner(
         override var enableSample: Boolean,
         override var sampleInterval: Long,
-        private val executor: RxTaskExecutor = RxTaskExecutor()
+        private val produceScheduler: Scheduler = Schedulers.computation(),
+        private val consumeScheduler: Scheduler = Schedulers.computation()
 ) : FrameTaskRunner {
+    private val executor: RxTaskExecutor = RxTaskExecutor()
     private val publisher = PublishSubject.create<SourceAwarePreviewFrame>()
 
     override fun <T> transformAndSubmit(raw: T, transform: (T) -> SourceAwarePreviewFrame?) {
-        runOnCompute {
+        runOn(produceScheduler) {
             transform(raw)?.let {
                 publisher.onNext(it)
             }
@@ -64,7 +67,7 @@ class RxFrameTaskRunner(
     }
 
     override fun subscribe(timeout: Long, timeUnit: TimeUnit, processor: (SourceAwarePreviewFrame) -> Unit) {
-        publisher.observeOn(Schedulers.computation())
+        publisher.observeOn(consumeScheduler)
                 .apply {
                     if (enableSample) {
                         sample(sampleInterval, TimeUnit.MILLISECONDS)
