@@ -34,6 +34,7 @@ ext {
             smartTable: '2.0',
             orhanobutLogger: '2.2.0',
             butterKnife: '8.8.1',
+            leakCanary: '1.5.4',
             test: [
                     junit: '4.12',
                     support: [
@@ -79,6 +80,10 @@ ext {
                     lib: "com.github.charleslzq:TP-libuvccamera:${versions.uvccamera}",
                     common: "com.github.charleslzq:TP-usbCameraCommon:${versions.uvccamera}",
                     seregegiant: "com.serenegiant:common:${versions.seregegiant}"
+            ],
+            leakCanary: [
+                    debug: "com.squareup.leakcanary:leakcanary-android:${versions.leakCanary}",
+                    release: "com.squareup.leakcanary:leakcanary-android-no-op:${versions.leakCanary}"
             ],
             buildTool: "com.android.tools.build:gradle:${versions.buildTool}",
             faceStore: "com.github.charleslzq:face-store:${versions.faceStore}",

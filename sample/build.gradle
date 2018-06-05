@@ -44,5 +44,8 @@ dependencies {
     implementation deps.support.constraintLayout
     implementation deps.smartTable
     implementation deps.orhanobutLogger
+
+    debugImplementation deps.leakCanary.debug
     testImplementation deps.test.junit
+    releaseImplementation deps.leakCanary.release
 }

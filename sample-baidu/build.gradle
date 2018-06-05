@@ -39,5 +39,8 @@ dependencies {
 
     implementation deps.support.appCompat
     implementation deps.support.constraintLayout
+
+    debugImplementation deps.leakCanary.debug
     testImplementation deps.test.junit
+    releaseImplementation deps.leakCanary.release
 }
