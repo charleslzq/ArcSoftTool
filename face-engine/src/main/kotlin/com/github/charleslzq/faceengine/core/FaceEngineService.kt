@@ -7,10 +7,12 @@ import android.os.Binder
 /**
  * Created by charleslzq on 18-3-6.
  */
+@Deprecated("Will be removed")
 open class FaceEngineService<in I, P, F, FE : FaceEngine<I, P, F>>(
         val engine: FE
 ) : Binder(), FaceEngine<I, P, F> by engine
 
+@Deprecated("Will be removed")
 abstract class FaceEngineServiceBackground<in I, P, F, FE : FaceEngine<I, P, F>> :
         Service() {
     protected val engineService by lazy {

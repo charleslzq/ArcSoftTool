@@ -5,8 +5,8 @@ import android.content.res.TypedArray
 import android.graphics.Color
 import android.util.AttributeSet
 import com.github.charleslzq.faceengine.core.R
+import com.github.charleslzq.faceengine.view.task.CoroutineFrameTaskRunner
 import com.github.charleslzq.faceengine.view.task.FrameTaskRunner
-import com.github.charleslzq.faceengine.view.task.RxFrameTaskRunner
 import io.fotoapparat.parameter.Resolution
 
 sealed class PreviewFrame(
@@ -81,7 +81,7 @@ class CameraPreviewConfiguration(
         val autoSwitchToNewDevice: Boolean = true,
         val rectColor: Int = Color.RED,
         val rectWidth: Float = 1f,
-        val frameTaskRunner: FrameTaskRunner = RxFrameTaskRunner(sampleInterval)
+        val frameTaskRunner: FrameTaskRunner = CoroutineFrameTaskRunner(sampleInterval)
 ) {
     companion object {
         const val DEFAULT_RESOLUTION_ID = 1

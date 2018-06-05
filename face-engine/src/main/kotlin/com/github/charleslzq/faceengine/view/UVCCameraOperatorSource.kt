@@ -18,7 +18,6 @@ import java.util.concurrent.atomic.AtomicInteger
 class UVCCameraOperatorSource(
         context: Context,
         cameraView: CameraView,
-        consumeFrame: (SourceAwarePreviewFrame) -> Unit,
         override var cameraPreviewConfiguration: CameraPreviewConfiguration,
         val onNewDevice: (CameraPreviewOperator) -> Unit,
         val onDisconnect: (CameraPreviewOperator) -> Unit
@@ -40,7 +39,6 @@ class UVCCameraOperatorSource(
                         this@UVCCameraOperatorSource,
                         cameraView,
                         camera,
-                        consumeFrame,
                         cameraPreviewConfiguration
                 ).also {
                     if (cameraPreviewConfiguration.autoSwitchToNewDevice) {
@@ -90,7 +88,6 @@ class UVCCameraOperatorSource(
             override val source: CameraOperatorSource,
             private val cameraView: CameraView,
             private val uvcCamera: UVCCamera,
-            private val consumeFrame: (SourceAwarePreviewFrame) -> Unit,
             private var cameraPreviewConfiguration: CameraPreviewConfiguration
     ) : CameraPreviewOperator {
         private val supportedResolution = uvcCamera.supportedSizeList.map {
@@ -117,17 +114,17 @@ class UVCCameraOperatorSource(
                 }
                 uvcCamera.setPreviewDisplay(surface)
                 uvcCamera.setFrameCallback {
-                    cameraPreviewConfiguration.frameTaskRunner.compute {
+                    cameraPreviewConfiguration.frameTaskRunner.transformAndSubmit(it) {
                         synchronized(buffer) {
                             if (it.limit() > buffer.size) {
                                 buffer = ByteArray(it.limit())
                             }
                             it.get(buffer)
-                            consumeFrame(SourceAwarePreviewFrame("UVC-$id", count.getAndIncrement(), selectedResolution, buffer, 0))
+                            SourceAwarePreviewFrame("UVC-$id", count.getAndIncrement(), selectedResolution, buffer, 0)
                         }
-                        if (count.get() > 1000) {
-                            count.set(0)
-                        }
+                    }
+                    if (count.get() > 1000) {
+                        count.set(0)
                     }
                 }
                 uvcCamera.startPreview()

@@ -10,10 +10,7 @@ import io.fotoapparat.log.logcat
 import io.fotoapparat.parameter.ScaleType
 import io.fotoapparat.preview.Frame
 import io.fotoapparat.preview.FrameProcessor
-import io.fotoapparat.selector.back
-import io.fotoapparat.selector.firstAvailable
-import io.fotoapparat.selector.front
-import io.fotoapparat.selector.single
+import io.fotoapparat.selector.*
 import io.fotoapparat.view.CameraView
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
@@ -23,11 +20,10 @@ fun Frame.toPreviewFrame(source: String, seq: Int) = SourceAwarePreviewFrame(sou
 class FotoCameraOperatorSource(
         context: Context,
         cameraView: CameraView,
-        consumeFrame: (SourceAwarePreviewFrame) -> Unit,
         override var cameraPreviewConfiguration: CameraPreviewConfiguration
 ) : CameraOperatorSource() {
     override val id: String = "FOTO"
-    private val frameProcessor = FrameToObservableProcessor(consumeFrame)
+    private val frameProcessor = FrameToObservableProcessor(cameraPreviewConfiguration)
     private val fotoapparat by lazy {
         Fotoapparat.with(context)
                 .apply { setup(this, cameraView) }
@@ -39,6 +35,7 @@ class FotoCameraOperatorSource(
 
     override fun applyConfiguration(cameraPreviewConfiguration: CameraPreviewConfiguration) {
         super.applyConfiguration(cameraPreviewConfiguration)
+        frameProcessor.cameraPreviewConfiguration = cameraPreviewConfiguration
         fotoapparat.updateConfiguration(CameraConfiguration.builder()
                 .photoResolution(cameraPreviewConfiguration.previewResolution)
                 .build())
@@ -53,7 +50,8 @@ class FotoCameraOperatorSource(
                         )
                 )
                 .previewScaleType(ScaleType.CenterInside)
-                .photoResolution(cameraPreviewConfiguration.previewResolution)
+                .previewResolution(cameraPreviewConfiguration.previewResolution)
+                .previewFpsRange(highestFixedFps())
                 .frameProcessor(frameProcessor)
                 .into(cameraView)
                 .logger(logcat())
@@ -98,15 +96,14 @@ class FotoCameraOperatorSource(
         }
     }
 
-    class FrameToObservableProcessor(val consumeFrame: (SourceAwarePreviewFrame) -> Unit) : FrameProcessor {
+    class FrameToObservableProcessor(var cameraPreviewConfiguration: CameraPreviewConfiguration) : FrameProcessor {
         private val count = AtomicInteger(0)
 
         override fun process(frame: Frame) {
-            count.getAndIncrement().let {
-                consumeFrame(frame.toPreviewFrame("FOTO", it))
-            }
-            if (count.get() > 1000) {
-                count.set(0)
+            cameraPreviewConfiguration.frameTaskRunner.transformAndSubmit(frame) {
+                count.getAndIncrement().let {
+                    frame.toPreviewFrame("FOTO", it)
+                }
             }
         }
     }

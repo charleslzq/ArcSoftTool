@@ -33,14 +33,12 @@ constructor(context: Context, attributeSet: AttributeSet? = null, @AttrRes defSt
             UVCCameraOperatorSource(
                     context,
                     cameraView,
-                    { cameraPreviewConfiguration.frameTaskRunner.consume(it) },
                     cameraPreviewConfiguration,
                     this::onNewDevice,
                     this::onDisconnect),
             FotoCameraOperatorSource(
                     context,
                     cameraView,
-                    { cameraPreviewConfiguration.frameTaskRunner.consume(it) },
                     cameraPreviewConfiguration)
     )
     override val cameras: List<CameraPreviewOperator>
@@ -77,14 +75,14 @@ constructor(context: Context, attributeSet: AttributeSet? = null, @AttrRes defSt
             timeout: Long = 2000,
             timeUnit: TimeUnit = TimeUnit.MILLISECONDS,
             processor: (SourceAwarePreviewFrame) -> Unit
-    ) = cameraPreviewConfiguration.frameTaskRunner.onPreviewFrame(timeout, timeUnit, processor)
+    ) = cameraPreviewConfiguration.frameTaskRunner.subscribe(timeout, timeUnit, processor)
 
     @JvmOverloads
     fun onPreview(
             timeout: Long = 2000,
             timeUnit: TimeUnit = TimeUnit.MILLISECONDS,
             frameConsumer: FrameConsumer
-    ) = cameraPreviewConfiguration.frameTaskRunner.onPreviewFrame(timeout, timeUnit, {
+    ) = cameraPreviewConfiguration.frameTaskRunner.subscribe(timeout, timeUnit, {
         frameConsumer.accept(it)
     })
 
@@ -139,7 +137,7 @@ constructor(context: Context, attributeSet: AttributeSet? = null, @AttrRes defSt
         cameraSources.forEach {
             it.close()
         }
-        cameraPreviewConfiguration.frameTaskRunner.cancelAll()
+        cameraPreviewConfiguration.frameTaskRunner.close()
     }
 
     override fun applyConfiguration(cameraPreviewConfiguration: CameraPreviewConfiguration) {

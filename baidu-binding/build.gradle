@@ -26,8 +26,6 @@ android {
 
 dependencies {
     api project(':face-engine')
-    api deps.kotlin.coroutine.core
-    api deps.kotlin.coroutine.android
 
     api deps.retrofit.core
     api deps.retrofit.gson

@@ -1,6 +1,8 @@
 apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
 
+kotlin.experimental.coroutines 'enable'
+
 android {
     compileSdkVersion versions.sdk.target
 
@@ -35,6 +37,8 @@ dependencies {
     api deps.jodaTime
     api deps.fotoapparat
     api deps.kotlin.lib
+    api deps.kotlin.coroutine.core
+    api deps.kotlin.coroutine.android
     api deps.rx.java
     api deps.rx.android
     api deps.uvccamera.lib
