@@ -8,16 +8,17 @@ import kotlinx.coroutines.experimental.withTimeout
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicLong
 
-class CoroutineFrameTaskRunner(private val sampleInterval: Long) : FrameTaskRunner {
-    private val channel = Channel<Pair<Long, SourceAwarePreviewFrame>>(100)
+class CoroutineFrameTaskRunner(
+        override var sampleInterval: Long
+) : FrameTaskRunner {
+    private val channel = Channel<Pair<Long, SourceAwarePreviewFrame>>()
     private val lastSubmit = AtomicLong(0)
 
     override fun <T> transformAndSubmit(raw: T, transform: (T) -> SourceAwarePreviewFrame?) {
         launch {
             transform(raw)?.let {
-                val last = lastSubmit.get()
                 val current = System.currentTimeMillis()
-                if (current - last >= sampleInterval) {
+                if (current - lastSubmit.get() >= sampleInterval) {
                     channel.send(Pair(current, it))
                     lastSubmit.set(current)
                 }

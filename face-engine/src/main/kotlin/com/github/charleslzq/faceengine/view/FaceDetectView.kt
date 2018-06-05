@@ -5,6 +5,7 @@ import android.support.annotation.AttrRes
 import android.util.AttributeSet
 import android.view.TextureView
 import android.widget.FrameLayout
+import com.github.charleslzq.faceengine.core.R
 import com.github.charleslzq.faceengine.core.TrackedFace
 import io.fotoapparat.parameter.ScaleType
 import io.fotoapparat.view.CameraView
@@ -20,7 +21,9 @@ class FaceDetectView
 @JvmOverloads
 constructor(context: Context, attributeSet: AttributeSet? = null, @AttrRes defStyle: Int = 0) :
         FrameLayout(context, attributeSet, defStyle), CameraSource {
-    private var cameraPreviewConfiguration: CameraPreviewConfiguration = CameraPreviewConfiguration.from(context, attributeSet)
+    private var cameraPreviewConfiguration: CameraPreviewConfiguration = attributeSet?.let { context.obtainStyledAttributes(it, R.styleable.FaceDetectView) }?.extract {
+        CameraPreviewConfiguration.from(this)
+    } ?: CameraPreviewConfiguration()
     private val cameraView = CameraView(context, attributeSet, defStyle).also {
         it.setScaleType(ScaleType.CenterInside)
         addView(it)
@@ -110,6 +113,10 @@ constructor(context: Context, attributeSet: AttributeSet? = null, @AttrRes defSt
         }
     }
 
+    fun selectCamera(selector: Selector<CameraPreviewOperator>) {
+        selectCamera = { selector.select(it) }
+    }
+
     private fun onNewDevice(camera: CameraPreviewOperator) {
         if (cameraPreviewConfiguration.autoSwitchToNewDevice) {
             selectById(camera.id)
@@ -140,12 +147,8 @@ constructor(context: Context, attributeSet: AttributeSet? = null, @AttrRes defSt
         cameraPreviewConfiguration.frameTaskRunner.close()
     }
 
-    override fun applyConfiguration(cameraPreviewConfiguration: CameraPreviewConfiguration) {
-        updateConfiguration { cameraPreviewConfiguration }
-    }
-
-    private fun updateConfiguration(generator: CameraPreviewConfiguration.() -> CameraPreviewConfiguration) {
-        cameraPreviewConfiguration = generator(cameraPreviewConfiguration)
+    fun updateConfiguration(update: (CameraPreviewConfiguration) -> CameraPreviewConfiguration) {
+        cameraPreviewConfiguration = update(cameraPreviewConfiguration)
         cameraSources.forEach { it.applyConfiguration(cameraPreviewConfiguration) }
         trackView.applyConfiguration(cameraPreviewConfiguration)
     }

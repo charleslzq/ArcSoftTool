@@ -41,9 +41,7 @@ class UVCCameraOperatorSource(
                         camera,
                         cameraPreviewConfiguration
                 ).also {
-                    if (cameraPreviewConfiguration.autoSwitchToNewDevice) {
-                        onNewDevice(it)
-                    }
+                    onNewDevice(it)
                 }
             } catch (throwable: Throwable) {
                 throwable.printStackTrace()

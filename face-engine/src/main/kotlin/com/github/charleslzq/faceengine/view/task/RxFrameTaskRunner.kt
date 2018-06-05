@@ -49,7 +49,7 @@ class RxTaskExecutor(
 }
 
 class RxFrameTaskRunner(
-        private var sampleInterval: Long,
+        override var sampleInterval: Long,
         private val executor: RxTaskExecutor = RxTaskExecutor()
 ) : FrameTaskRunner {
     private val publisher = PublishSubject.create<SourceAwarePreviewFrame>()
