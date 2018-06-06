@@ -7,6 +7,7 @@ import android.view.TextureView
 import android.widget.FrameLayout
 import com.github.charleslzq.faceengine.core.R
 import com.github.charleslzq.faceengine.core.TrackedFace
+import com.github.charleslzq.faceengine.core.Updater
 import io.fotoapparat.parameter.ScaleType
 import io.fotoapparat.view.CameraView
 import java.util.concurrent.TimeUnit
@@ -155,9 +156,5 @@ constructor(context: Context, attributeSet: AttributeSet? = null, @AttrRes defSt
         }
     }
 
-    fun updateConfiguration(updater: ConfigUpdater) = updateConfiguration { updater.generate(it) }
-
-    interface ConfigUpdater {
-        fun generate(currentConfig: CameraPreviewConfiguration): CameraPreviewConfiguration?
-    }
+    fun updateConfiguration(updater: Updater<CameraPreviewConfiguration>) = updateConfiguration { updater.update(it) }
 }

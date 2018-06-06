@@ -11,6 +11,10 @@ import com.github.charleslzq.facestore.ReadOnlyFaceStore
  */
 data class TrackedFace(val rect: Rect, val degree: Int)
 
+interface Updater<T> {
+    fun update(origin: T): T?
+}
+
 interface FaceTracker<in I> {
     fun trackFace(image: I): List<TrackedFace>
 }
@@ -28,11 +32,20 @@ interface FaceEngine<in I, P, F> {
     fun search(image: I): P?
 }
 
+interface FaceEngineWithOptions<in I, P, F, DO, SO> : FaceEngine<I, P, F> {
+    var defaultDetectOption: DO
+    var defaultSearchOption: SO
+    fun searchWithOption(image: I, option: SO): P?
+    fun detectWithOption(image: I, option: DO): Map<TrackedFace, F> = emptyMap()
+    override fun search(image: I) = searchWithOption(image, defaultSearchOption)
+    override fun detect(image: I) = detectWithOption(image, defaultDetectOption)
+}
+
 interface FaceOfflineEngine<in I, P : Meta, F : Meta, R : Comparable<R>, out S : ReadOnlyFaceStore<P, F>> : FaceEngine<I, P, F> {
     val store: S
     var threshold: R
     fun calculateSimilarity(savedFace: F, newFace: F): R
-    fun search(newFace: F, store: ReadOnlyFaceStore<P, F>) = store.getPersonIds()
+    fun searchFaceInStore(newFace: F, store: ReadOnlyFaceStore<P, F>) = store.getPersonIds()
             .mapNotNull { store.getPerson(it) }
             .filter { store.getFaceIdList(it.id).isNotEmpty() }
             .mapNotNull {
@@ -41,9 +54,9 @@ interface FaceOfflineEngine<in I, P : Meta, F : Meta, R : Comparable<R>, out S :
                 }.max()?.run { it to this }
             }.maxBy { it.second }
 
-    fun searchForScore(face: F) = search(face, store)
-    fun search(face: F) = searchForScore(face)?.takeIf { it.second >= threshold }?.first
-    override fun search(image: I) = detect(image).values.mapNotNull { searchForScore(it) }.maxBy { it.second }?.takeIf { it.second >= threshold }?.first
+    fun searchFaceForScore(face: F) = searchFaceInStore(face, store)
+    fun searchFace(face: F) = searchFaceForScore(face)?.takeIf { it.second >= threshold }?.first
+    override fun search(image: I) = detect(image).values.mapNotNull { searchFaceForScore(it) }.maxBy { it.second }?.takeIf { it.second >= threshold }?.first
 }
 
 open class FaceOfflineEngineRxDelegate<in I, P : Meta, F : Meta, R : Comparable<R>, out S : ReadOnlyFaceStore<P, F>>(
@@ -62,11 +75,11 @@ open class FaceOfflineEngineRxDelegate<in I, P : Meta, F : Meta, R : Comparable<
     final override fun calculateSimilarity(savedFace: F, newFace: F) =
             callOnCompute { delegate.calculateSimilarity(savedFace, newFace) }
 
-    final override fun search(newFace: F, store: ReadOnlyFaceStore<P, F>) =
-            callNullableOnIo { delegate.search(newFace, store) }
+    final override fun searchFaceInStore(newFace: F, store: ReadOnlyFaceStore<P, F>) =
+            callNullableOnIo { delegate.searchFaceInStore(newFace, store) }
 
-    final override fun searchForScore(face: F) = callNullableOnIo { delegate.searchForScore(face) }
+    final override fun searchFaceForScore(face: F) = callNullableOnIo { delegate.searchFaceForScore(face) }
 
-    final override fun search(face: F) =
-            callNullableOnIo { delegate.search(face) }
+    final override fun searchFace(face: F) =
+            callNullableOnIo { delegate.searchFace(face) }
 }

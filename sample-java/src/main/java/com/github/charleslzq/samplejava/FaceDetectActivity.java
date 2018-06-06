@@ -67,7 +67,7 @@ public class FaceDetectActivity extends AppCompatActivity {
                         if (detectedFaces.size() == 1) {
                             Pair<Person, Float> max = new Pair<>(new Person("", ""), 0f);
                             for (Face face : detectedFaces.values()) {
-                                Pair<Person, Float> matchResult = faceEngineService.searchForScore(face);
+                                Pair<Person, Float> matchResult = faceEngineService.searchFaceForScore(face);
                                 if (matchResult != null && matchResult.getSecond() > max.getSecond()) {
                                     max = matchResult;
                                 }

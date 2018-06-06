@@ -2,7 +2,7 @@ package com.github.charleslzq.face.baidu
 
 import android.graphics.Rect
 import com.github.charleslzq.face.baidu.data.*
-import com.github.charleslzq.faceengine.core.FaceEngine
+import com.github.charleslzq.faceengine.core.FaceEngineWithOptions
 import com.github.charleslzq.faceengine.core.TrackedFace
 import com.github.charleslzq.faceengine.support.ServiceBackground
 import com.github.charleslzq.faceengine.support.ServiceConnectionBuilder
@@ -33,7 +33,7 @@ fun DetectedFace.rect() = Rect(
 
 fun DetectedFace.toTrackedFace() = TrackedFace(rect(), location.rotation)
 
-fun UserSearchResult.toUser() = BaiduFaceEngine.User(
+fun UserSearchResult.toUser() = UserMeta(
         groupId,
         userId,
         userInfo
@@ -41,7 +41,7 @@ fun UserSearchResult.toUser() = BaiduFaceEngine.User(
 
 class BaiduFaceEngine(
         baseUrl: String,
-        val retrofitBuilder: (String) -> Retrofit = {
+        private val retrofitBuilder: (String) -> Retrofit = {
             Retrofit.Builder()
                     .baseUrl(it.toSafeRetrofitUrl())
                     .addConverterFactory(GsonConverterFactory.create())
@@ -49,7 +49,10 @@ class BaiduFaceEngine(
                     .build()
         }
 ) : BaiduUserGroupApi, BaiduUserApi, BaiduFaceApi, BaiduImageApi,
-        FaceEngine<PreviewFrame, BaiduFaceEngine.User, DetectedFace> {
+        FaceEngineWithOptions<PreviewFrame, UserMeta, DetectedFace, DetectOptions, SearchOptions> {
+    override var defaultDetectOption = DetectOptions()
+    override var defaultSearchOption = SearchOptions()
+
     var url = baseUrl
         set(value) {
             if (value != field) {
@@ -67,8 +70,6 @@ class BaiduFaceEngine(
     private var faceApi: BaiduFaceApi = retrofit.create(BaiduFaceApi::class.java)
     private var imageApi: BaiduImageApi = retrofit.create(BaiduImageApi::class.java)
 
-    var defaultSearchGroups = mutableListOf<String>()
-
     fun setUrlWithCallback(newUrl: String, callback: () -> Unit) {
         url = newUrl
         callback()
@@ -84,8 +85,15 @@ class BaiduFaceEngine(
                 ?: emptyMap()
     }
 
-    override fun search(image: PreviewFrame) = runBlocking(CommonPool) {
-        search(image.toImage(), defaultSearchGroups.toTypedArray()).await().result?.userList?.maxBy { it.score }?.toUser()
+    override fun detectWithOption(image: PreviewFrame, option: DetectOptions) = runBlocking(CommonPool) {
+        detect(image.toImage(), option.maxCount, option.source, option.fields.toTypedArray(), option.complete)
+                .await().result?.faceList?.map { it.toTrackedFace() to it }?.toMap()
+                ?: emptyMap()
+    }
+
+    override fun searchWithOption(image: PreviewFrame, option: SearchOptions) = runBlocking(CommonPool) {
+        search(image.toImage(), option.groups.toTypedArray(), null, option.maxUser, option.quality, option.liveness)
+                .await().result?.userList?.maxBy { it.score }?.toUser()
     }
 
     override fun listGroup(start: Int, length: Int) = groupApi.listGroup(start, length)
@@ -117,12 +125,6 @@ class BaiduFaceEngine(
     override fun match(images: Array<MatchReq>) = imageApi.match(images)
 
     override fun verify(images: Array<FaceVerifyReq>) = imageApi.verify(images)
-
-    data class User(
-            val groupId: String,
-            val userId: String,
-            val userInfo: String? = null
-    )
 }
 
 class BaiduFaceEngineServiceBackground : ServiceBackground<BaiduFaceEngine>() {

@@ -14,7 +14,7 @@ class FaceDetectActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_face_detect)
-        faceDetectCamera.onPreview(200000) { frame ->
+        faceDetectCamera.onPreview(4000) { frame ->
             connection.whenConnected {
                 it.search(frame)?.let {
                     setResult(Activity.RESULT_OK, Intent().apply {

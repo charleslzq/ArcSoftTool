@@ -99,7 +99,7 @@ interface BaiduImageApi {
             @Query("complete") complete: Boolean = false
     ): Deferred<BaiduResponse<DetectResult>>
 
-    @POST("images/search")
+    @POST("images/searchFaceInStore")
     fun search(
             @Body image: Image,
             @Query("groups") groups: Array<String>,

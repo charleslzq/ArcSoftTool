@@ -30,7 +30,7 @@ class FaceDetectActivity : AppCompatActivity() {
                     var personName: String? = null
                     Logger.i(buildString {
                         if (detectResult.size == 1) {
-                            val result = detectResult.mapNotNull { engine.searchForScore(it.value) }
+                            val result = detectResult.mapNotNull { engine.searchFaceForScore(it.value) }
                             if (result.isNotEmpty()) {
                                 val person = result.maxBy { it.second } ?: Pair(Person("", ""), 0f)
                                 if (person.second > 0.5f) {

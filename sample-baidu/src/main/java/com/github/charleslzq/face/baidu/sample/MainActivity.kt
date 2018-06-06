@@ -310,10 +310,9 @@ class MainActivity : AppCompatActivity() {
                         Log.i("Main", "try to listGroup from ${engine.url}")
                         val groupIdList = engine.listGroup().await().result?.groupIdList
                                 ?: emptyList()
-                        engine.defaultSearchGroups.apply {
-                            clear()
-                            addAll(groupIdList)
-                        }
+                        engine.defaultSearchOption = engine.defaultSearchOption.copy(
+                                groups = groupIdList
+                        )
                         groupIdList.forEach { groupId ->
                             val userIdList = engine.listUser(groupId).await().result?.userIdList
                             if (userIdList == null || userIdList.isEmpty()) {
