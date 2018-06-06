@@ -7,7 +7,7 @@ import retrofit2.http.*
 interface BaiduUserGroupApi {
     @GET("groups")
     fun listGroup(
-            @Query("open") start: Int = 0,
+            @Query("start") start: Int = 0,
             @Query("length") length: Int = 100
     ): Deferred<BaiduResponse<GroupIdList>>
 
@@ -29,7 +29,7 @@ interface BaiduUserApi {
     @GET("groups/{groupId}/users")
     fun listUser(
             @Path("groupId") groupId: String,
-            @Query("open") start: Int = 0,
+            @Query("start") start: Int = 0,
             @Query("length") length: Int = 100
     ): Deferred<BaiduResponse<UserIdList>>
 
@@ -99,7 +99,7 @@ interface BaiduImageApi {
             @Query("complete") complete: Boolean = false
     ): Deferred<BaiduResponse<DetectResult>>
 
-    @POST("images/searchFaceInStore")
+    @POST("images/search")
     fun search(
             @Body image: Image,
             @Query("groups") groups: Array<String>,

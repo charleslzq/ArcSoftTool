@@ -9,6 +9,8 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
+        app:enableSample="true"
+        app:previewResolution="LOWEST"
         app:sampleInterval="1000" />
 
 </FrameLayout>

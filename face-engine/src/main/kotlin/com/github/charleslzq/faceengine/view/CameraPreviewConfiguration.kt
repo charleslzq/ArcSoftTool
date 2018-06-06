@@ -89,8 +89,8 @@ data class CameraPreviewConfiguration(
     }
 
     enum class PreviewResolution(val selector: (Iterable<Resolution>) -> Resolution?) {
-        HIGHEST({ it.firstOrNull() }),
-        LOWEST({ it.lastOrNull() });
+        LOWEST({ it.lastOrNull() }),
+        HIGHEST({ it.firstOrNull() });
 
         companion object {
             fun fromAttrs(id: Int) = PreviewResolution.values()[id]
