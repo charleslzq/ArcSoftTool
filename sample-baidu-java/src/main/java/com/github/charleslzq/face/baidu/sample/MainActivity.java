@@ -29,7 +29,6 @@ import com.github.charleslzq.face.baidu.data.GroupIdList;
 import com.github.charleslzq.face.baidu.data.Image;
 import com.github.charleslzq.face.baidu.data.LivenessControl;
 import com.github.charleslzq.face.baidu.data.QualityControl;
-import com.github.charleslzq.face.baidu.data.SearchOptions;
 import com.github.charleslzq.face.baidu.data.UserIdList;
 import com.github.charleslzq.faceengine.support.ImageUtils;
 import com.github.charleslzq.faceengine.support.ServiceConnectionProvider;
@@ -198,12 +197,7 @@ public class MainActivity extends AppCompatActivity {
                         BaiduResponse<GroupIdList> groupResponse = blockingGet(service.listGroup(0, 100));
                         if (groupResponse.getResult() != null) {
                             List<String> groupIdList = groupResponse.getResult().getGroupIdList();
-                            service.setDefaultSearchOption(new SearchOptions(
-                                    groupIdList,
-                                    service.getDefaultSearchOption().getMaxUser(),
-                                    service.getDefaultSearchOption().getQuality(),
-                                    service.getDefaultSearchOption().getLiveness()
-                            ));
+                            service.setDefaultSearchOption(service.getDefaultSearchOption().withNewGroups(groupIdList));
                             for (String groupId : groupIdList) {
                                 UserIdList userIdList = blockingGet(service.listUser(groupId, 0, 100)).getResult();
                                 if (userIdList == null || userIdList.getUserIdList().isEmpty()) {

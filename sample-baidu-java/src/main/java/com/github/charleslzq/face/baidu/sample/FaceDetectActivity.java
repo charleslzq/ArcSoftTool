@@ -7,6 +7,7 @@ import android.support.v7.app.AppCompatActivity;
 
 import com.github.charleslzq.face.baidu.BaiduFaceEngine;
 import com.github.charleslzq.face.baidu.BaiduFaceEngineServiceBackground;
+import com.github.charleslzq.face.baidu.data.UserMeta;
 import com.github.charleslzq.faceengine.support.ServiceConnectionProvider;
 import com.github.charleslzq.faceengine.support.ServiceInvoker;
 import com.github.charleslzq.faceengine.view.FaceDetectView;
@@ -35,7 +36,7 @@ public class FaceDetectActivity extends AppCompatActivity {
                 connection.whenConnected(new ServiceInvoker<BaiduFaceEngine>() {
                     @Override
                     public void invoke(BaiduFaceEngine service) {
-                        BaiduFaceEngine.User user = service.search(previewFrame);
+                        UserMeta user = service.search(previewFrame);
                         if (user != null) {
                             Intent intent = new Intent();
                             intent.putExtra("groupId", user.getGroupId());
