@@ -14,7 +14,9 @@ const val DEFAULT_THREAD_SIZE = 5
 
 fun getThreadPoolService(size: Int = DEFAULT_THREAD_SIZE) = Executors.newFixedThreadPool(size) as ThreadPoolExecutor
 
-class RxTaskExecutor(
+class RxTaskExecutor
+@JvmOverloads
+constructor(
         private val executor: ThreadPoolExecutor = getThreadPoolService()
 ) {
     private val tasks = mutableListOf<Future<*>>()
@@ -49,7 +51,9 @@ class RxTaskExecutor(
     private val Future<*>.isPending get() = !isCancelled && !isDone
 }
 
-class RxFrameTaskRunner(
+class RxFrameTaskRunner
+@JvmOverloads
+constructor(
         override var enableSample: Boolean,
         override var sampleInterval: Long,
         private val produceScheduler: Scheduler = Schedulers.computation(),
@@ -68,11 +72,11 @@ class RxFrameTaskRunner(
 
     override fun subscribe(timeout: Long, timeUnit: TimeUnit, processor: (SourceAwarePreviewFrame) -> Unit) {
         publisher.observeOn(consumeScheduler)
-                .apply {
+                .let {
                     if (enableSample) {
-                        sample(sampleInterval, TimeUnit.MILLISECONDS)
+                        it.sample(sampleInterval, TimeUnit.MILLISECONDS)
                     } else {
-                        this
+                        it
                     }
                 }.subscribe {
                     executor.executeInTimeout(timeout, timeUnit) {

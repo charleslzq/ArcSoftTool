@@ -8,6 +8,12 @@ import com.github.charleslzq.faceengine.view.task.FrameTaskRunner
 import com.github.charleslzq.faceengine.view.task.RxFrameTaskRunner
 import io.fotoapparat.parameter.Resolution
 
+fun <R> TypedArray.extract(setup: TypedArray.() -> R): R {
+    val result = setup(this)
+    recycle()
+    return result
+}
+
 data class CameraPreviewConfiguration(
         val previewResolution: (Iterable<Resolution>) -> Resolution? = PreviewResolution.LOWEST.selector,
         val autoSwitchToNewDevice: Boolean = true,
@@ -16,6 +22,10 @@ data class CameraPreviewConfiguration(
         val rectWidth: Float = 1f,
         val frameTaskRunner: FrameTaskRunner = CoroutineFrameTaskRunner(DEFAULT_ENABLE_SAMPLE, DEFAULT_SAMPLE_INTERVAL.toLong())
 ) {
+    fun withNewPreviewResolution(selector: (Iterable<Resolution>) -> Resolution?) = copy(
+            previewResolution = selector
+    )
+
     fun withNewPreviewResolution(selector: Selector<Resolution>) = copy(
             previewResolution = { selector.select(it) }
     )

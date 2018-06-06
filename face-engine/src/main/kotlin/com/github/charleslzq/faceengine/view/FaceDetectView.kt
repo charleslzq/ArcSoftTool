@@ -147,13 +147,17 @@ constructor(context: Context, attributeSet: AttributeSet? = null, @AttrRes defSt
         cameraPreviewConfiguration.frameTaskRunner.close()
     }
 
-    fun updateConfiguration(update: (CameraPreviewConfiguration) -> CameraPreviewConfiguration) {
-        cameraPreviewConfiguration = update(cameraPreviewConfiguration)
-        cameraSources.forEach { it.applyConfiguration(cameraPreviewConfiguration) }
-        trackView.applyConfiguration(cameraPreviewConfiguration)
+    fun updateConfiguration(update: (CameraPreviewConfiguration) -> CameraPreviewConfiguration?) {
+        update(cameraPreviewConfiguration)?.let { newConfig ->
+            cameraPreviewConfiguration = newConfig
+            cameraSources.forEach { it.applyConfiguration(cameraPreviewConfiguration) }
+            trackView.applyConfiguration(cameraPreviewConfiguration)
+        }
     }
 
-    companion object {
-        const val TAG = "FaceDetectView"
+    fun updateConfiguration(updater: ConfigUpdater) = updateConfiguration { updater.generate(it) }
+
+    interface ConfigUpdater {
+        fun generate(currentConfig: CameraPreviewConfiguration): CameraPreviewConfiguration?
     }
 }

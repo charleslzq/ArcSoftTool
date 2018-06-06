@@ -1,6 +1,5 @@
 package com.github.charleslzq.faceengine.view
 
-import android.content.res.TypedArray
 import io.fotoapparat.parameter.Resolution
 
 sealed class PreviewFrame(
@@ -60,10 +59,4 @@ abstract class CameraOperatorSource : CameraSource, CameraPreviewConfigurable {
     override fun applyConfiguration(cameraPreviewConfiguration: CameraPreviewConfiguration) {
         this.cameraPreviewConfiguration = cameraPreviewConfiguration
     }
-}
-
-fun <R> TypedArray.extract(setup: TypedArray.() -> R): R {
-    val result = setup(this)
-    recycle()
-    return result
 }

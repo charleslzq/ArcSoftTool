@@ -10,7 +10,9 @@ import kotlinx.coroutines.experimental.withTimeout
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicLong
 
-class CoroutineFrameTaskRunner(
+class CoroutineFrameTaskRunner
+@JvmOverloads
+constructor(
         override var enableSample: Boolean,
         override var sampleInterval: Long,
         private val produceContext: CoroutineDispatcher = CommonPool,

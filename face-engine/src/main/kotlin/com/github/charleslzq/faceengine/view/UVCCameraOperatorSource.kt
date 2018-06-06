@@ -30,7 +30,6 @@ class UVCCameraOperatorSource(
         }
 
         override fun onConnect(usbDevice: UsbDevice, usbControlBlock: USBMonitor.UsbControlBlock, createNew: Boolean) {
-            cameraMap.values.forEach { it.stopPreview() }
             val camera = UVCCamera()
             try {
                 camera.open(usbControlBlock)
