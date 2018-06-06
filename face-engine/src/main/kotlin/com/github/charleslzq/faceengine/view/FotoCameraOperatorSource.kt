@@ -31,7 +31,7 @@ class FotoCameraOperatorSource(
     }
     override val cameras = listOf(LensPosition.Front, LensPosition.Back)
             .filter { fotoapparat.isAvailable(single(it)) }
-            .map { FotoCameraPreviewOperator(it::class.java.simpleName, this, fotoapparat, InternalCamera.fromLensSelector(it), frameProcessor) }
+            .map { FotoCameraPreviewOperator(it::class.java.simpleName, this, fotoapparat, InternalCamera.fromLensSelector(it, cameraPreviewConfiguration), frameProcessor) }
 
     override fun applyConfiguration(cameraPreviewConfiguration: CameraPreviewConfiguration) {
         super.applyConfiguration(cameraPreviewConfiguration)

@@ -84,16 +84,16 @@ data class CameraPreviewConfiguration(
         RX;
 
         companion object {
-            fun fromAttrs(id: Int) = TaskRunner.values()[id]
+            fun fromAttrs(id: Int) = TaskRunner.values().first { it.ordinal == id }
         }
     }
 
     enum class PreviewResolution(val selector: (Iterable<Resolution>) -> Resolution?) {
-        LOWEST({ it.lastOrNull() }),
-        HIGHEST({ it.firstOrNull() });
+        LOWEST({ it.minBy { it.area } }),
+        HIGHEST({ it.maxBy { it.area } });
 
         companion object {
-            fun fromAttrs(id: Int) = PreviewResolution.values()[id]
+            fun fromAttrs(id: Int) = PreviewResolution.values().first { it.ordinal == id }
         }
     }
 }

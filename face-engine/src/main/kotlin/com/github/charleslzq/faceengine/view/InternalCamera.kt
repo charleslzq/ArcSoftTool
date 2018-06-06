@@ -8,14 +8,10 @@ sealed class InternalCamera(
         val lensPosition: LensPositionSelector,
         val configuration: CameraConfiguration
 ) {
-
-    object Back : InternalCamera(
+    class Back(cameraPreviewConfiguration: CameraPreviewConfiguration) : InternalCamera(
             lensPosition = back(),
             configuration = CameraConfiguration(
-                    previewResolution = firstAvailable(
-                            wideRatio(highestResolution()),
-                            standardRatio(highestResolution())
-                    ),
+                    previewResolution = cameraPreviewConfiguration.previewResolution,
                     previewFpsRange = highestFps(),
                     flashMode = off(),
                     focusMode = firstAvailable(
@@ -25,13 +21,10 @@ sealed class InternalCamera(
             )
     )
 
-    object Front : InternalCamera(
+    class Front(cameraPreviewConfiguration: CameraPreviewConfiguration) : InternalCamera(
             lensPosition = front(),
             configuration = CameraConfiguration(
-                    previewResolution = firstAvailable(
-                            wideRatio(highestResolution()),
-                            standardRatio(highestResolution())
-                    ),
+                    previewResolution = cameraPreviewConfiguration.previewResolution,
                     previewFpsRange = highestFps(),
                     flashMode = off(),
                     focusMode = firstAvailable(
@@ -42,9 +35,9 @@ sealed class InternalCamera(
     )
 
     companion object {
-        fun fromLensSelector(lensPosition: LensPosition) = when (lensPosition) {
-            is LensPosition.Back -> Back
-            is LensPosition.Front -> Front
+        fun fromLensSelector(lensPosition: LensPosition, cameraPreviewConfiguration: CameraPreviewConfiguration) = when (lensPosition) {
+            is LensPosition.Back -> Back(cameraPreviewConfiguration)
+            is LensPosition.Front -> Front(cameraPreviewConfiguration)
             is LensPosition.External -> throw IllegalArgumentException("Unsupported Camera")
         }
     }
