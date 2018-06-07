@@ -10,11 +10,11 @@
         android:layout_height="match_parent"
         android:adjustViewBounds="true"
         app:autoSwitchToNewDevice="true"
-        app:enableSample="false"
+        app:enableSample="true"
         app:previewResolution="HIGHEST"
         app:rectColor="@color/RED"
         app:rectWidth="1dp"
-        app:sampleInterval="100"
+        app:sampleInterval="500"
         app:showTrackRect="true"
         app:taskRunner="COROUTINE" />
 

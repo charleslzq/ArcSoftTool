@@ -16,6 +16,6 @@
         app:rectWidth="1dp"
         app:sampleInterval="500"
         app:showTrackRect="true"
-        app:taskRunner="RX" />
+        app:taskRunner="COROUTINE" />
 
 </FrameLayout>
