@@ -9,6 +9,7 @@ import java.util.concurrent.Executors
 import java.util.concurrent.Future
 import java.util.concurrent.ThreadPoolExecutor
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicLong
 
 const val DEFAULT_THREAD_SIZE = 5
 
@@ -60,27 +61,28 @@ constructor(
         private val consumeScheduler: Scheduler = Schedulers.computation()
 ) : FrameTaskRunner {
     private val executor: RxTaskExecutor = RxTaskExecutor()
-    private val publisher = PublishSubject.create<SourceAwarePreviewFrame>()
+    private val publisher = PublishSubject.create<Pair<Long, SourceAwarePreviewFrame>>()
+    private val lastSubmit = AtomicLong(0)
 
     override fun <T> transformAndSubmit(raw: T, transform: (T) -> SourceAwarePreviewFrame?) {
         runOn(produceScheduler) {
             transform(raw)?.let {
-                publisher.onNext(it)
+                val current = System.currentTimeMillis()
+                if (!enableSample || current - lastSubmit.get() >= sampleInterval) {
+                    publisher.onNext(Pair(current, it))
+                    lastSubmit.set(current)
+                }
             }
         }
     }
 
     override fun subscribe(timeout: Long, timeUnit: TimeUnit, processor: (SourceAwarePreviewFrame) -> Unit) {
         publisher.observeOn(consumeScheduler)
-                .let {
-                    if (enableSample) {
-                        it.sample(sampleInterval, TimeUnit.MILLISECONDS)
-                    } else {
-                        it
-                    }
-                }.subscribe {
-                    executor.executeInTimeout(timeout, timeUnit) {
-                        processor(it)
+                .subscribe {
+                    if (!enableSample || it.first >= lastSubmit.get()) {
+                        executor.executeInTimeout(timeout, timeUnit) {
+                            processor(it.second)
+                        }
                     }
                 }
     }

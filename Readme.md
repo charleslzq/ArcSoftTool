@@ -49,7 +49,6 @@
     6. autoSwitchToNewDevice 是否在新摄像头可用时自动切到新摄像头上,默认为true
     7. previewResolution 预览分辨率偏好, 可以为HIGHEST或者LOWEST, 默认为HIGHEST. 更为精细的选择需要通过在代码中调用FaceDetectView.updateConfiguration方法实现
     8. taskRunner 指定异步任务运行的方式, 可以为RX(使用rxjava进行任务管理)或者COROUTINE(使用kotlin协程), 默认为COROUTINE.
-        两者功能基本相同, 在采样时的行为稍有差别. RX使用rxjava的sample运算符, 而COROUTINE手动实现采样操作,会在新帧提交后跳过队列中尚未处理的帧.
 
 获取相片流在创建时调用其onPreview接口即可, java需实现FrameConsumer接口, 如下所示:
 
