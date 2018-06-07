@@ -4,7 +4,6 @@ import android.content.Context
 import android.hardware.usb.UsbDevice
 import android.util.Log
 import android.view.Surface
-import android.widget.Toast
 import com.serenegiant.usb.USBMonitor
 import com.serenegiant.usb.UVCCamera
 import io.fotoapparat.parameter.Resolution
@@ -25,7 +24,6 @@ class UVCCameraOperatorSource(
     override val id: String = "UVC"
     private val connectionListener = object : USBMonitor.OnDeviceConnectListener {
         override fun onAttach(usbDevice: UsbDevice) {
-            Toast.makeText(context, "External Camera Attached", Toast.LENGTH_SHORT).show()
             usbMonitor.requestPermission(usbDevice)
         }
 
