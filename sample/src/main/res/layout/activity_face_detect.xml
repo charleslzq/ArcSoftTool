@@ -11,11 +11,11 @@
         android:layout_gravity="center"
         app:autoSwitchToNewDevice="true"
         app:previewResolution="HIGHEST"
-        app:enableSample="false"
+        app:enableSample="true"
         app:rectColor="@color/RED"
         app:rectWidth="1dp"
-        app:sampleInterval="100"
+        app:sampleInterval="500"
         app:showTrackRect="true"
-        app:taskRunner="COROUTINE" />
+        app:taskRunner="RX" />
 
 </FrameLayout>

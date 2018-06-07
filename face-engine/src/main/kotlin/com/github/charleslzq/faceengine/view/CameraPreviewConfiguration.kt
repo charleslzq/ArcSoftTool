@@ -53,8 +53,8 @@ data class CameraPreviewConfiguration(
     companion object {
         const val DEFAULT_RESOLUTION_ID = 0
         const val DEFAULT_TASK_RUNNER_ID = 0
-        const val DEFAULT_ENABLE_SAMPLE = false
-        const val DEFAULT_SAMPLE_INTERVAL = 200
+        const val DEFAULT_ENABLE_SAMPLE = true
+        const val DEFAULT_SAMPLE_INTERVAL = 500
         const val DEFAULT_TRACK = true
         const val DEFAULT_AUTO_SWITCH = true
         const val DEFAULT_COLOR = Color.RED
