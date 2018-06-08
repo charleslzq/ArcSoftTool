@@ -56,13 +56,16 @@ constructor(context: Context, attributeSet: AttributeSet? = null, @AttrRes defSt
                 field = value
                 newCamera?.onSelected()
                 newCamera?.startPreview()
+                listeners.forEach {
+                    it.invoke(oldCamera, newCamera)
+                }
             }
         }
     val selectedCamera: CameraPreviewOperator?
         get() = selectCamera(cameras)
     val selectedSource: CameraOperatorSource?
         get() = selectedCamera?.source
-
+    val listeners = mutableListOf<(CameraPreviewOperator?, CameraPreviewOperator?) -> Unit>()
 
     override fun onLayout(changed: Boolean, left: Int, top: Int, right: Int, bottom: Int) {
         cameraView.layout(left, top, right, bottom)
@@ -173,4 +176,14 @@ constructor(context: Context, attributeSet: AttributeSet? = null, @AttrRes defSt
     }
 
     fun updateConfiguration(updater: Updater<CameraPreviewConfiguration>) = updateConfiguration { updater.update(it) }
+
+    fun addCameraChangeListener(listener: CameraChangeListener) {
+        listeners.add({ old, new ->
+            listener.onChange(old, new)
+        })
+    }
+
+    interface CameraChangeListener {
+        fun onChange(old: CameraPreviewOperator?, new: CameraPreviewOperator?)
+    }
 }
