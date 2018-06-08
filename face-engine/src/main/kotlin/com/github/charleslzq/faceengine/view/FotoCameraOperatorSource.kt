@@ -37,7 +37,7 @@ class FotoCameraOperatorSource(
         super.applyConfiguration(cameraPreviewConfiguration)
         frameProcessor.cameraPreviewConfiguration = cameraPreviewConfiguration
         fotoapparat.updateConfiguration(CameraConfiguration.builder()
-                .photoResolution(cameraPreviewConfiguration.previewResolution)
+                .previewResolution(cameraPreviewConfiguration.previewResolution)
                 .build())
     }
 
