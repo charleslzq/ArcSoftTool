@@ -88,16 +88,18 @@ class UVCCameraOperatorSource(
         private val supportedResolution = uvcCamera.supportedSizeList.map {
             Resolution(it.width, it.height)
         }.sortedByDescending { it.area }
-        private var selectedResolution = cameraPreviewConfiguration.previewResolution(supportedResolution)
-                ?: Resolution(UVCCamera.DEFAULT_PREVIEW_WIDTH, UVCCamera.DEFAULT_PREVIEW_HEIGHT)
-        private val surface = cameraView.getPreview().let {
-            when (it) {
-                is Preview.Texture -> Surface(it.surfaceTexture)
-                is Preview.Surface -> it.surfaceHolder.surface
+        private val selectedResolution
+            get() = cameraPreviewConfiguration.previewResolution(supportedResolution)
+                    ?: Resolution(UVCCamera.DEFAULT_PREVIEW_WIDTH, UVCCamera.DEFAULT_PREVIEW_HEIGHT)
+        private val surface
+            get() = cameraView.getPreview().let {
+                when (it) {
+                    is Preview.Texture -> Surface(it.surfaceTexture)
+                    is Preview.Surface -> it.surfaceHolder.surface
+                }
             }
-        }
         private val count = AtomicInteger(0)
-        private var buffer = ByteArray(selectedResolution.area * 3 / 2)
+        private var buffer = createBuffer()
         private val _isPreviewing = AtomicBoolean(false)
 
         override fun startPreview() {
@@ -146,7 +148,10 @@ class UVCCameraOperatorSource(
 
         override fun applyConfiguration(cameraPreviewConfiguration: CameraPreviewConfiguration) {
             this.cameraPreviewConfiguration = cameraPreviewConfiguration
+            buffer = createBuffer()
         }
+
+        private fun createBuffer() = ByteArray(selectedResolution.area * 3 / 2)
     }
 }
 
