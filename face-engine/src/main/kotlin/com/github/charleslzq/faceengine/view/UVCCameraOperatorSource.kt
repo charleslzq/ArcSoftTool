@@ -85,10 +85,9 @@ class UVCCameraOperatorSource(
             private val uvcCamera: UVCCamera,
             private var cameraPreviewConfiguration: CameraPreviewConfiguration
     ) : CameraPreviewOperator {
-        private val supportedResolution = uvcCamera.supportedSizeList.map {
-            Resolution(it.width, it.height)
-        }.sortedByDescending { it.area }
-        private val selectedResolution
+        override val supportedResolution: List<Resolution>
+            get() = uvcCamera.supportedSizeList.map { Resolution(it.width, it.height) }
+        override val selectedResolution
             get() = cameraPreviewConfiguration.previewResolution(supportedResolution)
                     ?: Resolution(UVCCamera.DEFAULT_PREVIEW_WIDTH, UVCCamera.DEFAULT_PREVIEW_HEIGHT)
         private val surface

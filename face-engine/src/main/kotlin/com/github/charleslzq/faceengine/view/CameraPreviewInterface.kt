@@ -39,6 +39,8 @@ interface CameraPreviewConfigurable {
 interface CameraPreviewOperator : CameraPreviewConfigurable {
     val id: String
     val source: CameraOperatorSource
+    val supportedResolution: List<Resolution>
+    val selectedResolution: Resolution?
     fun startPreview()
     fun stopPreview()
     fun isPreviewing(): Boolean

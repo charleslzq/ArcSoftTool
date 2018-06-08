@@ -4,10 +4,13 @@ import android.content.Context
 import android.util.Log
 import io.fotoapparat.Fotoapparat
 import io.fotoapparat.FotoapparatBuilder
+import io.fotoapparat.capability.Capabilities
 import io.fotoapparat.characteristic.LensPosition
 import io.fotoapparat.configuration.CameraConfiguration
 import io.fotoapparat.log.logcat
+import io.fotoapparat.parameter.Resolution
 import io.fotoapparat.parameter.ScaleType
+import io.fotoapparat.parameter.camera.CameraParameters
 import io.fotoapparat.preview.Frame
 import io.fotoapparat.preview.FrameProcessor
 import io.fotoapparat.selector.*
@@ -72,10 +75,22 @@ class FotoCameraOperatorSource(
             private val frameProcessor: FrameToObservableProcessor
     ) : CameraPreviewOperator {
         private val _isPreviewing = AtomicBoolean(false)
+        private var capabilities: Capabilities? = null
+        private var parameters: CameraParameters? = null
+        override val supportedResolution: List<Resolution>
+            get() = capabilities?.previewResolutions?.toList() ?: emptyList()
+        override val selectedResolution: Resolution?
+            get() = parameters?.previewResolution
 
         override fun startPreview() {
             if (_isPreviewing.compareAndSet(false, true)) {
                 fotoapparat.start()
+                fotoapparat.getCapabilities().whenAvailable {
+                    capabilities = it
+                }
+                fotoapparat.getCurrentParameters().whenAvailable {
+                    parameters = it
+                }
             }
         }
 
