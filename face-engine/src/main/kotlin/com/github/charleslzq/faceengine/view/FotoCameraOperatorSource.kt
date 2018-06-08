@@ -39,6 +39,9 @@ class FotoCameraOperatorSource(
     override fun applyConfiguration(cameraPreviewConfiguration: CameraPreviewConfiguration) {
         super.applyConfiguration(cameraPreviewConfiguration)
         frameProcessor.cameraPreviewConfiguration = cameraPreviewConfiguration
+        cameras.forEach {
+            it.camera = it.camera.withNewConfig(cameraPreviewConfiguration)
+        }
         fotoapparat.updateConfiguration(CameraConfiguration.builder()
                 .previewResolution(cameraPreviewConfiguration.previewResolution)
                 .build())
@@ -71,7 +74,7 @@ class FotoCameraOperatorSource(
             override val id: String,
             override val source: CameraOperatorSource,
             private val fotoapparat: Fotoapparat,
-            private val camera: InternalCamera,
+            internal var camera: InternalCamera,
             private val frameProcessor: FrameToObservableProcessor
     ) : CameraPreviewOperator {
         private val _isPreviewing = AtomicBoolean(false)
