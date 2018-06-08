@@ -142,7 +142,7 @@ constructor(context: Context, attributeSet: AttributeSet? = null, @AttrRes defSt
 
     private fun onDisconnect(camera: CameraPreviewOperator) {
         if (selectedCamera != null && selectedCamera!!.id == camera.id) {
-            selectFirst()
+            selectCamera = { it.firstOrNull { it.id != camera.id } }
         }
     }
 
