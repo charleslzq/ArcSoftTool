@@ -31,15 +31,15 @@ class UVCCameraOperatorSource(
             val camera = UVCCamera()
             try {
                 camera.open(usbControlBlock)
-                cameraMap[usbDevice.deviceName] = UVCCameraOperator(
+                val newCamera = UVCCameraOperator(
                         usbDevice.deviceName,
                         this@UVCCameraOperatorSource,
                         cameraView,
                         camera,
                         cameraPreviewConfiguration
-                ).also {
-                    onNewDevice(it)
-                }
+                )
+                cameraMap[usbDevice.deviceName] = newCamera
+                onNewDevice(newCamera)
             } catch (throwable: Throwable) {
                 throwable.printStackTrace()
             }

@@ -96,6 +96,24 @@ constructor(context: Context, attributeSet: AttributeSet? = null, @AttrRes defSt
         }
     }
 
+    fun selectFirst() {
+        cameras.firstOrNull()?.let {
+            selectById(it.id)
+        }
+    }
+
+    fun selectLast() {
+        cameras.lastOrNull()?.let {
+            selectById(it.id)
+        }
+    }
+
+    fun selectPrevious() {
+        selectedCamera?.let {
+            selectAt(cameras.indexOf(it) + cameras.size - 1)
+        }
+    }
+
     fun selectNext() {
         selectedCamera?.let {
             selectAt(cameras.indexOf(it) + 1)
@@ -103,9 +121,7 @@ constructor(context: Context, attributeSet: AttributeSet? = null, @AttrRes defSt
     }
 
     fun selectAt(index: Int) {
-        selectCamera = {
-            it.elementAtOrNull(index % it.count())
-        }
+        selectById(cameras.elementAt(index % cameras.size).id)
     }
 
     fun selectById(id: String) {
@@ -126,14 +142,14 @@ constructor(context: Context, attributeSet: AttributeSet? = null, @AttrRes defSt
 
     private fun onDisconnect(camera: CameraPreviewOperator) {
         if (selectedCamera != null && selectedCamera!!.id == camera.id) {
-            selectCamera = { it.firstOrNull() }
+            selectFirst()
         }
     }
 
     override fun open() {
         cameraSources.forEach { it.open() }
         if (selectedCamera == null || !selectedCamera!!.isPreviewing()) {
-            selectCamera = { it.firstOrNull() }
+            selectFirst()
         }
     }
 
