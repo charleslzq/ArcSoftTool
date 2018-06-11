@@ -8,6 +8,7 @@ import android.util.AttributeSet
 import android.view.View
 import com.github.charleslzq.faceengine.core.TrackedFace
 import com.github.charleslzq.faceengine.support.runOnUI
+import com.github.charleslzq.faceengine.view.config.CameraPreviewConfiguration
 
 /**
  * Created by charleslzq on 18-3-29.
@@ -17,21 +18,12 @@ constructor(
         context: Context,
         attributeSet: AttributeSet? = null,
         @AttrRes defStyle: Int = 0)
-    : View(context, attributeSet, defStyle), CameraPreviewConfigurable {
+    : View(context, attributeSet, defStyle) {
     val rects = mutableListOf<TrackedFace>()
     val strokePaint = Paint().apply {
         style = Paint.Style.STROKE
     }
-
-    override fun applyConfiguration(cameraPreviewConfiguration: CameraPreviewConfiguration) {
-        visibility = if (cameraPreviewConfiguration.showRect) {
-            VISIBLE
-        } else {
-            INVISIBLE
-        }
-        strokePaint.color = cameraPreviewConfiguration.rectColor
-        strokePaint.strokeWidth = cameraPreviewConfiguration.rectWidth
-    }
+    var getConfiguration: () -> CameraPreviewConfiguration = { CameraPreviewConfiguration() }
 
     fun resetRects(newFaces: Collection<TrackedFace>) {
         rects.clear()
@@ -48,7 +40,12 @@ constructor(
         rects.forEach {
             canvas.save()
             canvas.rotate(-it.degree.toFloat())
-            canvas.drawRect(it.rect, strokePaint)
+            canvas.drawRect(it.rect, strokePaint.apply {
+                getConfiguration().let {
+                    color = it.rectColor
+                    strokeWidth = it.rectWidth
+                }
+            })
             canvas.restore()
         }
     }

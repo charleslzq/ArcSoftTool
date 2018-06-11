@@ -1,5 +1,6 @@
 package com.github.charleslzq.faceengine.view
 
+import com.github.charleslzq.faceengine.view.config.CameraParameters
 import io.fotoapparat.parameter.Resolution
 
 sealed class PreviewFrame(
@@ -32,20 +33,12 @@ interface Selector<T> {
     fun select(choices: Iterable<T>): T?
 }
 
-interface CameraPreviewConfigurable {
-    fun applyConfiguration(cameraPreviewConfiguration: CameraPreviewConfiguration)
-}
-
-interface CameraPreviewOperator : CameraPreviewConfigurable {
+interface CameraPreviewOperator {
     val id: String
     val source: CameraOperatorSource
-    val supportedResolution: List<Resolution>
-    val selectedResolution: Resolution?
-    fun startPreview()
+    fun startPreview(requestParameters: CameraParameters)
     fun stopPreview()
     fun isPreviewing(): Boolean
-    fun onSelected() {}
-    override fun applyConfiguration(cameraPreviewConfiguration: CameraPreviewConfiguration) {}
 }
 
 interface CameraSource : AutoCloseable {
@@ -54,11 +47,6 @@ interface CameraSource : AutoCloseable {
     override fun close() {}
 }
 
-abstract class CameraOperatorSource : CameraSource, CameraPreviewConfigurable {
-    abstract var cameraPreviewConfiguration: CameraPreviewConfiguration
+abstract class CameraOperatorSource : CameraSource {
     abstract val id: String
-
-    override fun applyConfiguration(cameraPreviewConfiguration: CameraPreviewConfiguration) {
-        this.cameraPreviewConfiguration = cameraPreviewConfiguration
-    }
 }

@@ -14,3 +14,10 @@ interface FrameTaskRunner : AutoCloseable {
             processor: (SourceAwarePreviewFrame) -> Unit
     )
 }
+
+enum class TaskRunner(
+        val instance: FrameTaskRunner
+) {
+    RX_JAVA(RxFrameTaskRunner(true, 500)),
+    COROUTINE(CoroutineFrameTaskRunner(true, 500))
+}

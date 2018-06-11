@@ -5,9 +5,9 @@ import android.support.annotation.AttrRes
 import android.util.AttributeSet
 import android.view.TextureView
 import android.widget.FrameLayout
-import com.github.charleslzq.faceengine.core.R
 import com.github.charleslzq.faceengine.core.TrackedFace
-import com.github.charleslzq.faceengine.core.Updater
+import com.github.charleslzq.faceengine.view.config.CameraPreviewConfiguration
+import com.github.charleslzq.faceengine.view.config.CameraSettingManager
 import io.fotoapparat.parameter.ScaleType
 import io.fotoapparat.view.CameraView
 import java.util.concurrent.TimeUnit
@@ -22,28 +22,28 @@ class FaceDetectView
 @JvmOverloads
 constructor(context: Context, attributeSet: AttributeSet? = null, @AttrRes defStyle: Int = 0) :
         FrameLayout(context, attributeSet, defStyle), CameraSource {
-    private var cameraPreviewConfiguration: CameraPreviewConfiguration = attributeSet?.let { context.obtainStyledAttributes(it, R.styleable.FaceDetectView) }?.extract {
-        CameraPreviewConfiguration.from(this)
-    } ?: CameraPreviewConfiguration()
+    val settingManager = CameraSettingManager()
+    val cameraPreviewConfiguration: CameraPreviewConfiguration
+        get() = settingManager.loadSetting().cameraPreviewConfiguration
     private val cameraView = CameraView(context, attributeSet, defStyle).also {
         it.setScaleType(ScaleType.CenterInside)
         addView(it)
     }
     private val trackView = TrackView(context, attributeSet, defStyle).also {
-        it.applyConfiguration(cameraPreviewConfiguration)
+        it.getConfiguration = { cameraPreviewConfiguration }
         addView(it)
     }
     private val cameraSources = listOf(
             UVCCameraOperatorSource(
                     context,
                     cameraView,
-                    cameraPreviewConfiguration,
+                    { byteBuffer, transform -> cameraPreviewConfiguration.frameTaskRunner.transformAndSubmit(byteBuffer, transform) },
                     this::onNewDevice,
                     this::onDisconnect),
             FotoCameraOperatorSource(
                     context,
                     cameraView,
-                    cameraPreviewConfiguration)
+                    { frame, transform -> cameraPreviewConfiguration.frameTaskRunner.transformAndSubmit(frame, transform) })
     )
     override val cameras: List<CameraPreviewOperator>
         get() = cameraSources.flatMap { it.cameras }
@@ -54,8 +54,9 @@ constructor(context: Context, attributeSet: AttributeSet? = null, @AttrRes defSt
             if (oldCamera != newCamera) {
                 oldCamera?.stopPreview()
                 field = value
-                newCamera?.onSelected()
-                newCamera?.startPreview()
+                newCamera?.run {
+                    startPreview(settingManager.loadParameters(this))
+                }
                 listeners.forEach {
                     it.invoke(oldCamera, newCamera)
                 }
@@ -165,25 +166,5 @@ constructor(context: Context, attributeSet: AttributeSet? = null, @AttrRes defSt
             it.close()
         }
         cameraPreviewConfiguration.frameTaskRunner.close()
-    }
-
-    fun updateConfiguration(update: (CameraPreviewConfiguration) -> CameraPreviewConfiguration?) {
-        update(cameraPreviewConfiguration)?.let { newConfig ->
-            cameraPreviewConfiguration = newConfig
-            cameraSources.forEach { it.applyConfiguration(cameraPreviewConfiguration) }
-            trackView.applyConfiguration(cameraPreviewConfiguration)
-        }
-    }
-
-    fun updateConfiguration(updater: Updater<CameraPreviewConfiguration>) = updateConfiguration { updater.update(it) }
-
-    fun addCameraChangeListener(listener: CameraChangeListener) {
-        listeners.add({ old, new ->
-            listener.onChange(old, new)
-        })
-    }
-
-    interface CameraChangeListener {
-        fun onChange(old: CameraPreviewOperator?, new: CameraPreviewOperator?)
     }
 }

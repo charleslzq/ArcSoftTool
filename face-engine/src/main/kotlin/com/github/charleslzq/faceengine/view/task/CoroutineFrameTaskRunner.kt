@@ -11,12 +11,11 @@ import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicLong
 
 class CoroutineFrameTaskRunner
-@JvmOverloads
-constructor(
+internal constructor(
         override var enableSample: Boolean,
         override var sampleInterval: Long,
-        private val produceContext: CoroutineDispatcher = CommonPool,
-        private val consumeContext: CoroutineDispatcher = CommonPool
+        var produceContext: CoroutineDispatcher = CommonPool,
+        var consumeContext: CoroutineDispatcher = CommonPool
 ) : FrameTaskRunner {
     private val channel = Channel<Pair<Long, SourceAwarePreviewFrame>>()
     private val lastSubmit = AtomicLong(0)

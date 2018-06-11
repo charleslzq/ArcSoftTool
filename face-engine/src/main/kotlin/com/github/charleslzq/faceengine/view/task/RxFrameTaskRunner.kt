@@ -53,12 +53,11 @@ constructor(
 }
 
 class RxFrameTaskRunner
-@JvmOverloads
-constructor(
+internal constructor(
         override var enableSample: Boolean,
         override var sampleInterval: Long,
-        private val produceScheduler: Scheduler = Schedulers.computation(),
-        private val consumeScheduler: Scheduler = Schedulers.computation()
+        var produceScheduler: Scheduler = Schedulers.computation(),
+        var consumeScheduler: Scheduler = Schedulers.computation()
 ) : FrameTaskRunner {
     private val executor: RxTaskExecutor = RxTaskExecutor()
     private val publisher = PublishSubject.create<Pair<Long, SourceAwarePreviewFrame>>()

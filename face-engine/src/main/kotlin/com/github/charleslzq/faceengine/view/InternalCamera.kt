@@ -8,12 +8,9 @@ sealed class InternalCamera(
         val lensPosition: LensPositionSelector,
         val configuration: CameraConfiguration
 ) {
-    abstract fun withNewConfig(cameraPreviewConfiguration: CameraPreviewConfiguration): InternalCamera
-
-    class Back(cameraPreviewConfiguration: CameraPreviewConfiguration) : InternalCamera(
+    object Back : InternalCamera(
             lensPosition = back(),
             configuration = CameraConfiguration(
-                    previewResolution = cameraPreviewConfiguration.previewResolution,
                     previewFpsRange = highestFps(),
                     flashMode = off(),
                     focusMode = firstAvailable(
@@ -21,14 +18,11 @@ sealed class InternalCamera(
                             autoFocus()
                     )
             )
-    ) {
-        override fun withNewConfig(cameraPreviewConfiguration: CameraPreviewConfiguration) = Back(cameraPreviewConfiguration)
-    }
+    )
 
-    class Front(cameraPreviewConfiguration: CameraPreviewConfiguration) : InternalCamera(
+    object Front : InternalCamera(
             lensPosition = front(),
             configuration = CameraConfiguration(
-                    previewResolution = cameraPreviewConfiguration.previewResolution,
                     previewFpsRange = highestFps(),
                     flashMode = off(),
                     focusMode = firstAvailable(
@@ -36,14 +30,12 @@ sealed class InternalCamera(
                             autoFocus()
                     )
             )
-    ) {
-        override fun withNewConfig(cameraPreviewConfiguration: CameraPreviewConfiguration) = Front(cameraPreviewConfiguration)
-    }
+    )
 
     companion object {
-        fun fromLensSelector(lensPosition: LensPosition, cameraPreviewConfiguration: CameraPreviewConfiguration) = when (lensPosition) {
-            is LensPosition.Back -> Back(cameraPreviewConfiguration)
-            is LensPosition.Front -> Front(cameraPreviewConfiguration)
+        fun fromLensSelector(lensPosition: LensPosition) = when (lensPosition) {
+            is LensPosition.Back -> Back
+            is LensPosition.Front -> Front
             is LensPosition.External -> throw IllegalArgumentException("Unsupported Camera")
         }
     }

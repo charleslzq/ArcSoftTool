@@ -1,21 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_height="match_parent">
 
     <com.github.charleslzq.faceengine.view.FaceDetectView
         android:id="@+id/faceDetectCamera"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        app:autoSwitchToNewDevice="true"
-        app:previewResolution="HIGHEST"
-        app:enableSample="true"
-        app:rectColor="@color/RED"
-        app:rectWidth="1dp"
-        app:sampleInterval="500"
-        app:showTrackRect="true"
-        app:taskRunner="COROUTINE" />
+        android:layout_gravity="center" />
 
 </FrameLayout>

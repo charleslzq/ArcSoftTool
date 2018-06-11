@@ -4,9 +4,9 @@ import android.content.Context
 import android.hardware.usb.UsbDevice
 import android.util.Log
 import android.view.Surface
+import com.github.charleslzq.faceengine.view.config.CameraParameters
 import com.serenegiant.usb.USBMonitor
 import com.serenegiant.usb.UVCCamera
-import io.fotoapparat.parameter.Resolution
 import io.fotoapparat.view.CameraView
 import io.fotoapparat.view.Preview
 import java.nio.ByteBuffer
@@ -17,7 +17,7 @@ import java.util.concurrent.atomic.AtomicInteger
 class UVCCameraOperatorSource(
         context: Context,
         cameraView: CameraView,
-        override var cameraPreviewConfiguration: CameraPreviewConfiguration,
+        val submit: (ByteBuffer, (ByteBuffer) -> SourceAwarePreviewFrame) -> Unit,
         val onNewDevice: (CameraPreviewOperator) -> Unit,
         val onDisconnect: (CameraPreviewOperator) -> Unit
 ) : CameraOperatorSource() {
@@ -36,7 +36,7 @@ class UVCCameraOperatorSource(
                         this@UVCCameraOperatorSource,
                         cameraView,
                         camera,
-                        cameraPreviewConfiguration
+                        submit
                 )
                 cameraMap[usbDevice.deviceName] = newCamera
                 onNewDevice(newCamera)
@@ -64,11 +64,6 @@ class UVCCameraOperatorSource(
     override val cameras: List<CameraPreviewOperator>
         get() = cameraMap.values.toList()
 
-    override fun applyConfiguration(cameraPreviewConfiguration: CameraPreviewConfiguration) {
-        super.applyConfiguration(cameraPreviewConfiguration)
-        cameraMap.values.forEach { it.applyConfiguration(cameraPreviewConfiguration) }
-    }
-
     override fun open() {
         usbMonitor.register()
     }
@@ -83,13 +78,8 @@ class UVCCameraOperatorSource(
             override val source: CameraOperatorSource,
             private val cameraView: CameraView,
             private val uvcCamera: UVCCamera,
-            private var cameraPreviewConfiguration: CameraPreviewConfiguration
+            val submit: (ByteBuffer, (ByteBuffer) -> SourceAwarePreviewFrame) -> Unit
     ) : CameraPreviewOperator {
-        override val supportedResolution: List<Resolution>
-            get() = uvcCamera.supportedSizeList.map { Resolution(it.width, it.height) }
-        override val selectedResolution
-            get() = cameraPreviewConfiguration.previewResolution(supportedResolution)
-                    ?: Resolution(UVCCamera.DEFAULT_PREVIEW_WIDTH, UVCCamera.DEFAULT_PREVIEW_HEIGHT)
         private val surface
             get() = cameraView.getPreview().let {
                 when (it) {
@@ -98,25 +88,25 @@ class UVCCameraOperatorSource(
                 }
             }
         private val count = AtomicInteger(0)
-        private var buffer = createBuffer()
+        private var buffer = ByteArray(0)
         private val _isPreviewing = AtomicBoolean(false)
 
-        override fun startPreview() {
+        override fun startPreview(requestParameters: CameraParameters) {
             if (_isPreviewing.compareAndSet(false, true)) {
-                selectedResolution.run {
-                    cameraView.setPreviewResolution(selectedResolution)
+                requestParameters.resolution.run {
+                    cameraView.setPreviewResolution(this)
                     uvcCamera.setPreviewSize(width, height, UVCCamera.FRAME_FORMAT_YUYV)
                     buffer = ByteArray(area * 3 / 2)
                 }
                 uvcCamera.setPreviewDisplay(surface)
                 uvcCamera.setFrameCallback {
-                    cameraPreviewConfiguration.frameTaskRunner.transformAndSubmit(it) {
+                    submit(it) {
                         synchronized(buffer) {
                             if (it.limit() > buffer.size) {
                                 buffer = ByteArray(it.limit())
                             }
                             it.get(buffer)
-                            SourceAwarePreviewFrame("UVC-$id", count.getAndIncrement(), selectedResolution, buffer, 0)
+                            SourceAwarePreviewFrame("UVC-$id", count.getAndIncrement(), requestParameters.resolution, buffer, 0)
                         }
                     }
                     if (count.get() > 1000) {
@@ -144,13 +134,6 @@ class UVCCameraOperatorSource(
                 Log.w("Camera", "Error when release Camera", e)
             }
         }
-
-        override fun applyConfiguration(cameraPreviewConfiguration: CameraPreviewConfiguration) {
-            this.cameraPreviewConfiguration = cameraPreviewConfiguration
-            buffer = createBuffer()
-        }
-
-        private fun createBuffer() = ByteArray(selectedResolution.area * 3 / 2)
     }
 }
 
