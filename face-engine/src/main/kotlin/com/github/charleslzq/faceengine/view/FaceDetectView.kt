@@ -6,10 +6,12 @@ import android.util.AttributeSet
 import android.view.TextureView
 import android.widget.FrameLayout
 import com.github.charleslzq.faceengine.core.TrackedFace
-import com.github.charleslzq.faceengine.view.config.CameraPreviewConfiguration
-import com.github.charleslzq.faceengine.view.config.CameraSettingManager
+import com.github.charleslzq.faceengine.view.config.*
 import io.fotoapparat.parameter.ScaleType
 import io.fotoapparat.view.CameraView
+import io.reactivex.Single
+import io.reactivex.schedulers.Schedulers
+import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 
 /**
@@ -17,6 +19,8 @@ import java.util.concurrent.TimeUnit
  */
 val CameraView.textureView
     get() = getChildAt(0) as TextureView
+
+fun CameraPreviewOperator.isFoto() = this is FotoCameraOperatorSource.FotoCameraPreviewOperator
 
 class FaceDetectView
 @JvmOverloads
@@ -61,8 +65,6 @@ constructor(context: Context, attributeSet: AttributeSet? = null, @AttrRes defSt
         }
     val selectedCamera: CameraPreviewOperator?
         get() = selectCamera(cameras)
-    val selectedSource: CameraOperatorSource?
-        get() = selectedCamera?.source
 
     override fun onLayout(changed: Boolean, left: Int, top: Int, right: Int, bottom: Int) {
         cameraView.layout(left, top, right, bottom)
@@ -134,6 +136,29 @@ constructor(context: Context, attributeSet: AttributeSet? = null, @AttrRes defSt
         selectCamera = { selector.select(it) }
     }
 
+    fun withDeviceInfo(consumer: Consumer<List<CameraPreviewOperator.Info>>) = withDeviceInfo { consumer.consume(it) }
+
+    fun withDeviceInfo(process: (List<CameraPreviewOperator.Info>) -> Unit) {
+        Single.fromCallable {
+            cameras.map {
+                val latch = CountDownLatch(1)
+                var cameraInfo: CameraPreviewOperator.Info? = null
+                if (it.isFoto()) {
+                    it.startPreview(FotoCameraPreviewRequest())
+                }
+                it.withCameraInfo().subscribe { result, _ ->
+                    cameraInfo = result
+                    latch.countDown()
+                }
+                latch.await()
+                if (it.isFoto()) {
+                    it.stopPreview()
+                }
+                cameraInfo!!
+            }
+        }.subscribeOn(Schedulers.io()).doAfterSuccess { restart() }.subscribe(process)
+    }
+
     private fun onNewDevice(camera: CameraPreviewOperator) {
         if (cameraPreviewConfiguration.autoSwitchToNewDevice) {
             selectById(camera.id)
@@ -155,6 +180,7 @@ constructor(context: Context, attributeSet: AttributeSet? = null, @AttrRes defSt
 
     fun restart() {
         selectedCamera?.run {
+            stopPreview()
             startPreview(settingManager.loadRequest(source.id, id, this is FotoCameraOperatorSource.FotoCameraPreviewOperator))
         }
     }
@@ -170,5 +196,15 @@ constructor(context: Context, attributeSet: AttributeSet? = null, @AttrRes defSt
         cameraPreviewConfiguration.frameTaskRunner.close()
     }
 
-    fun CameraPreviewOperator.getConfigRequest() = settingManager.loadRequest(source.id, id, this is FotoCameraOperatorSource.FotoCameraPreviewOperator)
+    fun loadRequest(cameraPreviewOperator: CameraPreviewOperator) = cameraPreviewOperator.run {
+        settingManager.loadRequest(source.id, id, this is FotoCameraOperatorSource.FotoCameraPreviewOperator)
+    }
+
+    fun saveRequest(cameraPreviewOperator: CameraPreviewOperator, request: CameraPreviewRequest) = cameraPreviewOperator.run {
+        if ((isFoto() && request !is FotoCameraPreviewRequest)
+                || (!isFoto() && request !is UVCCameraPreviewRequest)) {
+            throw IllegalArgumentException("Wrong types of config")
+        }
+        settingManager.configFor(source.id, id, request)
+    }
 }

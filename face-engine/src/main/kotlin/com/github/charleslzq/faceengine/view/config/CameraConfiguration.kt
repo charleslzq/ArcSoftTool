@@ -4,6 +4,10 @@ import android.graphics.Color
 import com.github.charleslzq.faceengine.view.task.FrameTaskRunner
 import com.github.charleslzq.faceengine.view.task.TaskRunner
 
+interface Transformer<U, V> {
+    fun transform(data: U): V
+}
+
 data class CameraPreviewConfiguration(
         val autoSwitchToNewDevice: Boolean = true,
         val showRect: Boolean = true,

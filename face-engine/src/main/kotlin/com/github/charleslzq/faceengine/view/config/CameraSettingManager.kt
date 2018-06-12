@@ -10,29 +10,16 @@ class CameraSettingManager(context: Context) {
     fun loadRequest(source: String, cameraId: String, isFoto: Boolean): CameraPreviewRequest = loadSetting().findCamera(source, cameraId)?.request
             ?: CameraPreviewRequest.getDefaultRequest(isFoto)
 
-    fun configFor(source: String, cameraId: String, config: (CameraPreviewRequest?) -> CameraPreviewRequest) {
+    fun configFor(source: String, cameraId: String, request: CameraPreviewRequest) {
         val setting = loadSetting()
         val target = setting.findCamera(source, cameraId)
-        if (target == null) {
-            settingStore.store(CameraSetting(
-                    setting.cameraPreviewConfiguration,
-                    setting.cameraPreferences.toMutableList().apply {
-                        add(CameraPreference(cameraId, source, config(null)))
-                    }
-            ))
-        } else {
-            settingStore.store(CameraSetting(
-                    setting.cameraPreviewConfiguration,
-                    setting.cameraPreferences.toMutableList().apply {
-                        remove(target)
-                        add(CameraPreference(cameraId, source, config(target.request)))
-                    }
-            ))
-        }
-    }
 
-    private fun doLoadSetting() = CameraSetting(
-            CameraPreviewConfiguration(),
-            emptyList()
-    )
+        settingStore.store(CameraSetting(
+                setting.cameraPreviewConfiguration,
+                setting.cameraPreferences.toMutableList().apply {
+                    remove(target)
+                    add(CameraPreference(cameraId, source, request))
+                }
+        ))
+    }
 }

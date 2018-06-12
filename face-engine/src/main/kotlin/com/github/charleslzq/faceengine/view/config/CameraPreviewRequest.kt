@@ -1,7 +1,11 @@
 package com.github.charleslzq.faceengine.view.config
 
+import com.github.charleslzq.faceengine.view.CameraPreviewOperator
 import com.github.charleslzq.faceengine.view.Selector
+import com.github.charleslzq.faceengine.view.isFoto
 import io.fotoapparat.parameter.Resolution
+
+fun CameraPreviewOperator.getDefaultRequest() = CameraPreviewRequest.getDefaultRequest(isFoto())
 
 sealed class CameraPreviewRequest {
     abstract val resolutionSelector: ResolutionSelector
