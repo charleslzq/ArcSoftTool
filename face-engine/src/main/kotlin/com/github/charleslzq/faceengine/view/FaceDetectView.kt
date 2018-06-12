@@ -196,6 +196,10 @@ constructor(context: Context, attributeSet: AttributeSet? = null, @AttrRes defSt
         cameraPreviewConfiguration.frameTaskRunner.close()
     }
 
+    fun savePreviewConfig(camerePreviewConfiguration: CameraPreviewConfiguration) {
+        settingManager.savePreviewConfig(cameraPreviewConfiguration)
+    }
+
     fun loadRequest(cameraPreviewOperator: CameraPreviewOperator) = cameraPreviewOperator.run {
         settingManager.loadRequest(source.id, id, this is FotoCameraOperatorSource.FotoCameraPreviewOperator)
     }

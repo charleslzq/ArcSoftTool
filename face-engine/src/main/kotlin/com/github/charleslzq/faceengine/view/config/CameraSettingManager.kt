@@ -7,6 +7,11 @@ class CameraSettingManager(context: Context) {
 
     fun loadSetting() = settingStore.load()
 
+    fun savePreviewConfig(cameraPreviewConfiguration: CameraPreviewConfiguration) {
+        val setting = loadSetting()
+        settingStore.store(CameraSetting(cameraPreviewConfiguration, setting.cameraPreferences))
+    }
+
     fun loadRequest(source: String, cameraId: String, isFoto: Boolean): CameraPreviewRequest = loadSetting().findCamera(source, cameraId)?.request
             ?: CameraPreviewRequest.getDefaultRequest(isFoto)
 
