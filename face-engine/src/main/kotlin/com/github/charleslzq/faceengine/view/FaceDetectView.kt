@@ -10,6 +10,8 @@ import com.github.charleslzq.faceengine.view.config.CameraPreviewConfiguration
 import com.github.charleslzq.faceengine.view.config.CameraSettingManager
 import io.fotoapparat.parameter.ScaleType
 import io.fotoapparat.view.CameraView
+import kotlinx.coroutines.experimental.CommonPool
+import kotlinx.coroutines.experimental.launch
 import java.util.concurrent.TimeUnit
 
 /**
@@ -57,16 +59,12 @@ constructor(context: Context, attributeSet: AttributeSet? = null, @AttrRes defSt
                 newCamera?.run {
                     startPreview(settingManager.loadParameters(this))
                 }
-                listeners.forEach {
-                    it.invoke(oldCamera, newCamera)
-                }
             }
         }
     val selectedCamera: CameraPreviewOperator?
         get() = selectCamera(cameras)
     val selectedSource: CameraOperatorSource?
         get() = selectedCamera?.source
-    val listeners = mutableListOf<(CameraPreviewOperator?, CameraPreviewOperator?) -> Unit>()
 
     override fun onLayout(changed: Boolean, left: Int, top: Int, right: Int, bottom: Int) {
         cameraView.layout(left, top, right, bottom)
@@ -151,9 +149,11 @@ constructor(context: Context, attributeSet: AttributeSet? = null, @AttrRes defSt
     }
 
     override fun open() {
-        cameraSources.forEach { it.open() }
-        if (selectedCamera == null || !selectedCamera!!.isPreviewing()) {
-            selectFirst()
+        launch(CommonPool) {
+            cameraSources.forEach { it.open() }
+            if (selectedCamera == null || !selectedCamera!!.isPreviewing()) {
+                selectFirst()
+            }
         }
     }
 

@@ -2,7 +2,10 @@ package com.github.charleslzq.faceengine.view
 
 import android.content.Context
 import android.util.Log
+import com.github.charleslzq.faceengine.view.config.CameraCapabilities
 import com.github.charleslzq.faceengine.view.config.CameraParameters
+import com.github.charleslzq.faceengine.view.config.FotoCameraCapabilities
+import com.github.charleslzq.faceengine.view.config.FotoCameraParameters
 import io.fotoapparat.Fotoapparat
 import io.fotoapparat.FotoapparatBuilder
 import io.fotoapparat.characteristic.LensPosition
@@ -10,8 +13,11 @@ import io.fotoapparat.log.logcat
 import io.fotoapparat.parameter.ScaleType
 import io.fotoapparat.preview.Frame
 import io.fotoapparat.preview.FrameProcessor
+import io.fotoapparat.result.adapter.rxjava2.toSingle
 import io.fotoapparat.selector.*
 import io.fotoapparat.view.CameraView
+import io.reactivex.Single
+import io.reactivex.schedulers.Schedulers
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
 
@@ -85,6 +91,14 @@ class FotoCameraOperatorSource(
         }
 
         override fun isPreviewing() = _isPreviewing.get()
+
+        override fun getCapabilities(): Single<CameraCapabilities> = fotoapparat.getCapabilities().transform {
+            FotoCameraCapabilities(it.previewResolutions.toList()) as CameraCapabilities
+        }.toSingle().subscribeOn(Schedulers.io())
+
+        override fun getCurrentParameters(): Single<CameraParameters> = fotoapparat.getCurrentParameters().transform {
+            FotoCameraParameters(it.previewResolution) as CameraParameters
+        }.toSingle().subscribeOn(Schedulers.io())
     }
 
     class FrameToObservableProcessor(private val submit: (Frame, (Frame) -> SourceAwarePreviewFrame) -> Unit) : FrameProcessor {

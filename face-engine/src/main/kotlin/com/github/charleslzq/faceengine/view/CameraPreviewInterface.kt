@@ -1,7 +1,9 @@
 package com.github.charleslzq.faceengine.view
 
+import com.github.charleslzq.faceengine.view.config.CameraCapabilities
 import com.github.charleslzq.faceengine.view.config.CameraParameters
 import io.fotoapparat.parameter.Resolution
+import io.reactivex.Single
 
 sealed class PreviewFrame(
         val size: Resolution,
@@ -36,6 +38,8 @@ interface Selector<T> {
 interface CameraPreviewOperator {
     val id: String
     val source: CameraOperatorSource
+    fun getCapabilities(): Single<CameraCapabilities>
+    fun getCurrentParameters(): Single<CameraParameters>
     fun startPreview(requestParameters: CameraParameters)
     fun stopPreview()
     fun isPreviewing(): Boolean

@@ -90,6 +90,7 @@ ext {
             arcsoftBinding: "com.github.charleslzq:arcsoft-binding:${versions.faceEngine}",
             baiduBinding: "com.github.charleslzq:baidu-binding:${versions.faceEngine}",
             fotoapparat: "io.fotoapparat.fotoapparat:library:${versions.fotoapparat}",
+            fotoRx2Adapter: "io.fotoapparat.fotoapparat:adapter-rxjava2:${versions.fotoapparat}",
             jodaTime: "joda-time:joda-time:${versions.jodaTime}",
             gson: "com.google.code.gson:gson:${versions.gson}",
             gsonJodaSerialiser:"com.fatboyindustrial.gson-jodatime-serialisers:gson-jodatime-serialisers:${versions.gsonJodaSerialiser}",

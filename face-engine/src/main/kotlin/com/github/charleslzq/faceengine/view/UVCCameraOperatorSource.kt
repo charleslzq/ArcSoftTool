@@ -4,11 +4,16 @@ import android.content.Context
 import android.hardware.usb.UsbDevice
 import android.util.Log
 import android.view.Surface
+import com.github.charleslzq.faceengine.view.config.CameraCapabilities
 import com.github.charleslzq.faceengine.view.config.CameraParameters
+import com.github.charleslzq.faceengine.view.config.UVCCameraCapabilities
+import com.github.charleslzq.faceengine.view.config.UVCCameraParameters
 import com.serenegiant.usb.USBMonitor
 import com.serenegiant.usb.UVCCamera
+import io.fotoapparat.parameter.Resolution
 import io.fotoapparat.view.CameraView
 import io.fotoapparat.view.Preview
+import io.reactivex.Single
 import java.nio.ByteBuffer
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicBoolean
@@ -125,6 +130,16 @@ class UVCCameraOperatorSource(
         }
 
         override fun isPreviewing() = _isPreviewing.get()
+
+        override fun getCapabilities(): Single<CameraCapabilities> = Single.fromCallable {
+            UVCCameraCapabilities(uvcCamera.supportedSizeList.map {
+                Resolution(it.width, it.height)
+            }) as CameraCapabilities
+        }
+
+        override fun getCurrentParameters(): Single<CameraParameters> = Single.fromCallable {
+            UVCCameraParameters(uvcCamera.previewSize.let { Resolution(it.width, it.height) }) as CameraParameters
+        }
 
         fun release() = uvcCamera.run {
             try {

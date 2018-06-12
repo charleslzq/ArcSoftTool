@@ -36,6 +36,7 @@ dependencies {
     api deps.faceStore
     api deps.jodaTime
     api deps.fotoapparat
+    api deps.fotoRx2Adapter
     api deps.kotlin.lib
     api deps.kotlin.coroutine.core
     api deps.kotlin.coroutine.android
