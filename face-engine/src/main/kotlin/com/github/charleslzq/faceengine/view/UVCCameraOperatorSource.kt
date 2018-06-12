@@ -4,10 +4,7 @@ import android.content.Context
 import android.hardware.usb.UsbDevice
 import android.util.Log
 import android.view.Surface
-import com.github.charleslzq.faceengine.view.config.CameraCapabilities
-import com.github.charleslzq.faceengine.view.config.CameraParameters
-import com.github.charleslzq.faceengine.view.config.UVCCameraCapabilities
-import com.github.charleslzq.faceengine.view.config.UVCCameraParameters
+import com.github.charleslzq.faceengine.view.config.*
 import com.serenegiant.usb.USBMonitor
 import com.serenegiant.usb.UVCCamera
 import io.fotoapparat.parameter.Resolution
@@ -95,10 +92,16 @@ class UVCCameraOperatorSource(
         private val count = AtomicInteger(0)
         private var buffer = ByteArray(0)
         private val _isPreviewing = AtomicBoolean(false)
+        private val capabilities: CameraCapabilities
+            get() = getCapabilities().blockingGet()
+        private val currentParameters: CameraParameters
+            get() = getCurrentParameters().blockingGet()
 
-        override fun startPreview(requestParameters: CameraParameters) {
+        override fun startPreview(request: CameraPreviewRequest) {
             if (_isPreviewing.compareAndSet(false, true)) {
-                requestParameters.resolution.run {
+                capabilities.previewResolutions.let {
+                    request.resolutionSelector.instance(it)
+                }?.run {
                     cameraView.setPreviewResolution(this)
                     uvcCamera.setPreviewSize(width, height, UVCCamera.FRAME_FORMAT_YUYV)
                     buffer = ByteArray(area * 3 / 2)
@@ -111,7 +114,7 @@ class UVCCameraOperatorSource(
                                 buffer = ByteArray(it.limit())
                             }
                             it.get(buffer)
-                            SourceAwarePreviewFrame("UVC-$id", count.getAndIncrement(), requestParameters.resolution, buffer, 0)
+                            SourceAwarePreviewFrame("UVC-$id", count.getAndIncrement(), currentParameters.resolution, buffer, 0)
                         }
                     }
                     if (count.get() > 1000) {

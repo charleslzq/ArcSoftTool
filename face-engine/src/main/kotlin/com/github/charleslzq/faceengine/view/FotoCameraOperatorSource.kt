@@ -2,10 +2,7 @@ package com.github.charleslzq.faceengine.view
 
 import android.content.Context
 import android.util.Log
-import com.github.charleslzq.faceengine.view.config.CameraCapabilities
-import com.github.charleslzq.faceengine.view.config.CameraParameters
-import com.github.charleslzq.faceengine.view.config.FotoCameraCapabilities
-import com.github.charleslzq.faceengine.view.config.FotoCameraParameters
+import com.github.charleslzq.faceengine.view.config.*
 import io.fotoapparat.Fotoapparat
 import io.fotoapparat.FotoapparatBuilder
 import io.fotoapparat.characteristic.LensPosition
@@ -70,16 +67,14 @@ class FotoCameraOperatorSource(
     ) : CameraPreviewOperator {
         private val _isPreviewing = AtomicBoolean(false)
 
-        override fun startPreview(requestParameters: CameraParameters) {
+        override fun startPreview(request: CameraPreviewRequest) {
             if (_isPreviewing.compareAndSet(false, true)) {
                 fotoapparat.start()
                 fotoapparat.switchTo(camera.lensPosition, camera.configuration.copy(
                         frameProcessor = {
                             frameProcessor.process(it)
                         },
-                        previewResolution = {
-                            firstOrNull { it == requestParameters.resolution }
-                        }
+                        previewResolution = request.resolutionSelector.instance
                 ))
             }
         }

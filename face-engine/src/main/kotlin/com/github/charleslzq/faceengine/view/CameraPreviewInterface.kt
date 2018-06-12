@@ -2,6 +2,7 @@ package com.github.charleslzq.faceengine.view
 
 import com.github.charleslzq.faceengine.view.config.CameraCapabilities
 import com.github.charleslzq.faceengine.view.config.CameraParameters
+import com.github.charleslzq.faceengine.view.config.CameraPreviewRequest
 import io.fotoapparat.parameter.Resolution
 import io.reactivex.Single
 
@@ -40,7 +41,7 @@ interface CameraPreviewOperator {
     val source: CameraOperatorSource
     fun getCapabilities(): Single<CameraCapabilities>
     fun getCurrentParameters(): Single<CameraParameters>
-    fun startPreview(requestParameters: CameraParameters)
+    fun startPreview(request: CameraPreviewRequest)
     fun stopPreview()
     fun isPreviewing(): Boolean
 }

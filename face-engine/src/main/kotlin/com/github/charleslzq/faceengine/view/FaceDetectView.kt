@@ -57,7 +57,7 @@ constructor(context: Context, attributeSet: AttributeSet? = null, @AttrRes defSt
                 oldCamera?.stopPreview()
                 field = value
                 newCamera?.run {
-                    startPreview(settingManager.loadParameters(this))
+                    startPreview(settingManager.loadRequest(this))
                 }
             }
         }
@@ -154,6 +154,12 @@ constructor(context: Context, attributeSet: AttributeSet? = null, @AttrRes defSt
             if (selectedCamera == null || !selectedCamera!!.isPreviewing()) {
                 selectFirst()
             }
+        }
+    }
+
+    fun restart() {
+        selectedCamera?.run {
+            startPreview(settingManager.loadRequest(this))
         }
     }
 

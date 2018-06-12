@@ -1,16 +1,15 @@
 package com.github.charleslzq.faceengine.view.config
 
-import io.fotoapparat.characteristic.LensPosition
-
 sealed class CameraPreference {
     abstract val cameraId: String
+    abstract val source: String
     abstract val profile: String
-    abstract val requestParameters: CameraParameters
+    abstract val request: CameraPreviewRequest
 }
 
 class FotoCameraPreference(
-        val lensPosition: LensPosition,
         override val cameraId: String,
+        override val source: String,
         override val profile: String,
-        override val requestParameters: FotoCameraParameters
+        override val request: FotoCameraPreviewRequest
 ) : CameraPreference()
