@@ -39,7 +39,7 @@
     }
 
 ### FaceDetectView
-该组件有其生命周期, 一般跟包含它的activity或者fragment同步. 在xml中有如下配置参数
+该组件有其生命周期, 一般跟包含它的activity或者fragment同步. 可以通过FaceDetectView的savePreivewConfig方法调整如下配置
 
     1. showTrackRect 布尔型,是否在View中显示检测到头像的方框, 默认为true
     2. rectColor 颜色, 显示方框边框的颜色, 默认为Color.RED
@@ -47,8 +47,10 @@
     4. enableSample 是否启用采样, 默认为true
     5. sampleInterval integer, 取样间隔, 每隔该时间发送一次相片取样, 单位毫秒, 默认为500. 仅在enableSample为true时生效
     6. autoSwitchToNewDevice 是否在新摄像头可用时自动切到新摄像头上,默认为true
-    7. previewResolution 预览分辨率偏好, 可以为HIGHEST或者LOWEST, 默认为HIGHEST. 更为精细的选择需要通过在代码中调用FaceDetectView.updateConfiguration方法实现
-    8. taskRunner 指定异步任务运行的方式, 可以为RX(使用rxjava进行任务管理)或者COROUTINE(使用kotlin协程), 默认为COROUTINE.
+    7. taskRunner 指定异步任务运行的方式, 可以为RX(使用rxjava进行任务管理)或者COROUTINE(使用kotlin协程), 默认为COROUTINE.
+
+与此同时, 可以通过FaceDetectView的withDeviceInfo方法异步获取所有摄像头的参数信息,
+目前仅包括所支持的分辨率. 还可以通过其saveRequest方法针对单个摄像头进行设置, 目前仅可对分辨率进行设置.
 
 获取相片流在创建时调用其onPreview接口即可, java需实现FrameConsumer接口, 如下所示:
 
