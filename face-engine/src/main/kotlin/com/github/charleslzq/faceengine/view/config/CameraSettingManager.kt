@@ -1,31 +1,34 @@
 package com.github.charleslzq.faceengine.view.config
 
-import com.github.charleslzq.faceengine.view.CameraPreviewOperator
-import com.github.charleslzq.faceengine.view.FotoCameraOperatorSource
-import com.github.charleslzq.faceengine.view.UVCCameraOperatorSource
-import java.util.concurrent.atomic.AtomicBoolean
+import android.content.Context
 
-class CameraSettingManager {
-    private val updated = AtomicBoolean(false)
-    private var cachedSetting = doLoadSetting()
-    private val requestMap = mutableMapOf<CameraPreviewOperator, CameraPreviewRequest>()
+class CameraSettingManager(context: Context) {
+    private val settingStore = SettingStore(context)
 
-    fun loadSetting() = if (updated.get()) {
-        doLoadSetting().also {
-            cachedSetting = it
+    fun loadSetting() = settingStore.load()
+
+    fun loadRequest(source: String, cameraId: String, isFoto: Boolean): CameraPreviewRequest = loadSetting().findCamera(source, cameraId)?.request
+            ?: CameraPreviewRequest.getDefaultRequest(isFoto)
+
+    fun configFor(source: String, cameraId: String, config: (CameraPreviewRequest?) -> CameraPreviewRequest) {
+        val setting = loadSetting()
+        val target = setting.findCamera(source, cameraId)
+        if (target == null) {
+            settingStore.store(CameraSetting(
+                    setting.cameraPreviewConfiguration,
+                    setting.cameraPreferences.toMutableList().apply {
+                        add(CameraPreference(cameraId, source, config(null)))
+                    }
+            ))
+        } else {
+            settingStore.store(CameraSetting(
+                    setting.cameraPreviewConfiguration,
+                    setting.cameraPreferences.toMutableList().apply {
+                        remove(target)
+                        add(CameraPreference(cameraId, source, config(target.request)))
+                    }
+            ))
         }
-    } else {
-        cachedSetting
-    }
-
-    fun loadRequest(camera: CameraPreviewOperator): CameraPreviewRequest = requestMap.getOrDefault(camera, when (camera) {
-        is FotoCameraOperatorSource.FotoCameraPreviewOperator -> FotoCameraPreviewRequest()
-        is UVCCameraOperatorSource.UVCCameraOperator -> UvcCameraPreviewRequest()
-        else -> throw IllegalArgumentException("Unsupported camera operator")
-    })
-
-    fun configFor(camera: CameraPreviewOperator, config: () -> CameraPreviewRequest) {
-        requestMap[camera] = config()
     }
 
     private fun doLoadSetting() = CameraSetting(

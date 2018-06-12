@@ -4,10 +4,16 @@ import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
+import android.util.Log
 import com.github.charleslzq.arcsofttools.kotlin.Person
 import com.github.charleslzq.arcsofttools.kotlin.WebSocketArcSoftService
+import com.github.charleslzq.faceengine.support.runOnIo
+import com.github.charleslzq.faceengine.view.FotoCameraOperatorSource
+import com.github.charleslzq.faceengine.view.config.FotoCameraPreviewRequest
+import com.github.charleslzq.faceengine.view.config.ResolutionSelector
 import com.orhanobut.logger.Logger
 import kotlinx.android.synthetic.main.activity_face_detect.*
+import java.util.concurrent.CountDownLatch
 
 class FaceDetectActivity : AppCompatActivity() {
     private val connection = WebSocketArcSoftService.getBuilder().build()
@@ -17,6 +23,33 @@ class FaceDetectActivity : AppCompatActivity() {
         setContentView(R.layout.activity_face_detect)
         faceDetectCamera.setOnClickListener {
             faceDetectCamera.selectNext()
+        }
+        val start = System.currentTimeMillis()
+        Log.i("Capabilities", "Start at $start")
+        runOnIo {
+            faceDetectCamera.cameras.forEach {
+                val needStart = it is FotoCameraOperatorSource.FotoCameraPreviewOperator
+                val latch = CountDownLatch(1)
+                if (needStart) {
+                    it.startPreview(FotoCameraPreviewRequest())
+                }
+                it.getCapabilities().subscribe { result, _ ->
+                    val current = System.currentTimeMillis()
+                    Log.i("Capabilities", "Receive result with size ${result.previewResolutions.size} at $current, use time ${current - start}")
+                    result.previewResolutions.forEach {
+                        Log.i("resolution", it.toString())
+                    }
+                    latch.countDown()
+                }
+                latch.await()
+                if (needStart) {
+                    it.stopPreview()
+                }
+            }
+            faceDetectCamera.restart()
+        }
+        faceDetectCamera.settingManager.configFor(faceDetectCamera.cameras[0].source.id, faceDetectCamera.cameras[0].id) {
+            FotoCameraPreviewRequest(ResolutionSelector.MaxWidth)
         }
         faceDetectCamera.onPreview {
             Logger.i("on frame with size ${it.size} and rotation ${it.rotation}, ${it.sequence}/${it.source}")

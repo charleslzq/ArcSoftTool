@@ -18,4 +18,8 @@ data class CameraPreviewConfiguration(
 data class CameraSetting(
         val cameraPreviewConfiguration: CameraPreviewConfiguration,
         val cameraPreferences: List<CameraPreference>
-)
+) {
+    fun findCamera(source: String, cameraId: String) = cameraPreferences.firstOrNull {
+        it.cameraId == cameraId && it.source == source
+    }
+}

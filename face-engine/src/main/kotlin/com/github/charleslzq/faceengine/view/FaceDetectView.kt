@@ -10,8 +10,6 @@ import com.github.charleslzq.faceengine.view.config.CameraPreviewConfiguration
 import com.github.charleslzq.faceengine.view.config.CameraSettingManager
 import io.fotoapparat.parameter.ScaleType
 import io.fotoapparat.view.CameraView
-import kotlinx.coroutines.experimental.CommonPool
-import kotlinx.coroutines.experimental.launch
 import java.util.concurrent.TimeUnit
 
 /**
@@ -24,7 +22,7 @@ class FaceDetectView
 @JvmOverloads
 constructor(context: Context, attributeSet: AttributeSet? = null, @AttrRes defStyle: Int = 0) :
         FrameLayout(context, attributeSet, defStyle), CameraSource {
-    val settingManager = CameraSettingManager()
+    private val settingManager = CameraSettingManager(context)
     val cameraPreviewConfiguration: CameraPreviewConfiguration
         get() = settingManager.loadSetting().cameraPreviewConfiguration
     private val cameraView = CameraView(context, attributeSet, defStyle).also {
@@ -57,7 +55,7 @@ constructor(context: Context, attributeSet: AttributeSet? = null, @AttrRes defSt
                 oldCamera?.stopPreview()
                 field = value
                 newCamera?.run {
-                    startPreview(settingManager.loadRequest(this))
+                    startPreview(settingManager.loadRequest(source.id, id, this is FotoCameraOperatorSource.FotoCameraPreviewOperator))
                 }
             }
         }
@@ -149,17 +147,15 @@ constructor(context: Context, attributeSet: AttributeSet? = null, @AttrRes defSt
     }
 
     override fun open() {
-        launch(CommonPool) {
-            cameraSources.forEach { it.open() }
-            if (selectedCamera == null || !selectedCamera!!.isPreviewing()) {
-                selectFirst()
-            }
+        cameraSources.forEach { it.open() }
+        if (selectedCamera == null || !selectedCamera!!.isPreviewing()) {
+            selectFirst()
         }
     }
 
     fun restart() {
         selectedCamera?.run {
-            startPreview(settingManager.loadRequest(this))
+            startPreview(settingManager.loadRequest(source.id, id, this is FotoCameraOperatorSource.FotoCameraPreviewOperator))
         }
     }
 
@@ -173,4 +169,6 @@ constructor(context: Context, attributeSet: AttributeSet? = null, @AttrRes defSt
         }
         cameraPreviewConfiguration.frameTaskRunner.close()
     }
+
+    fun CameraPreviewOperator.getConfigRequest() = settingManager.loadRequest(source.id, id, this is FotoCameraOperatorSource.FotoCameraPreviewOperator)
 }

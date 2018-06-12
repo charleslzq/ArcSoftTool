@@ -5,13 +5,22 @@ import io.fotoapparat.parameter.Resolution
 
 sealed class CameraPreviewRequest {
     abstract val resolutionSelector: ResolutionSelector
+
+    companion object {
+        @JvmStatic
+        fun getDefaultRequest(isFoto: Boolean) = if (isFoto) {
+            FotoCameraPreviewRequest()
+        } else {
+            UVCCameraPreviewRequest()
+        }
+    }
 }
 
 data class FotoCameraPreviewRequest(
         override val resolutionSelector: ResolutionSelector = ResolutionSelector.MaxWidth
 ) : CameraPreviewRequest()
 
-data class UvcCameraPreviewRequest(
+data class UVCCameraPreviewRequest(
         override val resolutionSelector: ResolutionSelector = ResolutionSelector.MaxWidth
 ) : CameraPreviewRequest()
 
