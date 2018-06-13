@@ -9,11 +9,11 @@ interface Transformer<U, V> {
 }
 
 data class CameraPreviewConfiguration(
-        val autoSwitchToNewDevice: Boolean = true,
-        val showRect: Boolean = true,
-        val rectColor: Int = Color.RED,
-        val rectWidth: Float = 1f,
-        val taskRunner: TaskRunner = TaskRunner.COROUTINE
+        var autoSwitchToNewDevice: Boolean = true,
+        var showRect: Boolean = true,
+        var rectColor: Int = Color.RED,
+        var rectWidth: Float = 1f,
+        var taskRunner: TaskRunner = TaskRunner.COROUTINE
 ) {
     val frameTaskRunner: FrameTaskRunner
         get() = taskRunner.instance
