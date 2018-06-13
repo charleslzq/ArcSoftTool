@@ -22,6 +22,7 @@ fun Frame.toPreviewFrame(source: String, seq: Int) = SourceAwarePreviewFrame(sou
 class FotoCameraOperatorSource(
         context: Context,
         cameraView: CameraView,
+        private val settingManager: CameraSettingManager,
         submit: (Frame, (Frame) -> SourceAwarePreviewFrame) -> Unit
 ) : CameraOperatorSource() {
     override val id: String = "FOTO"
@@ -33,7 +34,7 @@ class FotoCameraOperatorSource(
     }
     override val cameras = listOf(LensPosition.Front, LensPosition.Back)
             .filter { fotoapparat.isAvailable(single(it)) }
-            .map { FotoCameraPreviewOperator(it::class.java.simpleName, this, fotoapparat, InternalCamera.fromLensSelector(it), frameProcessor) }
+            .map { FotoCameraPreviewOperator(it::class.java.simpleName, this, fotoapparat, InternalCamera.fromLensSelector(it), frameProcessor, settingManager) }
 
     private fun setup(fotoapparatBuilder: FotoapparatBuilder, cameraView: CameraView) {
         fotoapparatBuilder
@@ -62,12 +63,14 @@ class FotoCameraOperatorSource(
             override val source: CameraOperatorSource,
             private val fotoapparat: Fotoapparat,
             internal var camera: InternalCamera,
-            private val frameProcessor: FrameToObservableProcessor
+            private val frameProcessor: FrameToObservableProcessor,
+            private val settingManager: CameraSettingManager
     ) : CameraPreviewOperator {
         private val _isPreviewing = AtomicBoolean(false)
 
-        override fun startPreview(request: CameraPreviewRequest) {
+        override fun startPreview() {
             if (_isPreviewing.compareAndSet(false, true)) {
+                val request = settingManager.loadRequest(this)
                 fotoapparat.start()
                 fotoapparat.switchTo(camera.lensPosition, camera.configuration.copy(
                         frameProcessor = {
@@ -76,6 +79,12 @@ class FotoCameraOperatorSource(
                         previewResolution = request.resolutionSelector.instance
                 ))
             }
+        }
+
+        override fun updateConfig(request: CameraPreviewRequest) {
+            stopPreview()
+            settingManager.configFor(this, request)
+            startPreview()
         }
 
         override fun stopPreview() {

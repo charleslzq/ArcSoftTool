@@ -1,6 +1,7 @@
 package com.github.charleslzq.faceengine.view.config
 
 import android.content.Context
+import com.github.charleslzq.faceengine.view.CameraPreviewOperator
 
 class CameraSettingManager(context: Context) {
     private val settingStore = SettingStore(context)
@@ -12,18 +13,18 @@ class CameraSettingManager(context: Context) {
         settingStore.store(CameraSetting(cameraPreviewConfiguration, setting.cameraPreferences))
     }
 
-    fun loadRequest(source: String, cameraId: String, isFoto: Boolean): CameraPreviewRequest = loadSetting().findCamera(source, cameraId)?.request
-            ?: CameraPreviewRequest.getDefaultRequest(isFoto)
+    fun loadRequest(cameraPreviewOperator: CameraPreviewOperator): CameraPreviewRequest = loadSetting().findCamera(cameraPreviewOperator.source.id, cameraPreviewOperator.id)?.request
+            ?: cameraPreviewOperator.getDefaultRequest()
 
-    fun configFor(source: String, cameraId: String, request: CameraPreviewRequest) {
+    fun configFor(cameraPreviewOperator: CameraPreviewOperator, request: CameraPreviewRequest) {
         val setting = loadSetting()
-        val target = setting.findCamera(source, cameraId)
+        val target = setting.findCamera(cameraPreviewOperator.source.id, cameraPreviewOperator.id)
 
         settingStore.store(CameraSetting(
                 setting.cameraPreviewConfiguration,
                 setting.cameraPreferences.toMutableList().apply {
                     remove(target)
-                    add(CameraPreference(cameraId, source, request))
+                    add(CameraPreference(cameraPreviewOperator.id, cameraPreviewOperator.source.id, request))
                 }
         ))
     }

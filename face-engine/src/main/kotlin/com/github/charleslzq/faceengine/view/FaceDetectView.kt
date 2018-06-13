@@ -6,7 +6,8 @@ import android.util.AttributeSet
 import android.view.TextureView
 import android.widget.FrameLayout
 import com.github.charleslzq.faceengine.core.TrackedFace
-import com.github.charleslzq.faceengine.view.config.*
+import com.github.charleslzq.faceengine.view.config.CameraPreviewConfiguration
+import com.github.charleslzq.faceengine.view.config.CameraSettingManager
 import io.fotoapparat.parameter.ScaleType
 import io.fotoapparat.view.CameraView
 import java.util.concurrent.TimeUnit
@@ -40,10 +41,12 @@ constructor(context: Context, attributeSet: AttributeSet? = null, @AttrRes defSt
                     cameraView,
                     { byteBuffer, transform -> cameraPreviewConfiguration.frameTaskRunner.transformAndSubmit(byteBuffer, transform) },
                     this::onNewDevice,
-                    this::onDisconnect),
+                    this::onDisconnect,
+                    settingManager),
             FotoCameraOperatorSource(
                     context,
                     cameraView,
+                    settingManager,
                     { frame, transform -> cameraPreviewConfiguration.frameTaskRunner.transformAndSubmit(frame, transform) })
     )
     override val cameras: List<CameraPreviewOperator>
@@ -56,7 +59,7 @@ constructor(context: Context, attributeSet: AttributeSet? = null, @AttrRes defSt
                 oldCamera?.stopPreview()
                 field = value
                 newCamera?.run {
-                    startPreview(settingManager.loadRequest(source.id, id, this is FotoCameraOperatorSource.FotoCameraPreviewOperator))
+                    startPreview()
                 }
             }
         }
@@ -152,13 +155,6 @@ constructor(context: Context, attributeSet: AttributeSet? = null, @AttrRes defSt
         }
     }
 
-    fun restart() {
-        selectedCamera?.run {
-            stopPreview()
-            startPreview(settingManager.loadRequest(source.id, id, this is FotoCameraOperatorSource.FotoCameraPreviewOperator))
-        }
-    }
-
     fun pause() {
         selectedCamera?.stopPreview()
     }
@@ -170,19 +166,7 @@ constructor(context: Context, attributeSet: AttributeSet? = null, @AttrRes defSt
         cameraPreviewConfiguration.frameTaskRunner.close()
     }
 
-    fun savePreviewConfig(camerePreviewConfiguration: CameraPreviewConfiguration) {
+    fun updatePreviewConfig(camerePreviewConfiguration: CameraPreviewConfiguration) {
         settingManager.savePreviewConfig(cameraPreviewConfiguration)
-    }
-
-    fun loadRequest(cameraPreviewOperator: CameraPreviewOperator) = cameraPreviewOperator.run {
-        settingManager.loadRequest(source.id, id, this is FotoCameraOperatorSource.FotoCameraPreviewOperator)
-    }
-
-    fun saveRequest(cameraPreviewOperator: CameraPreviewOperator, request: CameraPreviewRequest) = cameraPreviewOperator.run {
-        if ((isFoto() && request !is FotoCameraPreviewRequest)
-                || (!isFoto() && request !is UVCCameraPreviewRequest)) {
-            throw IllegalArgumentException("Wrong types of config")
-        }
-        settingManager.configFor(source.id, id, request)
     }
 }

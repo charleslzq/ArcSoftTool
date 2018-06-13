@@ -45,7 +45,8 @@ interface CameraPreviewOperator {
     val source: CameraOperatorSource
     fun getCapabilities(): CameraCapabilities
     fun getCurrentParameters(): CameraParameters
-    fun startPreview(request: CameraPreviewRequest)
+    fun startPreview()
+    fun updateConfig(request: CameraPreviewRequest)
     fun stopPreview()
     fun isPreviewing(): Boolean
 

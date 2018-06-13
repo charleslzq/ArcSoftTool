@@ -1,21 +1,22 @@
 package com.github.charleslzq.faceengine.view.config
 
 import com.github.charleslzq.faceengine.view.CameraPreviewOperator
+import com.github.charleslzq.faceengine.view.FotoCameraOperatorSource
 import com.github.charleslzq.faceengine.view.Selector
-import com.github.charleslzq.faceengine.view.isFoto
+import com.github.charleslzq.faceengine.view.UVCCameraOperatorSource
 import io.fotoapparat.parameter.Resolution
 
-fun CameraPreviewOperator.getDefaultRequest() = CameraPreviewRequest.getDefaultRequest(isFoto())
+fun CameraPreviewOperator.getDefaultRequest() = CameraPreviewRequest.getDefaultRequest(this)
 
 sealed class CameraPreviewRequest {
     abstract val resolutionSelector: ResolutionSelector
 
     companion object {
         @JvmStatic
-        fun getDefaultRequest(isFoto: Boolean) = if (isFoto) {
-            FotoCameraPreviewRequest()
-        } else {
-            UVCCameraPreviewRequest()
+        fun getDefaultRequest(cameraPreviewOperator: CameraPreviewOperator) = when (cameraPreviewOperator) {
+            is FotoCameraOperatorSource.FotoCameraPreviewOperator -> FotoCameraPreviewRequest()
+            is UVCCameraOperatorSource.UVCCameraOperator -> UVCCameraPreviewRequest()
+            else -> throw IllegalArgumentException("Unsupported camera operator type")
         }
     }
 }

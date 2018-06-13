@@ -20,7 +20,8 @@ class UVCCameraOperatorSource(
         cameraView: CameraView,
         val submit: (ByteBuffer, (ByteBuffer) -> SourceAwarePreviewFrame) -> Unit,
         val onNewDevice: (CameraPreviewOperator) -> Unit,
-        val onDisconnect: (CameraPreviewOperator) -> Unit
+        val onDisconnect: (CameraPreviewOperator) -> Unit,
+        private val settingManager: CameraSettingManager
 ) : CameraOperatorSource() {
     override val id: String = "UVC"
     private val connectionListener = object : USBMonitor.OnDeviceConnectListener {
@@ -37,7 +38,8 @@ class UVCCameraOperatorSource(
                         this@UVCCameraOperatorSource,
                         cameraView,
                         camera,
-                        submit
+                        submit,
+                        settingManager
                 )
                 cameraMap[usbDevice.deviceName] = newCamera
                 onNewDevice(newCamera)
@@ -79,7 +81,8 @@ class UVCCameraOperatorSource(
             override val source: CameraOperatorSource,
             private val cameraView: CameraView,
             private val uvcCamera: UVCCamera,
-            val submit: (ByteBuffer, (ByteBuffer) -> SourceAwarePreviewFrame) -> Unit
+            val submit: (ByteBuffer, (ByteBuffer) -> SourceAwarePreviewFrame) -> Unit,
+            private val settingManager: CameraSettingManager
     ) : CameraPreviewOperator {
         private val surface
             get() = cameraView.getPreview().let {
@@ -92,10 +95,11 @@ class UVCCameraOperatorSource(
         private var buffer = ByteArray(0)
         private val _isPreviewing = AtomicBoolean(false)
 
-        override fun startPreview(request: CameraPreviewRequest) {
+        override fun startPreview() {
             if (_isPreviewing.compareAndSet(false, true)) {
                 val capabilities = getCapabilities()
                 val currentParameters = getCurrentParameters()
+                val request = settingManager.loadRequest(this)
                 capabilities.previewResolutions.let {
                     request.resolutionSelector.instance(it)
                 }?.run {
@@ -120,6 +124,12 @@ class UVCCameraOperatorSource(
                 }
                 uvcCamera.startPreview()
             }
+        }
+
+        override fun updateConfig(request: CameraPreviewRequest) {
+            stopPreview()
+            settingManager.configFor(this, request)
+            startPreview()
         }
 
         override fun stopPreview() {
