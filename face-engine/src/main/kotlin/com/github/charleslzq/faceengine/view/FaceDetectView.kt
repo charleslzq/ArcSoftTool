@@ -19,8 +19,6 @@ import java.util.concurrent.atomic.AtomicBoolean
 val CameraView.textureView
     get() = getChildAt(0) as TextureView
 
-fun CameraPreviewOperator.isFoto() = this is FotoCameraOperatorSource.FotoCameraPreviewOperator
-
 class FaceDetectView
 @JvmOverloads
 constructor(context: Context, attributeSet: AttributeSet? = null, @AttrRes defStyle: Int = 0) :
