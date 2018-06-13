@@ -49,13 +49,6 @@ interface CameraPreviewOperator {
     fun updateConfig(request: CameraPreviewRequest)
     fun stopPreview()
     fun isPreviewing(): Boolean
-
-    data class Info(
-            val id: String,
-            val source: String,
-            val capabilities: CameraCapabilities,
-            val currentParameters: CameraParameters
-    )
 }
 
 interface CameraSource : AutoCloseable {

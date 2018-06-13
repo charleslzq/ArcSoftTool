@@ -127,9 +127,11 @@ class UVCCameraOperatorSource(
         }
 
         override fun updateConfig(request: CameraPreviewRequest) {
-            stopPreview()
             settingManager.configFor(this, request)
-            startPreview()
+            if (isPreviewing()) {
+                stopPreview()
+                startPreview()
+            }
         }
 
         override fun stopPreview() {
