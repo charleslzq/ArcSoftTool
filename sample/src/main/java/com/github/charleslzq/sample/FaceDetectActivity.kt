@@ -4,7 +4,6 @@ import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
-import android.util.Log
 import com.github.charleslzq.arcsofttools.kotlin.Person
 import com.github.charleslzq.arcsofttools.kotlin.WebSocketArcSoftService
 import com.github.charleslzq.faceengine.view.config.FotoCameraPreviewRequest
@@ -20,11 +19,6 @@ class FaceDetectActivity : AppCompatActivity() {
         setContentView(R.layout.activity_face_detect)
         faceDetectCamera.setOnClickListener {
             faceDetectCamera.selectNext()
-        }
-        faceDetectCamera.withDeviceInfo {
-            it.forEach {
-                Log.i(it.id, it.capabilities.previewResolutions.joinToString(","))
-            }
         }
         faceDetectCamera.saveRequest(faceDetectCamera.cameras[0], FotoCameraPreviewRequest(ResolutionSelector.MaxWidth))
         faceDetectCamera.onPreview {

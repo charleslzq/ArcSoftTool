@@ -4,8 +4,6 @@ import com.github.charleslzq.faceengine.view.config.CameraCapabilities
 import com.github.charleslzq.faceengine.view.config.CameraParameters
 import com.github.charleslzq.faceengine.view.config.CameraPreviewRequest
 import io.fotoapparat.parameter.Resolution
-import io.reactivex.Single
-import io.reactivex.functions.BiFunction
 
 sealed class PreviewFrame(
         val size: Resolution,
@@ -45,11 +43,8 @@ interface Selector<T> {
 interface CameraPreviewOperator {
     val id: String
     val source: CameraOperatorSource
-    fun getCapabilities(): Single<CameraCapabilities>
-    fun getCurrentParameters(): Single<CameraParameters>
-    fun withCameraInfo(): Single<Info> = getCapabilities().zipWith(getCurrentParameters(), BiFunction { capabilities: CameraCapabilities, parameters: CameraParameters ->
-        Info(id, source.id, capabilities, parameters)
-    })
+    fun getCapabilities(): CameraCapabilities
+    fun getCurrentParameters(): CameraParameters
     fun startPreview(request: CameraPreviewRequest)
     fun stopPreview()
     fun isPreviewing(): Boolean

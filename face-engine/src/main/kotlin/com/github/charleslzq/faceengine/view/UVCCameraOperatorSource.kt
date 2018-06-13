@@ -10,7 +10,6 @@ import com.serenegiant.usb.UVCCamera
 import io.fotoapparat.parameter.Resolution
 import io.fotoapparat.view.CameraView
 import io.fotoapparat.view.Preview
-import io.reactivex.Single
 import java.nio.ByteBuffer
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicBoolean
@@ -92,13 +91,11 @@ class UVCCameraOperatorSource(
         private val count = AtomicInteger(0)
         private var buffer = ByteArray(0)
         private val _isPreviewing = AtomicBoolean(false)
-        private val capabilities: CameraCapabilities
-            get() = getCapabilities().blockingGet()
-        private val currentParameters: CameraParameters
-            get() = getCurrentParameters().blockingGet()
 
         override fun startPreview(request: CameraPreviewRequest) {
             if (_isPreviewing.compareAndSet(false, true)) {
+                val capabilities = getCapabilities()
+                val currentParameters = getCurrentParameters()
                 capabilities.previewResolutions.let {
                     request.resolutionSelector.instance(it)
                 }?.run {
@@ -134,15 +131,11 @@ class UVCCameraOperatorSource(
 
         override fun isPreviewing() = _isPreviewing.get()
 
-        override fun getCapabilities(): Single<CameraCapabilities> = Single.fromCallable {
-            UVCCameraCapabilities(uvcCamera.supportedSizeList.map {
-                Resolution(it.width, it.height)
-            }) as CameraCapabilities
-        }
+        override fun getCapabilities(): CameraCapabilities = UVCCameraCapabilities(uvcCamera.supportedSizeList.map {
+            Resolution(it.width, it.height)
+        })
 
-        override fun getCurrentParameters(): Single<CameraParameters> = Single.fromCallable {
-            UVCCameraParameters(uvcCamera.previewSize.let { Resolution(it.width, it.height) }) as CameraParameters
-        }
+        override fun getCurrentParameters(): CameraParameters = UVCCameraParameters(uvcCamera.previewSize.let { Resolution(it.width, it.height) })
 
         fun release() = uvcCamera.run {
             try {

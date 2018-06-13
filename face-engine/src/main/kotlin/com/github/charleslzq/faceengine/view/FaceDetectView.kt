@@ -9,9 +9,6 @@ import com.github.charleslzq.faceengine.core.TrackedFace
 import com.github.charleslzq.faceengine.view.config.*
 import io.fotoapparat.parameter.ScaleType
 import io.fotoapparat.view.CameraView
-import io.reactivex.Single
-import io.reactivex.schedulers.Schedulers
-import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 
 /**
@@ -134,29 +131,6 @@ constructor(context: Context, attributeSet: AttributeSet? = null, @AttrRes defSt
 
     fun selectCamera(selector: Selector<CameraPreviewOperator>) {
         selectCamera = { selector.select(it) }
-    }
-
-    fun withDeviceInfo(consumer: Consumer<List<CameraPreviewOperator.Info>>) = withDeviceInfo { consumer.consume(it) }
-
-    fun withDeviceInfo(process: (List<CameraPreviewOperator.Info>) -> Unit) {
-        Single.fromCallable {
-            cameras.map {
-                val latch = CountDownLatch(1)
-                var cameraInfo: CameraPreviewOperator.Info? = null
-                if (it.isFoto()) {
-                    it.startPreview(FotoCameraPreviewRequest())
-                }
-                it.withCameraInfo().subscribe { result, _ ->
-                    cameraInfo = result
-                    latch.countDown()
-                }
-                latch.await()
-                if (it.isFoto()) {
-                    it.stopPreview()
-                }
-                cameraInfo!!
-            }
-        }.subscribeOn(Schedulers.io()).doAfterSuccess { restart() }.subscribe(process)
     }
 
     private fun onNewDevice(camera: CameraPreviewOperator) {

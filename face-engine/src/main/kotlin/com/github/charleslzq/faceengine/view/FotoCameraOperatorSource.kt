@@ -13,7 +13,6 @@ import io.fotoapparat.preview.FrameProcessor
 import io.fotoapparat.result.adapter.rxjava2.toSingle
 import io.fotoapparat.selector.*
 import io.fotoapparat.view.CameraView
-import io.reactivex.Single
 import io.reactivex.schedulers.Schedulers
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
@@ -87,13 +86,13 @@ class FotoCameraOperatorSource(
 
         override fun isPreviewing() = _isPreviewing.get()
 
-        override fun getCapabilities(): Single<CameraCapabilities> = fotoapparat.getCapabilities().transform {
+        override fun getCapabilities(): CameraCapabilities = fotoapparat.getCapabilities().transform {
             FotoCameraCapabilities(it.previewResolutions.toList()) as CameraCapabilities
-        }.toSingle().subscribeOn(Schedulers.io())
+        }.toSingle().subscribeOn(Schedulers.io()).blockingGet()
 
-        override fun getCurrentParameters(): Single<CameraParameters> = fotoapparat.getCurrentParameters().transform {
+        override fun getCurrentParameters(): CameraParameters = fotoapparat.getCurrentParameters().transform {
             FotoCameraParameters(it.previewResolution) as CameraParameters
-        }.toSingle().subscribeOn(Schedulers.io())
+        }.toSingle().subscribeOn(Schedulers.io()).blockingGet()
     }
 
     class FrameToObservableProcessor(private val submit: (Frame, (Frame) -> SourceAwarePreviewFrame) -> Unit) : FrameProcessor {
