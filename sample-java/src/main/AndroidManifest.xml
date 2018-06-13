@@ -35,7 +35,23 @@
             android:name="com.github.charleslzq.arcsofttools.kotlin.WebSocketArcSoftService"
             android:enabled="true" />
 
-        <activity android:name=".FaceDetectActivity" />
+        <activity android:name=".FaceDetectActivity">
+            <intent-filter>
+                <action android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED" />
+            </intent-filter>
+
+            <meta-data
+                android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED"
+                android:resource="@xml/device_filter" />
+
+            <intent-filter>
+                <action android:name="android.hardware.usb.action.USB_DEVICE_DETACHED" />
+            </intent-filter>
+
+            <meta-data
+                android:name="android.hardware.usb.action.USB_DEVICE_DETACHED"
+                android:resource="@xml/device_filter" />
+        </activity>
         <activity android:name=".FaceRegisterActivity" />
     </application>
 
