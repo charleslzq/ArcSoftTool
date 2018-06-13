@@ -11,6 +11,7 @@ import com.github.charleslzq.faceengine.view.config.CameraSettingManager
 import io.fotoapparat.parameter.ScaleType
 import io.fotoapparat.view.CameraView
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicBoolean
 
 /**
  * Created by charleslzq on 18-3-8.
@@ -24,6 +25,7 @@ class FaceDetectView
 @JvmOverloads
 constructor(context: Context, attributeSet: AttributeSet? = null, @AttrRes defStyle: Int = 0) :
         FrameLayout(context, attributeSet, defStyle), CameraSource {
+    private val isClosing = AtomicBoolean(false)
     private val settingManager = CameraSettingManager(context)
     val cameraPreviewConfiguration: CameraPreviewConfiguration
         get() = settingManager.loadSetting().cameraPreviewConfiguration
@@ -143,7 +145,7 @@ constructor(context: Context, attributeSet: AttributeSet? = null, @AttrRes defSt
     }
 
     private fun onDisconnect(camera: CameraPreviewOperator) {
-        if (selectedCamera != null && selectedCamera!!.id == camera.id) {
+        if (selectedCamera != null && selectedCamera!!.id == camera.id && !isClosing.get()) {
             selectCamera = { it.firstOrNull { it.id != camera.id } }
         }
     }
@@ -160,6 +162,7 @@ constructor(context: Context, attributeSet: AttributeSet? = null, @AttrRes defSt
     }
 
     override fun close() {
+        isClosing.set(true)
         cameraSources.forEach {
             it.close()
         }

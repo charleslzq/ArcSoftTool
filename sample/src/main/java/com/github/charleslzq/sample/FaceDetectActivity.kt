@@ -6,8 +6,6 @@ import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
 import com.github.charleslzq.arcsofttools.kotlin.Person
 import com.github.charleslzq.arcsofttools.kotlin.WebSocketArcSoftService
-import com.github.charleslzq.faceengine.view.config.FotoCameraPreviewRequest
-import com.github.charleslzq.faceengine.view.config.ResolutionSelector
 import com.orhanobut.logger.Logger
 import kotlinx.android.synthetic.main.activity_face_detect.*
 
@@ -20,8 +18,9 @@ class FaceDetectActivity : AppCompatActivity() {
         faceDetectCamera.setOnClickListener {
             faceDetectCamera.selectNext()
         }
-        faceDetectCamera.saveRequest(faceDetectCamera.cameras[0], FotoCameraPreviewRequest(ResolutionSelector.MaxWidth))
         faceDetectCamera.onPreview {
+            Logger.i(faceDetectCamera.selectedCamera?.getCapabilities()?.previewResolutions?.joinToString(",")
+                    ?: "UNKNOWN")
             Logger.i("on frame with size ${it.size} and rotation ${it.rotation}, ${it.sequence}/${it.source}")
             val startTime = System.currentTimeMillis()
             connection.whenConnected { engine ->

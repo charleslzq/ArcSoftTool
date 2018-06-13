@@ -6,6 +6,7 @@ import com.github.charleslzq.faceengine.view.config.*
 import io.fotoapparat.Fotoapparat
 import io.fotoapparat.FotoapparatBuilder
 import io.fotoapparat.characteristic.LensPosition
+import io.fotoapparat.configuration.CameraConfiguration
 import io.fotoapparat.log.logcat
 import io.fotoapparat.parameter.ScaleType
 import io.fotoapparat.preview.Frame
@@ -82,9 +83,12 @@ class FotoCameraOperatorSource(
         }
 
         override fun updateConfig(request: CameraPreviewRequest) {
-            stopPreview()
-            settingManager.configFor(this, request)
-            startPreview()
+            (request as FotoCameraPreviewRequest).let {
+                settingManager.configFor(this, it)
+                fotoapparat.updateConfiguration(CameraConfiguration(
+                        previewResolution = it.resolutionSelector.instance
+                ))
+            }
         }
 
         override fun stopPreview() {
